@@ -298,3 +298,7 @@ At last use, `shared_memory_resource_unmap` requires the mutex and a zero use co
 Resource table construction, lookup, port references, lifecycle transitions, shared-buffer setup/copy/teardown, and ordinary/extended memory upcalls were read through their allocation and cleanup paths. Task attachment, exec inheritance, stop/suspend context and memory ledgers were connected to those paths. FrameMint was inspected as a client/boot dependency. The allocation/tagging branches are configuration-dependent; no kernel was built, booted, or exercised.
 
 The physical frame's type is queried through SPTM; the secure service's mapping and capability rules are reached through Tightbeam. Their server implementations are not present. This chapter establishes XNU's requests, validations and lifetime obligations, not a proof of the external enforcement or of all concurrent teardown combinations.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

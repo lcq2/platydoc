@@ -271,3 +271,7 @@ This is separate from ordinary `kalloc_type(T, count, flags)`: both are array-or
 The routing, class calculation, initial-sharing policy, allocation/free/realloc bodies and array encoding above were read directly. [Type assignment](typed-allocation.md), [zone caches and reclaim](zone-allocator.md), and [VM guard allocation](kernel-virtual-allocation.md) supply the deeper storage mechanisms. [Compatibility and protected-memory interfaces](allocator-interfaces.md) follows IOKit, C++ and BSD callers into these routes.
 
 This is a source trace for this checkout. No running kernel's zone assignment, tunable values or allocation distribution was measured. KASAN, MTE, architecture, external call sites and startup phase change the selected branches; comments describing older implementations are not treated as the current algorithm.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

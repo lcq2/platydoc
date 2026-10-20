@@ -2829,3 +2829,7 @@ routine io_service_wait_quiet_with_options(
 
 **Local body:** [`is_io_service_wait_quiet_with_options`](../../../xnu/iokit/Kernel/IOUserClient.cpp#L4297).
 Calls visible in this body include `CHECK`, `IOCurrentTaskHasEntitlement`, `IOCopyLogNameForPID`, `proc_selfpid`, `IOLog`, `IOServiceWaitQuietWithOptions`, `getCStringNoCopy`, `OSSafeReleaseNULL`, `waitQuietWithOptions`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

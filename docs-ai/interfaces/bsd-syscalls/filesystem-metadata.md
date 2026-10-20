@@ -573,3 +573,7 @@ Read a requested bitmap of filesystem attributes into a packed user buffer.
 Set a bitmap-selected packed set of filesystem attributes by path, directory-relative path or descriptor.
 
 **Implementation:** [setattrlistat](../../../xnu/bsd/vfs/vfs_attrlist.c#L4980). Each entry resolves/pins its vnode, handles lease interaction and calls `setattrlist_internal`, which validates bitmap/layout and performs the attribute update.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -276,3 +276,7 @@ There is also a diagnostic recheck path, `revalidate_text_page()`, used after a 
 Deep inspection covers UBC hash/range/page helpers; VM validation predicates, busy/paging ownership, result masks, mapping-policy and invalid-process paths; optional bitmap behavior; representative cached-write, UPL and COW resets; monitor association/result boundaries; and selected transformation-pager handoffs. This is not a proof of every concurrent modification, specialized pager, platform configuration or physical-memory failure.
 
 The local code provides expected-hash selection, digest dispatch and comparisons, state publication and mapping decisions. Certificate/CMS trust policy, complete AMFI behavior, protected monitor internals and filesystem-specific backing-store guarantees are not supplied by those interfaces. No kernel, executable, corrupted file or runtime fault was executed during this documentation work.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

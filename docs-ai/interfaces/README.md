@@ -69,3 +69,7 @@ MIG `.defs` files describe messages and conversions; generated server C is mostl
 Start at the catalog's declaration, then read its resolved implementation and linked mechanism guide. Inline snippets explain representative decisions; catalog references locate the remaining bodies. Code inventories and selected source checks establish entry coverage and implementation routes, not complete analysis of every flag, concurrent interleaving or provider implementation.
 
 The BSD and MIG inventories include reconciliation data and generators. They preserve conditional alternatives rather than choosing an undocumented product configuration. No generated kernel code, kernel image or live syscall workload was executed for this documentation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

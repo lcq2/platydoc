@@ -192,3 +192,6 @@ The workqueue later calls `kqueue_threadreq_bind_commit()` under the queue lock 
 
 This trace reads common registration, posting, knote lock/drop, lookup/index, queue processing, fd-close, dynamic-workloop retain/create/deallocate, owner update, synchronous wait, QoS request, bind/unbind, and workqueue interfaces. `EVFILT_USER` supplies a complete small filter example. Socket/vnode/Mach-port producers retain their own lock and readiness rules; see [networking](../networking/socket-lifecycle-and-io.md), [VFS](../vfs/README.md), and [IPC](../ipc/README.md). Timer scheduling, every filter, nested descriptor-kqueue readiness, all work-interval policies, and every parking/priority race are not exhaustively reconstructed.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

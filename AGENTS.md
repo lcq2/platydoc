@@ -51,6 +51,14 @@ The project root contains `make_docs.py`, `AGENTS.md`, `docs-ai/` and `xnu/`. Ru
 
 **Do not confuse generated Markdown with authored Markdown.** A hand edit to a generated catalog can disappear at the next refresh. Conversely, most implementation chapters require source research and authored updates; no generator rewrites their explanations after a kernel change.
 
+### Documentation and software licenses
+
+Original Platydoc text and diagrams, including authored/generated Markdown and their HTML rendering, use **CC BY 4.0**; the full text is in [LICENSE-DOCS](LICENSE-DOCS). Build tools and browser software use **GPL-2.0-only**, in [LICENSE](LICENSE). XNU, copied source excerpts and bundled dependencies retain their upstream licenses and notices. Never apply a blanket CC notice to the contents of `xnu/` or vendor files.
+
+`docs-ai/tools/doc_license.py` owns the marked, visible Markdown notice. Markdown generators must use its `with_license_notice()` helper so regeneration preserves the license. The normal book build synchronizes handbook notices before validation; `python3 docs-ai/tools/doc_license.py --check` checks them without writing. Preserve the notice when editing chapters and keep exact source-excerpt blocks unchanged.
+
+The shared HTML template displays the documentation license and distinguishes software and third-party terms on every page, including source-view wrappers. The copied source itself keeps its original headers and bytes. Include both project license texts and upstream notices in the standalone book so offline readers can inspect them. Strip the marked Markdown footer only from rendered chapter/search content to avoid duplication; preserve it in downloadable Markdown.
+
 The BSD and MIG generators do not automatically remove obsolete family/subsystem pages. When a family or definition file is renamed or removed, compare the expected output set with existing files. Remove or deliberately retain historical pages only after checking their contents and incoming links. Otherwise stale pages remain in the book.
 
 ## 3. Research and technical depth

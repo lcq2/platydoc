@@ -33,3 +33,7 @@ simpleroutine fairplayd_arcade_request(
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
 Local source occurrences to follow: [osfmk/kern/arcade.c:223](../../../xnu/osfmk/kern/arcade.c#L223). These may be senders, wrappers or declarations; they do not establish a local receiver.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

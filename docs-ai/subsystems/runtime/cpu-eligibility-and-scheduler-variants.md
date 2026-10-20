@@ -197,3 +197,7 @@ System sleep uses another recommendation override around cluster-powerdown coord
 Deep review covered build-time selection, dualq queue choice/removal/preemption/stealing, selected AMP spill and placement retries, available/recommended state, binding, SMT candidate/dequeue/continuation rules, realtime backup delay, recommendation publication and pulled-thread flushing, and the ARM64 maintenance-starvation failsafe. The [Clutch/Edge chapter](clutch-and-edge.md) remains the companion for that implementation's group and cluster algorithms.
 
 Full CPU startup/hot-unplug, every performance-island/shared-resource branch, topology-specific machine hints, all SFI behavior, and external performance-controller policy are outside this selected analysis. No processor-offline, SMT, or sleep experiment was run. Source references identify conditional implementations; they do not establish the configuration of a particular shipped kernel.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

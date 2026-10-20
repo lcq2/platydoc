@@ -20,6 +20,11 @@ Continue into the detailed implementation chapters:
 | [Device nodes, specfs and named FIFOs](device-nodes-and-fifos.md) | How do devfs names become vnodes, clone devices get instances, device aliases reach the switch, and FIFO socket pairs open and close? |
 | [Stacked filesystems](stacked-filesystems.md) | How do bindfs/nullfs retain lower vnodes, resolve alias-creation races, synthesize identity, forward page-in and unmount? |
 | [NFS server requests](nfs-server-requests.md) | How do socket records become requests, bounded replay caches filter duplicates, file handles resolve, and READ/WRITE/gather/COMMIT complete? |
+| [Attribute lists and extended attributes](metadata-and-extended-attributes.md) | How are metadata bitmaps authorized, fetched, packed and set? How do native xattrs and the DoubleAgent fallback transfer data and references? |
+| [Advisory locks and leases](advisory-locks-and-leases.md) | Who owns a byte-range lock, how are intervals and waiters updated, and how do lease breaks notify, wait, time out and reclaim? |
+| [Filesystem event queues](filesystem-event-queues.md) | How do producers, shared events, per-watcher rings, coalescing, loss markers, record copies and close interact? |
+| [Compressed file data](compressed-file-data.md) | How do decmpfs headers/providers, cnode state, resident pages, UPL completion and conversion to ordinary backing work? |
+| [Quota records and cache lifetime](quota-cache-and-filesystem-boundaries.md) | How do quota-file exclusion, record lookup/reuse, on-disk hashing, dirty orphan writeback and filesystem callbacks fit together? |
 
 For signed files, continue from those caches into [signature format and structural checks](../security/signature-format-and-blob-validation.md) → [attachment to the vnode's UBC state](../security/vnode-signature-lifecycle.md) → [exec and mapping policy](../security/executable-signature-policy.md) → [page hashing and cached validation](../security/page-signature-validation.md). A name-cache hit, a resident data page, an accepted `cs_blob`, and an executable mapping are separate results.
 
@@ -82,5 +87,11 @@ These are reading routes, not exhaustive call graphs: compound operations, retri
 | Mount lifecycle, boot and registration | Deep selected root mount, `mount_common` publication/rollback, `lookup_traverse_mountpoints`, `vfs_busy`, `dounmount`, `vflush`, reference drains, filesystem registration and operation vectors | Mount failure and force/device branches included; product-specific root-volume policy and every nested-mount/trigger race are not fully traced |
 | Small filesystems and special nodes | Deep selected devfs registration/lookup/clone/refcount/mount lifecycle, specfs alias/open/data/close dispatch, FIFO activation/peer/close, bindfs/nullfs alias hash/lookup/synthetic namespace/context/page-in/unmount | Four concrete lifecycle implementations; routefs and mockfs remain surveys, not a complete audit of every filesystem |
 | NFS | Deep selected socket/upcall/framing/parser/worker ownership, replay cache, file-handle/mount/credential conversion, READ/WRITE/gather/COMMIT and shutdown; existing `fhopen`, GSS and registration-hook survey | Current NFSv2/v3 server paths and limits; no complete RPC/security audit and no absent NFS client implementation inferred |
+| Metadata, locks and events | Attribute packing/bulk progress/set ordering, native and DoubleAgent xattrs, lockf ranges/waiters/close, lease breaks, event watcher publication/delivery/loss/close | External filesystem metadata storage and DoubleAgent service bodies remain boundaries |
+| Compressed files and quota infrastructure | decmpfs header/provider/UBC/UPL/conversion paths, quota cache identity/refcounts/disk records/writeback | Most codecs, APFS methods and filesystem quota charging are external; generic callbacks do not reveal those implementations |
 
 Useful adjacent originals are the [VM pageout description](../../../xnu/doc/vm/pageout_scan.md) and [startup description](../../../xnu/doc/lifecycle/startup.md). The [devfs README](../../../xnu/bsd/miscfs/devfs/README) explicitly identifies itself as inherited FreeBSD 3.1 commentary: use current source, rather than that historical feature list, for this version's behavior.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -316,3 +316,7 @@ EPT pmaps reuse portions of the allocation/PV code through `PTE_READ`, `PTE_WRIT
 ## Reading route and limits
 
 Follow `pmap_create_options` → `pmap_enter_options` → missing-table expansion → PV/PTE publication → `pmap_switch`/`pmap_pcid_activate`. Then read removal and `pmap_flush_tlbs` together, followed by `pmap_page_protect_options` for the physical-page direction. The inspected path includes allocation races, managed/unmanaged distinctions, same-frame updates, replacement, reverse-map ownership, compressed markers, accounting, root sharing, and invalidation completion. Early bootstrap, every cache-type transition, corruption-recovery heuristics, huge-page policy, and all EPT execution paths remain narrower than this mapping-path review.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

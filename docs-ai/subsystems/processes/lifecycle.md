@@ -69,3 +69,7 @@ Exec failure is phase-dependent. Early failure can return an error to the old im
 [`wait4_nocancel()`](../../../xnu/bsd/kern/kern_exit.c#L3043) searches matching children, skips shadow procs, serializes waiters through `P_LIST_WAITING`, copies status/resource usage out, and calls `reap_child_locked()`. `waitid_nocancel()` has a parallel status interface and supports its own options. [`reap_child_locked()`](../../../xnu/bsd/kern/kern_exit.c#L2849) handles tracing/reparenting cases, removes family/group/hash membership, destroys remaining descriptor/lock state, and drops the wait reference. A zombie is a process record retained for observation; it is not an executing thread.
 
 For the first process, [`bsd_utaskbootstrap()`](../../../xnu/bsd/kern/bsd_init.c#L1173) clones from `kernproc` with no parent task/memory inheritance and obtains PID 1. Its BSD AST reaches `bsdinit_task()`, which installs the exception bridge and calls `load_init_program()`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

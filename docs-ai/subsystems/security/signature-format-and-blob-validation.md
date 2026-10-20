@@ -260,3 +260,7 @@ For the 4-KiB-to-16-KiB example, a new expected slot represents `H(H(P0) || H(P1
 | `corecrypto_sha1.c`, `corecrypto_sha2.c` | Local compatibility wrappers and provider dispatch, not cryptographic-provider internals |
 
 No malformed-signature test, executable launch, kernel build, or cryptographic verification was executed. The described checks are the actual visible predicates, including disabled checks and incomplete semantic validation; this is not a proof that every possible format is accepted or rejected as intended. CMS/certificate trust, entitlement semantics, AMFI policy, and protected monitor validation require external implementations. Continue with [vnode attachment](vnode-signature-lifecycle.md), then [executable policy](executable-signature-policy.md) and [page integrity](page-signature-validation.md), to see when those separate decisions occur.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

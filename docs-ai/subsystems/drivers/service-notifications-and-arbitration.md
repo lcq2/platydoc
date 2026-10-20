@@ -179,3 +179,7 @@ Read the notifier structures and lock macros, then `installNotification/addMatch
 | `doServiceMatch` callback boundaries | State ordering around notification delivery | Candidate probing and termination are covered in the companion lifecycle chapter |
 
 User-facing notification ports and shared queues build on these kernel mechanisms but add their own queue/arming and IPC ownership rules; continue with [shared data queues and notifications](shared-data-queues-and-notifications.md). No callback race or deadlock was executed during this source review.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

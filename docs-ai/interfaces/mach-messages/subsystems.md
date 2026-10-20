@@ -114,3 +114,7 @@ Test-specific exception servers and replacement declarations are not production 
 - **510** per-file ID slots with a routine in at least one profile, plus **23** always-skipped per-file slots.
 - **510** routine slots with authored mechanism or explicit implementation-boundary explanations.
 - Counts include historical, external and overlapping compatibility interfaces. They are not the number of callable kernel RPCs.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -1704,3 +1704,7 @@ routine task_register_hardened_exception_handler(
 
 **Local body:** [`task_register_hardened_exception_handler`](../../../xnu/osfmk/kern/ipc_tt.c#L4842).
 Calls visible in this body include `IP_VALID`, `ip_is_exception_port`, `set_exception_ports_validation`, `exception_ports_frozen`, `task_ro_flags_set`, `itk_lock`, `itk_unlock`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

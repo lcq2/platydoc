@@ -1163,3 +1163,7 @@ vm_reallocate(
 
 **User wrapper:** [`vm_reallocate`](../../../xnu/libsyscall/mach/mach_vm.c#L754).
 Calls visible in this body include `mach_vm_reallocate`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

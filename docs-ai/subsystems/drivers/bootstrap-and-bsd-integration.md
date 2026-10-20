@@ -221,3 +221,7 @@ The boot route illustrates the same rule as ordinary device operation: catalogue
 ## Inspection scope
 
 Deep inspection covered framework bootstrap, architecture-specific matching start, device-tree property ownership, resource publication/matched-pass behavior, root selection/wait/result conversion, and the BSD mount handoff. Address-cell translation, full device-tree interrupt-map parsing, every boot-recovery/NVRAM command, kernel-collection loading, concrete storage/network families and APFS remain separate or external. Device-tree import and platform callbacks provide local evidence of interfaces and ordering; they cannot establish absent firmware or hardware-driver implementation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

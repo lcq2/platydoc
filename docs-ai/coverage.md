@@ -174,3 +174,7 @@ The [source-reference index](source-index.md) lists directly cited files and the
 No XNU source was changed, and no kernel or kernelcache was built, installed, or booted. No runtime test suite, exploit test, formal proof, or hardware validation was performed. Validation was appropriate to a documentation change: source inspection, cross-guide review, and local reference/structure checks.
 
 The source snapshot did not expose usable Git history, so references are pinned by checkout paths, symbols, and line positions rather than a commit hash. Feature guards and SDK/platform choices still determine which documented implementation belongs to a particular built kernel.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

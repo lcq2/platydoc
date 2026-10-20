@@ -92,3 +92,7 @@ A page fault is not necessarily a disk operation. The common code handles reside
 | Machine pmap and security code | Common call contract inspected here; backend translation geometry, monitor behavior, TLB implementation and full code-signing/MTE policy belong to the linked specialized guides |
 
 The snippets are exact extracts from this checkout. Configuration branches remain significant: page sizes, x86 execute-permission behavior, ARM64e TPRO, MTE, code-signing monitors and map ranges can change which paths apply. The original [VM parameter sanitization document](../../../xnu/doc/vm/sanitize.md) explains the checked arithmetic at public boundaries.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

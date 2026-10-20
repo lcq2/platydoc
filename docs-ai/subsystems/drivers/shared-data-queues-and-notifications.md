@@ -283,3 +283,7 @@ The can-drop option selects a zero-timeout send; the ordinary path uses the kern
 ## Inspection scope
 
 This chapter follows the complete selected classic enqueue/dequeue/notifier bodies, circular creation/publication/latest/next/validation/destruction paths, and external-method completion construction. It is not a formal memory-order proof or a security audit of hostile concurrent writers. Classic userspace consumer implementations, concrete driver cancellation policies, and all circular previous/current/reset corner cases remain separate inspection targets. The source's checks, partial progress, ignored errors, and configuration restrictions are stated where they affect how these interfaces can be interpreted.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

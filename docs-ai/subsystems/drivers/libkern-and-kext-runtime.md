@@ -56,3 +56,7 @@ At the inspected KXLD entry boundary, `kxld_link_file` initializes the context a
 | [`compression.c`](../../../xnu/libkern/compression/compression.c), [`register_crypto.c`](../../../xnu/libkern/crypto/register_crypto.c) | Registration of compression and cryptographic function interfaces | These boundaries install function tables; they are not evidence that all providers or algorithms live in these files. |
 
 For a practical source-reading exercise, follow a personality's `IOClass` through named allocation, `init`, a collection insertion, `attach`, `start`, and failure cleanup. That one path connects class registration, object ownership, registry references, and executable lifetime without requiring the reader to begin inside the linker.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

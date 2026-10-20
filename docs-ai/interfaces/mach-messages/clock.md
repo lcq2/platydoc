@@ -111,3 +111,7 @@ routine clock_alarm(
 
 **Local body:** [`clock_alarm`](../../../xnu/osfmk/kern/clock_oldops.c#L388).
 Calls visible in this body include `IP_VALID`, `check_time`, `clock_alarm_reply`, `LOCK_ALARM`, `UNLOCK_ALARM`, `zalloc_flags`, `post_alarm`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

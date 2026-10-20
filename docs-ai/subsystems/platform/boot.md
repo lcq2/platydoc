@@ -57,3 +57,7 @@ The diagram is the ARM64 path with `IOKIT` and `MACH_BSD` enabled; additional co
 The x86 bootstrap includes a 32-bit protected-mode entry that establishes page tables and transitions to long mode, then enters `vstart()`. `vstart()` separates boot and secondary CPUs, performs early table/CPU setup, and invokes `i386_init()` or `i386_init_slave()` on the selected stack. `i386_init()` establishes clocks/CPU state, calls `i386_vm_init()`, attaches a bootstrap thread, and enters its architecture `machine_startup()`, which also calls common `kernel_bootstrap()`. Do not apply ARM's monitor arguments, exception stacks, or TTBR setup to this path. [`x86 start.s`](../../../xnu/osfmk/x86_64/start.s#L124), [`vstart()`](../../../xnu/osfmk/i386/i386_init.c#L693), [`i386_init()`](../../../xnu/osfmk/i386/i386_init.c#L840), [`machine_startup()`](../../../xnu/osfmk/i386/AT386/model_dep.c#L302).
 
 The I/O Kit timing differs too: x86 `PE_init_iokit()` starts matching immediately because pre-lockdown work needs CPU enumeration through the ACPI stack. Its later `PE_lockdown_iokit()` waits for the CPU count to be established. The ARM matching-after-lockdown diagram above must not be applied unchanged to x86. [`pexpert/i386/pe_init.c`](../../../xnu/pexpert/i386/pe_init.c#L188).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

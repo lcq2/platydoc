@@ -361,3 +361,7 @@ For a first implementation pass, read `struct zone` and the metadata layout, the
 | Typed policy and optional diagnostics | Typed free compatibility examined; signature generation/grouping belongs to [typed allocation](typed-allocation.md). KASAN, MTE, VM tags, and leak logging alter these paths; no claim that all are enabled together or that all configurations were built |
 
 This is a source-derived account of this checkout. No running-kernel measurements or allocator benchmarks were performed.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

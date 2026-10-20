@@ -143,3 +143,7 @@ The largest imbalance here is diagnostics. The observability guide explains sele
 ## Boundaries and verification
 
 The recommendations above come from chapter review, file/symbol searches, and selected implementation bodies. They do not imply whole-file verification of DTrace, stackshot, every MAC hook or every configuration. No kernel build, runtime test, trace, dump or hardware experiment was performed. The requested pmap, DMA, ARM64 assembly and thread-switching walkthroughs were completed alongside this audit; the other candidates remain a prioritized backlog. See the [consolidated record](../coverage-audit.md#requested-expansion-tracks).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

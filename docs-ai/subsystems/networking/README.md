@@ -70,3 +70,7 @@ Networking enters through [BSD process descriptors](../processes/descriptors-ipc
 | UDP, IPv6, NECP, content filter, PF, IPsec, flow divert, MPTCP | Selected representative bodies plus navigation survey | These pages identify integration points; they are not complete subsystem specifications |
 
 For source navigation, distinguish three callback families: socket protocol operations (`protosw`), protocols attached to an interface (`if_proto`), and Skywalk provider operations. They connect at specific points and should not be treated as one interchangeable dispatch table.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

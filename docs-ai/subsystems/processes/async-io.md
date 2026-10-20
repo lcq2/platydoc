@@ -123,3 +123,6 @@ flowchart TD
 
 This page inspected request definitions, copy/validation/enqueue, both worker execution entries, read/write dispatch, result consumption, completion, queue-removal cancellation, close/exec/exit draining, and AIO-pool retirement. Every list-I/O batch failure, fsync dependency, AIO kevent filter transition, and worker-admission decision was not audited. The implementation paths were not executed.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

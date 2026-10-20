@@ -203,3 +203,7 @@ Configure the current thread's debugging syscall-rejection mask.
 Record an entitled system event with a bounded event name and payload.
 
 **Implementation:** [sys_record_system_event](../../../xnu/bsd/kern/sys_record_event.c#L29). The handler checks `SYSTEM_EVENT_ENTITLEMENT`, imports both null-terminated strings into fixed buffers, and calls `record_system_event_no_varargs`, narrowing the type and subsystem to their byte fields. Import errors return before the logging call.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

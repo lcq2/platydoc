@@ -14,6 +14,7 @@ import re
 import subprocess
 
 from paths import DOCS, SOURCE_ROOT, require_source
+from doc_license import with_license_notice
 
 
 OUT = DOCS / "interfaces" / "mach-messages"
@@ -396,7 +397,7 @@ def render(data, index):
                         "route": route})
         if not by_id:
             lines.extend(["This subsystem declaration has no routines or skipped slots in the inspected profiles.", ""])
-        (OUT / f"{stem}.md").write_text("\n".join(lines))
+        (OUT / f"{stem}.md").write_text(with_license_notice("\n".join(lines)))
     if missing:
         raise ValueError("Missing purposes: " + json.dumps(missing))
     if missing_mechanisms:
@@ -438,7 +439,7 @@ def render(data, index):
                   f"- **{sum(r['mechanism_slots'] for r in summary)}** routine slots with authored mechanism or explicit implementation-boundary explanations.",
                   "- Counts include historical, external and overlapping compatibility interfaces. They are not the number of callable kernel RPCs.",
                   ""])
-    (OUT / "subsystems.md").write_text("\n".join(lines))
+    (OUT / "subsystems.md").write_text(with_license_notice("\n".join(lines)))
     return summary
 
 

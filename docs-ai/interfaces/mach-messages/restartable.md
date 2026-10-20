@@ -49,3 +49,7 @@ routine task_restartable_ranges_synchronize(
 
 **Local body:** [`task_restartable_ranges_synchronize`](../../../xnu/osfmk/kern/restartable.c#L583).
 Calls visible in this body include `current_task`, `thread_priority_floor_start`, `task_lock`, `os_atomic_thread_fence`, `queue_iterate`, `current_thread`, `act_set_ast_reset_pcs`, `thread_rr_wait_if_needed`, `task_unlock`, `thread_priority_floor_end`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

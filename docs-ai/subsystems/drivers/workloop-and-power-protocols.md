@@ -187,3 +187,7 @@ The wait is deliberately qualified. `waitForPMDriverCall()` skips an entry execu
 Deep review covered workloop scan/wakeup/removal/free, command-gate waiting and removal, interrupt registration/counting, both modern timer delivery modes and cancellation, PM request/reply scheduling, selected blocked-state predicates, driver callout/acknowledgment races, and PM stop admission/wait/cleanup. Read [service termination](service-matching-and-termination.md) alongside this chapter to see which callbacks use these gates.
 
 The complete PM state graph, every timer priority/clock combination, hardware interrupt controllers, filter subclass internals, dark-wake policy, and driver-specific reentrancy rules are not exhaustively reviewed. No device/interrupt or suspend-resume workload was executed; diagrams describe the selected source paths and their configuration branches.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

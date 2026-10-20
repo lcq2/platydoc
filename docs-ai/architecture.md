@@ -115,3 +115,7 @@ The [execution-path guide](cross-cutting/execution-paths.md) follows these bound
 `osfmk/arm64`, `osfmk/arm`, `osfmk/i386`, and `osfmk/x86_64` contain machine-dependent execution and memory code. Directory names retain history: `i386` includes code used for x86-64, and shared ARM code remains under `arm`. `pexpert` handles platform discovery and callbacks; IOKit consumes platform information and discovers services. See the [platform guide](subsystems/platform/README.md).
 
 The compiled kernel is selected from a larger tree. [config/MASTER](../xnu/config/MASTER), architecture-specific configurations, subsystem `conf/files*` lists, and `#if` branches determine what exists in a particular build. In particular, scheduler policy, memory-pressure behavior, Skywalk features, Exclaves, and SPTM-related integration must not be assumed identical on all targets. Use the [build guide](development/build-and-tests.md) before deciding that two apparent implementations both run on the same device.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

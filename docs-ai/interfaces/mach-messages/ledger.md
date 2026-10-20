@@ -14,3 +14,7 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 ## Complete routine and reserved-slot catalog
 
 This subsystem declaration has no routines or skipped slots in the inspected profiles.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

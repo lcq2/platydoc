@@ -31,3 +31,7 @@ routine arcade_register_new_upcall(
 
 **Local body:** [`arcade_register_new_upcall`](../../../xnu/osfmk/kern/arcade.c#L148).
 Calls visible in this body include `os_log`, `IOCurrentTaskHasEntitlement`, `lck_mtx_lock`, `IP_VALID`, `ipc_port_release_send`, `lck_mtx_unlock`, `thread_wakeup`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

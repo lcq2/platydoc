@@ -365,3 +365,7 @@ Gap handling is API-sensitive: ordinary removal may record a guard event while r
 | `vm_user.c`, `vm_kern.c`, BSD `kern_mman.c`, `doc/vm/sanitize.md` | Traced the concrete API routes and sanitization boundaries; BSD vnode authorization and architecture execution policy continue in their owning guides |
 
 No generated MIG body, user-library implementation, or external filesystem/driver implementation is assumed here. Hardware page-table algorithms are described separately; this page establishes when common VM requires insertion, restriction, removal or unnesting.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

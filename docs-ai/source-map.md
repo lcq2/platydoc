@@ -83,3 +83,7 @@ An interface header, callback table, or stub can mark a real implementation boun
 | Why did a driver attach? | Catalogue personality, matching dictionary, provider relation, `probe`, `start` |
 | What initializes this global? | `STARTUP` registration, explicit boot call, `conf/files*`, selected configuration |
 | How can I inspect it? | [Observability guide](development/observability.md), `tools/lldbmacros`, corresponding tests |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -150,3 +150,7 @@ Sources inspected and limits:
 | `bindfs.h`, `nullfs.h` | Mount/node layouts and flags. |
 | Other in-tree filesystem names | See [implementation inventory](filesystems-and-nfs.md). This is not a claim that routefs, mockfs or union headers implement the same stacking model. |
 | External lower filesystems | Their VNOP bodies, mutation/cache invalidation guarantees, disk layout and transaction implementation are outside this audit. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

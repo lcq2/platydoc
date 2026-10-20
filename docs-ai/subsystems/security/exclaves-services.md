@@ -105,3 +105,7 @@ For a matching debug kernel, [`showallconclaves`, `showexclavesresourcetable -D 
 ## Inspection depth
 
 Storage transfer validation, registration/open/I/O/close, resource and underlying sensor counters, representative IOKit dispatch, notification delivery, AOE work notification/claim, and inspection/panic handoffs were inspected. Other storage operations, all generated RPC branches, every provider callback, AOE power-state combinations and complete crash-buffer parsing were not audited exhaustively. The detailed execution guide covers how these handlers return to the secure caller; the resources guide covers the separate capability, mapping and physical-page lifetimes.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

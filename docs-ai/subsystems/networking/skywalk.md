@@ -71,3 +71,7 @@ On receive, device-ring/notification paths can reach `fsw_receive()` and [`_fsw_
 For a user-ring destination, [`fsw_ring_enqueue_pktq()`](../../../xnu/bsd/skywalk/nexus/flowswitch/fsw_dp.c#L1236) serializes the ring, attaches packets to available slots, publishes the updated tail after a memory fence, and invokes the notification callback. Channel select/knote hooks and low-water thresholds connect available slots/packets to readiness. RX sync subsequently reconciles the user's consumption with kernel state.
 
 This trace covers ring and pool handoff plus representative flowswitch processing. [Skywalk lifecycles](skywalk-lifecycles.md) expands binding, pool ownership, flow installation/rollback, deletion, and close. Neither guide establishes every metadata-validation rule, receive aggregation mode, memory mapping protection, or provider behavior. Follow [`skmem_arena.c`](../../../xnu/bsd/skywalk/mem/skmem_arena.c) for mapping implementation and the [`flow`](../../../xnu/bsd/skywalk/nexus/flowswitch/flow) directory for the remaining flow algorithms.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

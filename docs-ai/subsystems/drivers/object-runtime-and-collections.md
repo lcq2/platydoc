@@ -227,3 +227,7 @@ Start with `OSDefineBasicStructors`, `OSObject::taggedRelease`, and `OSObject::f
 | `OSSerialize.cpp`, registry/service call sites | Identity handling and consumers of container ownership | Binary wire format, parser validation and userspace runtime are outside this chapter |
 
 This is a source review, not an executed allocation, unload, or concurrent-mutation test. Error paths are described where inspected; the chapter does not claim that collection cycles are automatically reclaimed or that reference counts replace caller locking.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

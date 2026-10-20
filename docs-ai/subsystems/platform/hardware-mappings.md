@@ -49,3 +49,7 @@ x86 `pmap_enter_options()` uses a shared pmap lock while locating tables, releas
 Do not dereference a physical address as though it were a kernel pointer. Legacy `phystokv()` first searches the physical-to-virtual aperture table, then uses a checked base-offset fallback. SPTM `phystokv()` asks `sptm_phystokv()` and returns zero on failure. Neither API is a general replacement for translating arbitrary task virtual addresses. [`legacy arm_vm_init.c`](../../../xnu/osfmk/arm64/arm_vm_init.c#L383), [`SPTM arm_init_sptm.c`](../../../xnu/osfmk/arm64/sptm/arm_init_sptm.c#L1384).
 
 `io_map()` illustrates a separate physical/virtual boundary: before KMEM startup it reserves kernel virtual space and uses bootstrap mapping routines; later it allocates a kernel-map range and installs mappings with device/cache attributes. It reserves address space for the supplied physical range rather than allocating new device memory. Also distinguish software `PAGE_SIZE` from hardware translation granules; ARM VM initialization explicitly rounds managed memory to software-page boundaries. [`io_map.c`](../../../xnu/osfmk/arm/io_map.c#L70), [`SPTM VM initialization`](../../../xnu/osfmk/arm64/sptm/arm_init_sptm.c#L1785).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

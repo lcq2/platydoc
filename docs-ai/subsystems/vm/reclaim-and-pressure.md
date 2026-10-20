@@ -187,3 +187,9 @@ Memory pressure notifications are another route: they allow clients to release c
 [`task_freeze`](../../../xnu/osfmk/kern/task.c#L5042) serializes freeze-state changes, optionally drains deferred reclamation, and invokes [`vm_map_freeze`](../../../xnu/osfmk/vm/vm_map.c#L20322). The map routine takes an exclusive range lock over the whole map to block concurrent faults, scans eligible anonymous objects, and tracks purgeable, wired, clean, dirty and shared pages. With freezer swap enabled it performs an evaluation phase and observes budgets; in-memory-only compression has different behavior. Wired pages are not magically made pageable by freezing.
 
 On success the task's frozen state and accounting are updated, and compactor/swapper work is awakened as appropriate. This preserves memory for later use; process termination instead tears down resources. The original [freezer document](../../../xnu/doc/vm/freezer.md) covers selection and product policy beyond this call path.
+
+Continue with [compressor segments and swapfiles](compressor-segments-and-swapfiles.md) for allocation, minor/major compaction, worker coordination and file GC/trim. [Purgeable objects](purgeable-memory.md), [deferred range reclamation](deferred-reclamation.md) and [phantom refault history](phantom-cache-and-refaults.md) explain separate reclamation inputs and ownership protocols.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

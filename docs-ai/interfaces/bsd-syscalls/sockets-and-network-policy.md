@@ -363,3 +363,7 @@ Query network QoS guidance for the supplied request context.
 Manage/query the privileged network tracker registry through an action selector.
 
 **Implementation:** [tracker_action](../../../xnu/bsd/kern/tracker.c#L956). Checks the required entitlement and dispatches tracker addition/dump operations with bounded user data; this is a registry/control interface rather than transport send/receive.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

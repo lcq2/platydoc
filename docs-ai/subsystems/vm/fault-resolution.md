@@ -330,3 +330,7 @@ At the machine-exception boundary, a returned kernel status is interpreted by th
 | Physically contiguous/device mappings, resilient-media and special execution policy | Relevant branches surveyed to delimit the ordinary path; no complete audit of every device block-mapping, code-signing, MTE, TPRO or resilience configuration |
 
 Several source comments retain broad “map lock” terminology. The described locking follows the current range contexts and object-lock operations. Exact snippets show this checkout; they should not be read as a guarantee that every architecture or build option follows the same branch.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

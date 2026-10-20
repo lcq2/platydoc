@@ -349,3 +349,7 @@ This visible body does not run the regular add helper's monitor registration/ver
 | `vfs_subr.c` inactive paths | The immediate refcount/lifecycle context of invalid-list destruction; not every filesystem's inactive implementation |
 
 No kernel execution, signing-tool experiment, malformed-input test, or build was performed. These chapters document the checked-out implementation rather than proving all configurations or external policies. AMFI/CoreTrust validation, monitor memory protection and cryptographic internals, and the external callers of exported invalidation interfaces remain explicit limits. The next steps in the live path are [exec/load policy](executable-signature-policy.md), [VM page validation](page-signature-validation.md), and [TXM mapping decisions](txm.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

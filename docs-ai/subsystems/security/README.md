@@ -74,3 +74,7 @@ For an initial source walk, follow `setuid()` through `kauth_cred_proc_update()`
 | Exclaves | Deep trap/proxy/hosted scheduler and interrupt paths; resource/port/task lifetimes; page donation/shared mapping; representative service and diagnostic handoffs | Secure scheduler/services, FrameMint implementation, generated transport and all provider/race combinations unavailable or not exhaustively audited |
 
 Follow [process lifecycle](../processes/lifecycle.md) for exec and credentials, [executable loading](../../cross-cutting/executable-loading.md) for Mach-O parsing, [VFS authorization](../vfs/pathname-and-authorization.md) for pathname permissions, [VM](../vm/README.md) for page faults, [IPC](../ipc/README.md) for ports and rights, [networking](../networking/policy-extensions.md) for socket policy, [drivers](../drivers/README.md) for user clients, and [platform](../platform/README.md) for protected memory and boot mechanisms.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

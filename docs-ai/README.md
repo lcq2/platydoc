@@ -83,3 +83,7 @@ Copied source excerpts carry their original file and line range. The [documentat
 This is source analysis, not a report of running or booting the kernel. Architecture, platform, build variant, and feature configuration change compiled behavior. The original supplied folder identified the snapshot as `xnu-12377.121.6`; no usable Git history was available during that source analysis for pinning it to a commit. Moving the input to `xnu/` does not itself revalidate the handbook against a different release. The build can obtain its version from an SDK/KDK or an override, as explained in the repository's [version documentation](../xnu/doc/building/xnu_version.md).
 
 The tree contains kernel mechanisms and many interfaces to components built elsewhere. It does not contain the complete macOS or iOS system, every hardware driver, or every security policy implementation. The guides identify those boundaries instead of filling them with assumed implementations. Existing [Apple-authored documentation](../xnu/doc/) remains useful alongside this guide.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

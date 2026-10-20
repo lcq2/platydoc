@@ -51,3 +51,7 @@ The available NFS server is conditional on [`CONFIG_NFS_SERVER`](../../../xnu/bs
 For RPCSEC_GSS setup, [`nfs_gss_svc_gssd_upcall`](../../../xnu/bsd/nfs/nfs_gss.c#L1124) obtains the host's gssd port and calls `mach_gss_accept_sec_context`, exchanging tokens/context information and receiving identity/security state. The message interface is in [`gssd_mach.defs`](../../../xnu/osfmk/gssd/gssd_mach.defs). The gssd daemon implementation and a complete protocol/cryptographic audit are outside this chapter.
 
 The tree lacks the NFS client's vnode/mount implementation. It does include [`nfs_register_hooks`](../../../xnu/bsd/nfs/nfs_syscalls.c#L175) for buffer invalidation callbacks and wrappers such as `nfs_vinvalbuf`, which VFS cleanup can call. These are evidence of an external integration boundary; generic comments mentioning NFS clients must not be mistaken for an implementation available here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

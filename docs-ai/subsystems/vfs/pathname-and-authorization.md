@@ -60,3 +60,7 @@ Opaque-authorization filesystems can make the final decision themselves. [`vnode
 When the filesystem supports the intended compound operation, [`lookup`](../../../xnu/bsd/vfs/vfs_lookup.c#L1663) can stop before the final component, set `NAMEI_UNFINISHED`, and return enough state for a combined lookup/create/open or mutation. [`vn_open_auth`](../../../xnu/bsd/vfs/vfs_vnops.c#L395) handles `EKEEPLOOKING` and continuation when the filesystem encounters a symlink, mountpoint or other case requiring generic resolution. This reduces separate lookup/mutation work and lets the filesystem coordinate its own namespace locks.
 
 Finally, [`nameidone`](../../../xnu/bsd/vfs/vfs_lookup.c#L2332) frees allocated pathname storage. It does **not** release the returned vnode iocounts. Read each caller's success and failure paths for `vnode_put(ni_vp)` and any parent/start-directory references; confusing these cleanup responsibilities leaks active vnodes or accesses recycled state.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

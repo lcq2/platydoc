@@ -69,3 +69,7 @@ These wrappers are dispatch mechanisms. They do not contain the full sandbox, AM
 The [`POSIX helper`](../../../xnu/bsd/kern/kern_proc.c#L5772) includes UID/group relationships, `P_SUGID`, self/root cases, and a specific debuggable-driver exception. Passing that helper is one stage, not a guarantee of a task-control right.
 
 Separately, [`task_conversion_eval_internal()`](../../../xnu/osfmk/kern/ipc_tt.c#L2277) constrains conversion of task/thread control or read ports. It checks Developer Mode for foreign control access, kernel-task rules, self access, and platform/build-specific restrictions. Its branches distinguish incoming conversion from outgoing translation and corpse access. Port flavors and kernel-object type checks also constrain what an existing name can do. Neither a PID nor a task name/inspect right is interchangeable with a control right; [IPC rights](../ipc/names-and-rights.md) explains the underlying objects.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

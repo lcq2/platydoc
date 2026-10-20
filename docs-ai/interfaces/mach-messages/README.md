@@ -293,3 +293,7 @@ These are inspection profiles chosen to represent every raw routine declaration 
 The generator rejects uncovered routine declaration sites, missing purposes/contracts and missing mechanism paragraphs. The handbook checker verifies the emitted exact excerpts against source. Bare call lists remain syntactic navigation evidence; the authored paragraphs and deeper guides explain selected decisions and concurrency/cleanup paths. No kernel message workload or generated-stub execution was performed.
 
 From the Platydoc project root, regenerate with `python3 docs-ai/tools/build_mig_catalog.py`, then run `python3 docs-ai/tools/check_links.py`. `--render-only` reuses the saved source/profile inventories when only authored explanations changed; it does not refresh those inventories against edited source.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

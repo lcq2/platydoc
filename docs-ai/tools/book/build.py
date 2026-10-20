@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 
 from build_toc import GROUPS
 from check_links import DOCS, ROOT, prose_lines
+from doc_license import LICENSE_URL, handbook_paths, strip_license_notice, sync_notices
 from paths import SOURCE_ROOT, require_source
 
 HERE = Path(__file__).resolve().parent
@@ -241,7 +242,13 @@ def shell(title, content, current, *, nav="", toc="", chapter="", breadcrumb="",
  <div class="chapter-label">{e(chapter)}</div>
  <article id="content">{content}</article>
  <nav class="page-navigation" aria-label="Adjacent chapters">{page_navigation}</nav>
- <footer class="book-footer">XNU 12377.121.6 · Source-based technical documentation · <a href="{prefix}build-info.html">Build &amp; provenance</a></footer>
+ <footer class="book-footer">
+  <p>XNU 12377.121.6 · Source-based technical documentation · <a href="{prefix}build-info.html">Build &amp; provenance</a></p>
+  <p>Original Platydoc documentation and diagrams: <a href="{LICENSE_URL}" rel="license">CC BY 4.0</a>
+  (<a href="{prefix}licenses/CC-BY-4.0.txt">license text</a>). Platydoc software:
+  <a href="{prefix}licenses/GPL-2.0.txt">GPLv2</a>. XNU source, quoted code and third-party materials
+  retain their original licenses. <a href="{prefix}build-info.html#licenses">License notices</a>.</p>
+ </footer>
 </main>
 <aside id="page-toc" class="page-toc" aria-label="On this page">{toc}</aside>
 <dialog id="search-dialog" aria-labelledby="search-heading">
@@ -331,7 +338,9 @@ class Book:
 
     def prepare(self):
         for page in self.pages:
-            dom = markdown(page["markdown"])
+            # Every Markdown download carries its own notice. The shared footer
+            # presents that notice once in HTML, outside chapter/search content.
+            dom = markdown(strip_license_notice(page["markdown"]))
             heading_nodes = [n for n in dom.walk() if re.fullmatch(r"h[1-6]", n.tag)]
             if len(heading_nodes) != len(page["sections"]):
                 raise ValueError(f"Heading parser mismatch: {page['path']}")
@@ -427,7 +436,9 @@ class Book:
 
     def render_indexes(self):
         from .concepts import build_concept_index
-        terms = build_concept_index(self.pages)
+        terms = build_concept_index([
+            dict(page, markdown=strip_license_notice(page["markdown"]))
+            for page in self.pages])
         letters = defaultdict(list)
         for term in terms:
             initial = term["term"].lstrip("_")[0].upper()
@@ -553,6 +564,24 @@ def render_source(work):
             "line_count": payload["line_count"], "aliases": aliases}
 
 
+def register_license_notices(book):
+    """Keep project licenses readable offline and preserve upstream notices."""
+    project = {"CC-BY-4.0.txt": ROOT/"LICENSE-DOCS",
+               "GPL-2.0.txt": ROOT/"LICENSE"}
+    notices = dict(project)
+    notices["APPLE_LICENSE.txt"] = SOURCE_ROOT/"APPLE_LICENSE"
+    for name in ("LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "PROVENANCE.txt"):
+        notices["mermaid-" + name] = HERE/"vendor"/"mermaid"/name
+    for name, path in project.items():
+        destination = book.output/"licenses"/name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        # These plain-text copies also work without the JavaScript source viewer.
+        shutil.copyfile(path, destination)
+    return {name: book.source_record(path, {
+        "url": "build-info.html", "title": "Build and provenance"})["url"]
+        for name, path in notices.items()}
+
+
 def check_dependencies():
     missing = [name for name in ("cmark-gfm","node") if not shutil.which(name)]
     if not shutil.which(os.environ.get("CHROMIUM_PATH", "chromium")) and not shutil.which("dot"):
@@ -595,6 +624,9 @@ def main():
     args = parser.parse_args()
     output,cache = args.output.resolve(),args.cache.resolve()
     if args.check:
+        missing = sync_notices(handbook_paths(), check=True)
+        if missing:
+            parser.error(f"{len(missing)} Markdown files have missing or stale license notices; rebuild the book")
         from .verify import verify_generated
         log(json.dumps(verify_generated(output),indent=2))
         return 0
@@ -618,6 +650,9 @@ def main():
     log("Refreshing navigation and checking Markdown/source excerpts…")
     run_tool("build_toc.py")
     run_tool("build_source_index.py")
+    updated = sync_notices(handbook_paths())
+    if updated:
+        log(f"Updated CC BY 4.0 notices in {len(updated)} Markdown files.")
     run_tool("check_links.py")
     pages=collect_pages()
     # A staging directory prevents a failed build from destroying the last book.
@@ -637,12 +672,7 @@ def main():
     svg_paths=render_diagrams(list(book.diagrams.values()),staging,cache,strict=True)
     shutil.copytree(HERE/"assets",staging/"assets",dirs_exist_ok=True)
     script_data(staging/"assets"/"navigation.js", "XNU_NAV", nav_data(pages), compress=False)
-    notices = {"APPLE_LICENSE.txt": SOURCE_ROOT/"APPLE_LICENSE"}
-    for name in ("LICENSE.txt", "THIRD_PARTY_NOTICES.txt", "PROVENANCE.txt"):
-        notices["mermaid-" + name] = HERE/"vendor"/"mermaid"/name
-    notice_links = {name: book.source_record(path, {
-        "url": "build-info.html", "title": "Build and provenance"})["url"]
-        for name, path in notices.items()}
+    notice_links = register_license_notices(book)
     from pygments.formatters import HtmlFormatter
     selectors = [".code-block", ".source-code", ".source-preview-code"]
     highlight_css=HtmlFormatter(style="friendly").get_style_defs(selectors)
@@ -659,7 +689,12 @@ def main():
     import pygments
     renderers = Counter(ET.parse(staging/path).getroot().get("data-renderer","unknown")
                         for path in svg_paths.values())
+    tool_paths = {path for path in HERE.rglob("*")
+                  if path.is_file() and "__pycache__" not in path.parts}
+    tool_paths.add(DOCS/"tools"/"doc_license.py")
     manifest={"schema":2,"snapshot":"xnu-12377.121.6",
+              "documentation_license":"CC-BY-4.0",
+              "software_license":"GPL-2.0-only",
               "source_root":SOURCE_ROOT.relative_to(ROOT).as_posix(),"pages":len(pages),
               "diagrams":len(book.diagrams),"sources":len(book.sources),
               "concepts":count,"search_sections":len(book.search),
@@ -667,8 +702,7 @@ def main():
               "diagram_renderers":dict(sorted(renderers.items())),
               "pygments_version":pygments.__version__,
               "book_tool_hashes":{path.relative_to(ROOT).as_posix():digest(path.read_bytes())
-                                 for path in sorted(HERE.rglob("*"))
-                                 if path.is_file() and "__pycache__" not in path.parts},
+                                 for path in sorted(tool_paths)},
               "markdown":{p["path"]:digest(p["markdown"]) for p in pages},
               "source_hashes":{r["path"]:digest(r["file"].read_bytes()) for r in book.sources.values()}}
     write(staging/"build-manifest.json",json.dumps(manifest,indent=2)+"\n")
@@ -681,7 +715,16 @@ def main():
              'Source files, search and index data are stored losslessly compressed. The browser creates highlighting and exact-byte downloads from the shared data.</p>'
              '<p><a href="build-manifest.json">Content hashes and build manifest</a> · '
              '<a href="development/building-html.html">Build and maintenance instructions</a></p>'
-             '<h2 id="licenses">Source and build-tool notices</h2><ul>' +
+             '<h2 id="licenses">Documentation, software and source licenses</h2>'
+             f'<p>Original Platydoc documentation and diagrams, including the Markdown and generated HTML, '
+             f'are licensed under <a href="{LICENSE_URL}" rel="license">Creative Commons Attribution 4.0 International</a> '
+             '(<a href="licenses/CC-BY-4.0.txt">local license text</a>). When sharing or adapting them, '
+             'credit Platydoc and its contributors, retain attribution and the license link, and identify changes.</p>'
+             '<p>Platydoc build tools and browser software are licensed under '
+             '<a href="licenses/GPL-2.0.txt">GNU GPL version 2</a>. '
+             'The documentation license does not relicense XNU, copied source excerpts, source-viewer contents '
+             'or bundled third-party materials: those retain their respective licenses and notices. '
+             'Original Platydoc Markdown shown in the source viewer remains CC BY 4.0.</p><ul>' +
              "".join(f'<li><a href="{url}">{name}</a></li>' for name,url in notice_links.items()) + '</ul>')
     write(staging/"build-info.html",shell("Build and provenance",content,"build-info.html",
           nav=nav_html(pages,"build-info.html"),chapter="BUILD REFERENCE"))

@@ -333,3 +333,7 @@ Create a named pipe node, with optional directory-fd or extended security attrib
 Create a filesystem node, including eligible special-device nodes.
 
 **Implementation:** [mknodat](../../../xnu/bsd/vfs/vfs_syscalls.c#L5705). Builds vnode attributes from mode/device inputs and calls `mknodat_internal` using current-directory or directory-fd lookup semantics.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -9,6 +9,7 @@ import argparse
 import re
 
 from paths import DOCS, SOURCE_ROOT, require_source
+from doc_license import with_license_notice
 
 OUT = DOCS / 'interfaces/mach-traps.md'
 START = '<!-- BEGIN GENERATED MACH TRAP CATALOG -->'
@@ -156,7 +157,7 @@ def main():
     generated=generate()
     old=OUT.read_text()
     assert START in old and END in old
-    new=old[:old.index(START)]+generated+old[old.index(END)+len(END):]
+    new=with_license_notice(old[:old.index(START)]+generated+old[old.index(END)+len(END):])
     if args.check:
         if old!=new:raise SystemExit('Mach trap catalog is stale')
         print('Mach trap catalog matches source: 128 slots, 62 potentially named, 66 always invalid')

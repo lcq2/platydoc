@@ -197,3 +197,7 @@ A CPU `IOMemoryMap` has an independent lifecycle. `makeMapping()` runs under the
 Deep review covered virtual descriptor preparation and UPL error rollback, nested/final completion, external-UPL distinctions, command descriptor replacement/automatic failure cleanup, direct/copy preflight, selected sparse/full bounce paths, mapper ownership transfer and DMA accounting, segment splitting/cursor updates, final command cleanup, and CPU map reuse/unmap/reference release. The concrete `IOMapper` backend, every constructor/redirected-map path, all physical contiguity/page-size combinations, and controller stop/error semantics remain boundaries. No DMA transfer or IOMMU experiment was run.
 
 For source reading, begin with one successful virtual preparation and one failed UPL recording, then compare automatic command-prepare failure against direct nested prepare failure. Track `_wireCount`, `fActive`, `fPrepared`, `_dmaReferences`, and mapping ownership independently at each return; those fields explain more than the shared method name `prepare`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

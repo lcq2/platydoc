@@ -128,3 +128,7 @@ routine mach_memory_entry_get_page_counts(
 
 **Local body:** [`mach_memory_entry_get_page_counts`](../../../xnu/osfmk/vm/vm_memory_entry.c#L1865).
 Calls visible in this body include `mach_memory_entry_from_port`, `named_entry_lock`, `named_entry_unlock`, `vm_named_entry_to_vm_object`, `vm_object_lock`, `vm_object_round_page`, `vm_object_trunc_page`, `vm_object_get_page_counts`, `vm_object_unlock`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

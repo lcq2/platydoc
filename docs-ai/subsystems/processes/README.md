@@ -16,6 +16,16 @@ These pages describe the supplied `xnu-12377.121.6` source snapshot. Configurati
 6. [Asynchronous file I/O](async-io.md): request ownership, both worker paths, cancellation races, result consumption, and close/exec/exit drains.
 7. [Complete BSD syscall catalog](../../interfaces/bsd-syscalls/README.md): dispatch/argument/result state, every master-table slot and conditional alternative, and each active call's purpose and local mechanism. Compare the separate [Mach namespaces](../../interfaces/README.md) and [AST flavor catalog](../runtime/ast-flavors.md).
 
+For local communication and terminals, continue with:
+
+| Chapter | Mechanism |
+| --- | --- |
+| [Pipes and UNIX socket rights](pipes-and-unix-socket-rights.md) | Buffer ownership, atomic writes, peer closure, descriptor transfer and collection of unreachable rights cycles |
+| [User-address wait and wake](user-lock-wait-and-wake.md) | Private/shared keys, protected comparison, unfair-lock inheritance, wake selection and final-waiter cleanup |
+| [POSIX named IPC](posix-named-ipc.md) | Named semaphore creation/wait/unlink and shared-memory name, descriptor, memory-entry and mapping lifetime |
+| [System V IPC](system-v-ipc.md) | Message storage and copy failure, semaphore vectors and undo, segment IDs, attachments and removal |
+| [TTY and PTY lifecycle](tty-and-pty-lifecycle.md) | Terminal input/output queues, canonical/raw completion, PTY dispatch, job control and hangup/reclamation |
+
 ## The objects that connect the layers
 
 ```mermaid
@@ -58,6 +68,11 @@ The stable distinction is **process policy versus execution mechanism**. `proc` 
 | [`kern_descrip.c`](../../../xnu/bsd/kern/kern_descrip.c), [`sys_generic.c`](../../../xnu/bsd/kern/sys_generic.c), descriptor headers | Deep: lookup/drop, fork copying, close/drain, read path | Guard operations and all `fcntl` commands were not audited; AIO has a separate focused guide |
 | [`kern_aio.c`](../../../xnu/bsd/kern/kern_aio.c) | Deep selected paths: request/ref ownership, validation/enqueue, both workers, completion/consumption, cancellation queue-removal race, close/exec/exit/pool drains | Every batch, fsync dependency, AIO filter, and worker-admission transition is not audited |
 | [`kern_event.c`](../../../xnu/bsd/kern/kern_event.c), event headers, [`pthread_workqueue.c`](../../../xnu/bsd/pthread/pthread_workqueue.c), [`pthread_shims.c`](../../../xnu/bsd/pthread/pthread_shims.c) | Deep selected paths: knote register/post/process/drop, fd close, dynamic workloop owner/servicer/retain/turnstile, requests/admission, worker creation/park/exit, pthread boundary | Every filter, work-interval/cooperative scheduling policy, and priority/parking race remains broader; external pthread implementation is absent |
-| [`sys_pipe.c`](../../../xnu/bsd/kern/sys_pipe.c), [`uipc_usrreq.c`](../../../xnu/bsd/kern/uipc_usrreq.c), [`sys_ulock.c`](../../../xnu/bsd/kern/sys_ulock.c), SysV IPC files | Selected pipe creation and descriptor-passing paths; otherwise navigation survey | Full buffering, garbage-collector proof, synchronization races, and SysV algorithms are not claimed as covered |
+| [`sys_pipe.c`](../../../xnu/bsd/kern/sys_pipe.c), [`uipc_usrreq.c`](../../../xnu/bsd/kern/uipc_usrreq.c), [`sys_ulock.c`](../../../xnu/bsd/kern/sys_ulock.c) | Pipe buffering/wait/close, UNIX rights conversion and cycle collection, ulock key/compare/inheritance/wake/cleanup | Selected implementation paths, not a formal concurrency proof; userspace lock algorithms remain external |
+| POSIX/SysV IPC files, [`tty.c`](../../../xnu/bsd/kern/tty.c), [`tty_dev.c`](../../../xnu/bsd/kern/tty_dev.c), [`tty_ptmx.c`](../../../xnu/bsd/kern/tty_ptmx.c) | Named IPC namespace and backing lifetime, SysV queues/vectors/undo/attachments, TTY queues/job control and PTY teardown | Configuration-dependent IPC families; physical terminal drivers and userspace terminal emulation remain external |
 
 The principal code-reading trap is treating historical comments as the current object layout. Confirm descriptions against declarations and executable branches: exec now replaces a proc/task pair, `filedesc` is embedded in `proc`, and some pthread operations cross a function-table boundary into separately supplied code.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

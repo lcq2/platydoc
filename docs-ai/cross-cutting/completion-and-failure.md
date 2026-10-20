@@ -145,3 +145,7 @@ flowchart TD
 Follow [vnode/cache lifetime](../subsystems/vfs/name-cache-and-vnode-reclaim.md), [mount teardown](../subsystems/vfs/mount-lifecycle.md), [route/interface lifetime](../subsystems/networking/packets-routes-and-interfaces.md), and [SMR barriers](smr-and-publication.md#synchronize-and-barrier-answer-different-questions).
 
 The practical source-reading method is to identify the last participant that can still touch each resource, then locate its actual completion or reference-release path. A queue length, return code, cancellation result or wakeup is evidence only for the condition its implementation establishes.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

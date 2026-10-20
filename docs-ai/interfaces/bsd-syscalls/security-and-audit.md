@@ -243,3 +243,7 @@ Query whether requested SIP/CSR permissions are allowed or retrieve the active C
 Fill a userspace buffer with at most 256 bytes from the kernel random subsystem.
 
 **Implementation:** [getentropy](../../../xnu/bsd/dev/random/randomdev.c#L243). The handler rejects larger requests, fills a fixed stack buffer through `read_random`, and copies exactly the requested count out. The random generator's internal construction is beyond this syscall wrapper.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

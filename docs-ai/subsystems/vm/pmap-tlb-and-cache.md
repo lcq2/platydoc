@@ -290,3 +290,7 @@ For a concrete exercise, follow one legacy `pmap_enter_pte()` replacing a valid 
 | Aperture helpers, C/assembly cache routines | Physical/virtual boundaries and selected instruction/data visibility paths read directly; board-specific coherency and external monitor maintenance remain limits. |
 
 These are source-based ordering traces, not a proof that every configuration and racing caller is correct. Configuration names and visible instruction variants are retained because collapsing them into one generic “flush the cache” operation would hide the behavior a reader needs to understand.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

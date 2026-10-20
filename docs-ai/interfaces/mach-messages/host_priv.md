@@ -643,3 +643,7 @@ routine kext_request(
 
 **Local body:** [`kext_request`](../../../xnu/libkern/OSKextLib.cpp#L218).
 Calls visible in this body include `OSKextLog`, `space`, `vm_map_copyout_size`, `vm_map_copyout`, `CAST_DOWN`, `MKEXT_GET_MAGIC`, `MKEXT_GET_SIGNATURE`, `loadFromMkext`, `handleRequest`, `vm_map_copyin`, `CAST_USER_ADDR_T`, `vm_deallocate`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

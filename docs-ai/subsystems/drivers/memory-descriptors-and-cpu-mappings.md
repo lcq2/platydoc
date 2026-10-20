@@ -182,3 +182,7 @@ General descriptor destruction clears the device-pager backpointer under `gIOMem
 ## Sources inspected and limits
 
 Deep reads cover the buffer constructor/allocation/free branches, copy and length/accessor behavior, complete sub/multi/interleaved composition bodies, named-reference creation/reuse/COW/release, both CPU mapping paths, guards/cache/prefault choices, compatibility/static/unique mapping, both redirects, pager population/callback/free, and map task-death/release. Purgeability and ownership dispatch were inspected as VM interfaces; every ledger, device-pager, VM-map, and mapper implementation was not re-derived here. DriverKit wrappers and a particular device's mapping policy are separate callers. No driver or kernel was built, and no concurrent mapping or hardware transfer was executed.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

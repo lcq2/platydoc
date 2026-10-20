@@ -140,6 +140,18 @@ Read these as interface families; argument types, helper names, fast paths, and 
 | Allocators | Deep zone geometry/metadata/bitmap/cache/depot and refill/reclaim; kalloc classes, routing/free/realloc; fixed/variable compiler metadata and startup isolation policy; guarded kmem placement/population/free/resize; RO/SMR/perCPU/permanent modes and selected IOKit/BSD wrappers | Separate chapters trace element, zone, VA, physical and protection lifetimes. Exact generated compiler output, live heap assignments, all sanitizer configurations and external monitor enforcement are outside source verification |
 | ARM64 pmap | Deep legacy/PPL and SPTM geometry, roots, PTEs/PV/PTD, enter/protect/remove/disconnect, table allocation/reclaim, ASIDs/nesting, epochs/pins, access tracking and TLB completion | Source-visible mapping/lifetime contracts; external monitor bodies and every platform/mapping type are not reconstructed |
 | x86_64 pmap | Deep create/expand/enter/remove/protect/disconnect, rooted/hashed PV, root sharing, PCID activation and invalidation; selected nesting/EPT branches | Current four-level mapping path; bootstrap, all cache-type changes, corruption heuristics and complete hypervisor behavior remain outside scope |
-| Peripheral VM | Focused I/O mapping and driver memory boundaries; sanitize and shared-region interfaces | No complete IOMMU, shared-cache loader, hibernation, MTE policy, or deferred-reclamation treatment |
+| Peripheral VM | Focused I/O mapping and driver memory boundaries; sanitize and shared-region interfaces | Shared-region/pager and deferred-reclamation paths are expanded in the companions below; complete IOMMU and MTE policy remain bounded |
 
 Useful original documentation includes [pageout scan](../../../xnu/doc/vm/pageout_scan.md), [memorystatus](../../../xnu/doc/vm/memorystatus.md), [freezer](../../../xnu/doc/vm/freezer.md), [shared region](../../../xnu/doc/vm/shared_region.md), [VM sanitization](../../../xnu/doc/vm/sanitize.md), and [allocator API guidance](../../../xnu/doc/allocators/api-basics.md). Prefer implementation when an older narrative uses a superseded function or structure name.
+
+## Backing-store and reclaim companions
+
+- [Shared regions and transforming pagers](shared-regions-and-transforming-pagers.md): exec placeholders, shared-cache installation, submap/pmap nesting, page transformation and pager lifetime.
+- [Compressor segments and swapfiles](compressor-segments-and-swapfiles.md): filling allocation, locator repair during compaction, swap workers, file creation, trim and reclamation.
+- [Deferred reclamation](deferred-reclamation.md): userspace publication/cancellation, kernel gate ownership, partial progress, sampling, fork and teardown.
+- [Purgeable memory](purgeable-memory.md): volatile/empty transitions, aging tokens, selection locks and resident/compressed owner accounting.
+- [Phantom cache and refaults](phantom-cache-and-refaults.md): bounded eviction history and conditional pressure decisions, including the macOS ARM64 exclusion.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

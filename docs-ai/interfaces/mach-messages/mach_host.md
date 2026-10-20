@@ -1023,3 +1023,7 @@ mach_memory_info_redacted(
 	return mach_memory_info_internal(host, namesp, namesCntp, infop, infoCntp, memoryInfop, memoryInfoCntp, redact_info);
 }
 ```
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

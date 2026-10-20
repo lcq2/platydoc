@@ -89,3 +89,7 @@ For surrounding machinery, use [Mach IPC](../ipc/README.md), [kernel execution a
 | Object/runtime libraries | Deep selected paths: [`OSObject.cpp`](../../../xnu/libkern/c++/OSObject.cpp), [`OSMetaClass.cpp`](../../../xnu/libkern/c++/OSMetaClass.cpp), [`OSRuntime.cpp`](../../../xnu/libkern/c++/OSRuntime.cpp), collection and iterator ownership/mutation; selected OSKext start/unload | This is not a complete KXLD relocation review, every-container audit, crypto review or account of every kernel-collection format. |
 
 The upstream [startup guide](../../../xnu/doc/lifecycle/startup.md), [hibernation guide](../../../xnu/doc/lifecycle/hibernation.md), and [allocator guide](../../../xnu/doc/allocators/api-basics.md) provide useful context. Configuration guards such as `CONFIG_KXLD`, `CONFIG_MACF`, `NO_KEXTD`, `HIBERNATION`, `XNU_TARGET_OS_*`, and development/debug options select materially different paths. These pages describe source behavior; they do not infer which configuration a particular machine runs.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

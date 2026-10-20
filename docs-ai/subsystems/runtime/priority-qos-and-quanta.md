@@ -202,3 +202,7 @@ This per-thread demotion is separate from the ARM64 recommended-core failsafe, w
 Deep review covered policy composition/publication and deferred completion, QoS scaling/base-priority ordering, scheduled-priority promotion/decay, common and Clutch contention shifts, maintenance candidate processing, quantum initialization/expiration/departure, nonurgent preemption, and stacked failsafe demotion/release. Follow one QoS change through `thread_policy_update_internal_spinlocked()` → `thread_recompute_priority()` → `sched_set_thread_base_priority()` → `thread_recompute_sched_pri()` → `set_sched_pri()`, then compare a quantum update of the same thread.
 
 Every policy flavor, all BSD workqueue override producers, every CPU-limit ledger action, and full performance-controller behavior remain outside this selected trace. No timing measurements or scheduler workload tests were run; example numbers are arithmetic from this checkout's constants.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -683,3 +683,7 @@ Every declaration alternative in `bsd/kern/syscalls.master` appears below. Condi
 - Non-stub declarations with authored purpose and implementation mechanism: **455**.
 - `nosys`/`enosys` alternatives: **214**.
 - These are source declarations across configurations, not the enabled calls in one running kernel.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

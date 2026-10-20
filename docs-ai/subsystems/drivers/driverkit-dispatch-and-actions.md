@@ -248,3 +248,7 @@ Under `gDriverKitLaunchLock`, token completion changes pending to complete and r
 | External or absent | IIG executable/generated implementation files, DriverKit user-space queue scheduling and action wait/cancel runtime, launch daemon/driver executable, complete `IOTimerDispatchSource` implementation. The timer forwarding header is present, but it is not the kernel `IOTimerEventSource` implementation |
 
 The paths were read from source; no DriverKit process, driver, device interrupt, or kernel build was run. In particular, public callback contracts are identified separately from the smaller kernel bodies actually available here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

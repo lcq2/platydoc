@@ -240,3 +240,7 @@ Propagation stops at a missing dependency, an unchanged effective priority after
 The reviewed path covers generic wait registration/detachment, abort/timeout pulling, sleepable mutex contention and recovery, compact-ID turnstile donation/completion, priority calculation, inheritor-reference staging, cleanup, and the generation-checked thread-to-turnstile handover. Direct/hash storage variants and IPC/workqueue endpoints were read for their interfaces; every client and every chain interleaving was not audited.
 
 A useful source exercise is to follow a wake that occurs after `waitq_assert_wait64()` but before `thread_block()`, then a priority change that occurs while the chain walker has dropped the owner thread's lock. Both are ordinary cases the protocol explicitly supports. The [timer chapter](timer-and-thread-call-lifetime.md) adds the callback-lifetime race that a timeout introduces. These are explanations of code and invariants, not executed stress tests or a formal proof of deadlock freedom.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

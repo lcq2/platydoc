@@ -188,3 +188,7 @@ Protocol cleanup may still defer. TCP can retain state for FIN/ACK, timers, or o
 | TCP and policy integration | Read the selected protocol consumption and teardown calls; link dedicated TCP and policy chapters. Full UNIX-domain rights garbage collection, all filter providers, MPTCP, and ancillary-data formats are not claimed. |
 
 No kernel or network test was run. The excerpts describe the checked-in bodies; build options and registered protocol callbacks select the actual behavior.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

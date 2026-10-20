@@ -124,3 +124,7 @@ These definitions describe how to read the terms in this source tree. They are d
 | Stackshot / kcdata | Structured task/thread capture and the chunked record format used for diagnostic output. [Observability](development/observability.md) |
 
 For a name not listed here, use the [source-reference index](source-index.md) or start from the subsystem's structure table. The definition and its nearby lock/lifetime comments are usually more informative than expanding the acronym alone.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

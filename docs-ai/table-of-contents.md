@@ -1850,6 +1850,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Reading tools](development/building-html.md#reading-tools)
   - [Updating Markdown and source](development/building-html.md#updating-markdown-and-source)
   - [Build components](development/building-html.md#build-components)
+  - [Documentation license](development/building-html.md#documentation-license)
   - [Compact static storage](development/building-html.md#compact-static-storage)
   - [Verification limits](development/building-html.md#verification-limits)
 
@@ -1892,3 +1893,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Boundaries and verification](audits/security-and-development.md#boundaries-and-verification)
 
 Listed: 224 pages, excluding this contents page.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

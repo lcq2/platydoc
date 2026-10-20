@@ -296,3 +296,7 @@ Removing the vnode from a reusable list before changing its generation prevents 
 A valid cache counter establishes a stable entry snapshot. A vnode hold preserves storage during reference conversion. A successful generation-checked I/O acquisition establishes the requested live identity for an operation. Directory generations prevent selected stale cache insertions. Mount generations invalidate cached traversal shortcuts. None of these is interchangeable with the others.
 
 This chapter follows ordinary name-cache lookup, publication and vnode reclaim in detail. Firmlink traversal, trigger recursion, every named-stream path, all filesystem-specific authorization caches and every forced-revoke race remain narrower source-reading topics. The generic callbacks are visible here; APFS's implementation of those callbacks is not supplied.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -193,3 +193,7 @@ Read `pmap.h` for object layout, `pmap_pt_geometry.h` and `proc_reg.h` for inter
 | `arm_vm_init.c`, `arm_init_sptm.c` aperture helpers | Public physical/virtual conversion boundaries inspected; protected mapping construction inside external SPTM is unavailable. |
 
 The geometry header references `doc/arm/arm_pmap.md`, but that file is absent from this release. This documentation is based on the available implementations. It does not infer external SPTM/TXM enforcement algorithms, and no kernel execution or hardware tests were performed.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

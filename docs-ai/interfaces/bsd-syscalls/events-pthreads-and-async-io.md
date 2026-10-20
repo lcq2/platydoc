@@ -503,3 +503,7 @@ Create/destroy or configure workloop attributes through a control request.
 Wait while a supported user lock/value condition holds, optionally using owner donation and an extended timeout/value.
 
 **Implementation:** [sys_ulock_wait2](../../../xnu/bsd/kern/sys_ulock.c#L519). Validates operation/address/value, performs atomic user reads, obtains keyed ulock state and prepares turnstile/wait state before blocking; changed values, timeout, cancellation and owner-resolution failure take explicit cleanup paths.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

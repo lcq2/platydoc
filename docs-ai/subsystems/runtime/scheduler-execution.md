@@ -210,3 +210,7 @@ After dropping departure locks, dispatch queues the thread for termination proce
 ## Inspection limits and a useful source walk
 
 Read `thread_unblock()` → `thread_setrun()` first, then `thread_block_reason()` → `thread_select()` → `thread_invoke()` → `thread_dispatch()`. Follow the stack-allocation failure once before studying policy heuristics; it makes clear why selection and execution are separate contracts. The linked bodies above were reviewed, including ARM64's wrapper and small assembly switch body. Complete real-time admission/deadline policy, every SMT/offline transition, x86 register switching, and task/corpse teardown are outside this chapter's deep review; these pages are source analysis, not runtime or formal verification.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

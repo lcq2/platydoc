@@ -469,3 +469,7 @@ On generation failure, the wrapper invokes automatic command clearing and then d
 | [`TestIOMemoryDescriptor.cpp`](../../../xnu/iokit/Tests/TestIOMemoryDescriptor.cpp#L180-L235), [`continuation case`](../../../xnu/iokit/Tests/TestIOMemoryDescriptor.cpp#L840-L884), [`32-bit output case`](../../../xnu/iokit/Tests/TestIOMemoryDescriptor.cpp#L928-L956) | Read source examples for forced-double-buffer direction, bounded continuation, and mapped 32-bit output. These tests were not executed; examples with explicit addresses above are illustrative. |
 
 The important configuration boundaries are mapper presence/type, mapper page size versus VM page size, descriptor source type, prepared direction, copy requirements, and command constraints. The source supports all of these decisions in the common path, but this chapter does not assert every combination has been exercised on hardware.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

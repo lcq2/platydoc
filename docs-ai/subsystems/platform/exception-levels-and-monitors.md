@@ -248,3 +248,7 @@ A **Mach exception message** is a higher-level IPC operation constructed after X
 ## What this page establishes
 
 The guest's call sites, input/output registers, feature gates, SPTM hooks, mapping result storage, and available PPL state/stack transitions were read directly. The architectural EL2 paragraph is separately sourced from Arm. No host/monitor implementation, generated external entry macro, instruction-level protected return, or complete Apple guarded-register specification was available to inspect. Filling those boxes with invented assembly would obscure the strongest evidence this checkout actually provides.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

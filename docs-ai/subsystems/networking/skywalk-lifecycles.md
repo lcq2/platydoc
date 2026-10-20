@@ -171,3 +171,7 @@ Channel teardown connects to this control lifetime through `fsw_port_dtor()` and
 | Provider boundary | The in-tree netif/flowswitch callbacks expose the handoff. Hardware queues, firmware/AOP behavior, external provider implementations, and userspace transport policy are not inferred from those interfaces. |
 
 `SKYWALK`, `CONFIG_NEXUS_*`, provider capabilities, interface mode, and runtime policy determine which paths are available. No kernel, hardware provider, or channel program was run for this chapter.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

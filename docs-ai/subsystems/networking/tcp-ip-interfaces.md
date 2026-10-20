@@ -94,3 +94,7 @@ The application later enters `soreceive()` to consume buffered bytes. Incoming A
 UDP uses Internet PCBs but not the TCP sequence/retransmission state machine. [`udp_send()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2688) selects normal output or flow diversion; `udp_output()` builds the datagram's network representation. On input, [`udp_append()`](../../../xnu/bsd/netinet/udp_usrreq.c#L962) assembles address/control information, strips headers, calls `sbappendaddr()`, and wakes readers on success. These are record-oriented receive semantics.
 
 IPv6 has [`ip6_proto_input()`/`ip6_input()`](../../../xnu/bsd/netinet6/ip6_input.c#L334), [`ip6_output_list()`](../../../xnu/bsd/netinet6/ip6_output.c#L272), and [`udp6_input()`](../../../xnu/bsd/netinet6/udp6_usrreq.c#L258), with scope IDs, extension-header and neighbor-discovery paths that should be read separately. The TCP PCB supports both address families. ICMP, multicast, raw sockets, ARP/ND, bridging, tunnels, and packet schedulers are substantial neighboring components; their complete implementations were not included in this trace.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

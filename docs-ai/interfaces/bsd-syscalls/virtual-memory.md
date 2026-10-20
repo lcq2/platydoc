@@ -223,3 +223,7 @@ Map a collection of shared-cache files and slide/fixup metadata into the shared 
 Map file-backed regions with kernel-assisted linking metadata.
 
 **Implementation:** [map_with_linking_np](../../../xnu/bsd/vm/vm_unix.c#L2372). Imports region/linking information, resolves vnode-backed descriptors and UBC objects, applies mmap policy and enters the VM map/linking path; the syscall consumes metadata rather than performing arbitrary userspace linking.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

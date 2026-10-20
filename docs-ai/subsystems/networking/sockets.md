@@ -55,3 +55,7 @@ For an ordinary TCP connection, [`tcp_lock()`](../../../xnu/bsd/netinet/tcp_subr
 [`soo_select()`](../../../xnu/bsd/kern/sys_socket.c#L297) checks `soreadable()`/`sowriteable()` under socket locking or records interest in a sockbuf's `selinfo`. [`sorwakeup()` and `sowwakeup()`](../../../xnu/bsd/kern/uipc_socket2.c#L2671) lead to `sowakeup()`, which wakes select and sleeping buffer users, delivers configured `SIGIO`, invokes `KNOTE`, and handles optional kernel upcalls. Upcalls can execute with the socket unlocked; `so_upcallusecount` prevents close from tearing the object down during one. Knotes then use the [shared kevent/workqueue machinery](../processes/events-threads.md).
 
 The last fileglob close reaches `soo_close()` and `soclose()`. [`soclose_locked()`](../../../xnu/bsd/kern/uipc_socket.c#L1114) coordinates upcalls/content filters, listener queues, disconnect/linger behavior, and protocol detach. [`sofreelastref()`](../../../xnu/bsd/kern/uipc_socket.c#L991) tests `SS_NOFDREF` and `SOF_PCBCLEARING` before final decommissioning and protects completed accept-queue entries. Removing the last fd and freeing all protocol/socket state are separate events; TCP may have protocol work remaining after userspace closes its handle.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -63,3 +63,7 @@ For example, endpoint calls in this snapshot use an authorized service ID and re
 The detailed guides trace startup dependencies, trap and kernel downcalls, proxy/scheduler loops, memory/resource lifetimes, task state transitions, representative services, and interrupted-domain return. The secure-side implementations, complete generated transport, all provider policy and every timing combination remain outside this checkout's evidence. Runtime tests were not run.
 
 Use [SPTM](sptm.md) for typed-memory and protected-call boundaries, [TXM](txm.md) for execution-policy requests, [Mach IPC](../ipc/README.md) for resource-port rights and notification delivery, and [ARM64 exception return](../platform/arm64-exception-return.md) for the ordinary XNU machinery surrounding protected-domain resumption.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -949,3 +949,7 @@ routine thread_resume2(
 
 **Local body:** [`thread_resume2`](../../../xnu/osfmk/kern/thread_act.c#L655).
 Calls visible in this body include `IP_VALID`, `ip_mq_lock`, `ipc_kobject_get_locked`, `thread_reference`, `ip_mq_unlock`, `get_threadtask`, `thread_mtx_lock`, `thread_resume_internal`, `thread_mtx_unlock`, `thread_deallocate`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

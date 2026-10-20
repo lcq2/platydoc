@@ -170,3 +170,6 @@ Pthread cancellation uses some of the same thread-abort machinery but has its ow
 
 The common posting/selection, disposition installation, AST/handler delivery, serialization/exit handoff, cancellation flags, ARM sendsig/sigreturn, and relevant ARM64 machine-state conversion bodies were read. The detailed frame trace is ARM64; ARM32 compatibility and x86 frame layouts are not reconstructed here. Full ptrace/job-control behavior, core-dump generation, signal syscalls' every compatibility branch, and userspace trampoline implementation remain outside this chapter.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

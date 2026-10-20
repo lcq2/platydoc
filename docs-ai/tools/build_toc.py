@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 
 from check_links import DOCS, prose_lines
+from doc_license import with_license_notice
 
 
 # Order follows the reading route, retaining both introductions and deeper chapters.
@@ -180,7 +181,7 @@ def main():
         raise ValueError("Unclassified pages: " + ", ".join(
             str(p.relative_to(DOCS)) for p in sorted(pages - covered)))
     lines.extend([f"Listed: {len(covered)} pages, excluding this contents page.", ""])
-    output.write_text("\n".join(lines))
+    output.write_text(with_license_notice("\n".join(lines)))
     print(f"Listed {len(covered)} pages in {output.relative_to(DOCS)}")
 
 

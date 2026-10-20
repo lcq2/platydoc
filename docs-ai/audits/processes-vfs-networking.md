@@ -262,3 +262,7 @@ The first independent work packages are A1/A2, A7, and the P1 Skywalk program. A
 This audit records all current chapters and the highest-value grouped additions, not every conceivable missing topic. Specialized leftovers include some NFS operations and RPCSEC_GSS, VFS trigger/graft paths, exhaustive kqueue filter variants, uncommon socket options/batch interfaces, and full protocol conformance. Source locations named only as future reading routes are not claimed as deeply reviewed. The missing APFS implementation, external pthread implementation, userspace policy/transport services, and hardware/firmware providers are limits on what this checkout alone can establish.
 
 The result is a broad architecture with several strong implementation traces, plus a concrete backlog for facilities still introduced only briefly or not reconstructed at all. Neither retaining a chapter nor citing a large source file establishes complete implementation or branch coverage.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

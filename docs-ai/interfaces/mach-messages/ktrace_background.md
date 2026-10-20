@@ -30,3 +30,7 @@ simpleroutine ktrace_background_available(
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
 Local source occurrences to follow: [osfmk/kern/ktrace_background_notify.c:53](../../../xnu/osfmk/kern/ktrace_background_notify.c#L53). These may be senders, wrappers or declarations; they do not establish a local receiver.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

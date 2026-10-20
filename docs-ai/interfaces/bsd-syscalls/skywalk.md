@@ -123,3 +123,7 @@ Read channel-specific options.
 Change permitted channel options.
 
 **Implementation:** [__channel_set_opt](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L734). Pins/locks the channel, rejects inactive/nonpermissive adapters and invokes `ch_set_opt`; option handling is distinct from submitting packets through sync.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

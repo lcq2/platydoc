@@ -209,3 +209,7 @@ This operation does not allocate a new RAM page for each device register. Before
 ## What to track while following a real address
 
 Record the map and range; entry protection/maximum/inheritance; object and offset; resident page and busy/wired state; pmap and its geometry; PTE and reverse-map association; and the invalidation completion point. When a lock is dropped, ask what reference, busy bit, range state, epoch, or retry preserves the next operation's assumptions. The linked implementation guides explain those contracts separately so a trace can be deep without treating all VM state as one structure.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

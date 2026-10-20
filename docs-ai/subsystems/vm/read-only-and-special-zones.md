@@ -372,3 +372,7 @@ The consumer's [`mz_composite_alloc()` and free wrappers](../../../xnu/bsd/kern/
 | [`mbuf composite consumer`](../../../xnu/bsd/kern/uipc_mbuf.c) | Non-MCACHE zone/composite definitions, constructors, reuse callbacks, destructors, wrappers, and pressure drain inspected; alternative MCACHE allocator and complete networking object lifecycle not traced here |
 
 The backend comparison deliberately reports the operations visible in this source. It does not infer identical security strength across architectures, and no target kernel was built or exercised for these documentation changes.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

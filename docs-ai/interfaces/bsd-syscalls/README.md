@@ -311,3 +311,7 @@ python3 -B docs-ai/tools/check_links.py
 | Existing deep subsystem analysis | Linked process, VM, VFS, network, security and runtime guides | Their own source-inspection limits still apply; a link does not imply an entire source file was analyzed |
 
 Source paths and line numbers refer to this checkout. Build-generated files, third-party/filesystem implementations, external policy providers and the separately delivered pthread runtime are not invented to fill gaps. The reconciliation establishes catalog completeness; technical depth remains measured by the particular bodies and mechanisms explained.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

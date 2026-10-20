@@ -142,3 +142,7 @@ Sources inspected and limits:
 | `kpi_vfs.c`, `vfs_lookup.c` | Compound argument construction, post-hook, result ownership, final-component early return. |
 | External filesystem bodies | Not present for APFS. No claim about journal transactions, crash recovery, or all filesystem locking implementations. |
 | Optional branches | Resource forks, AppleDouble, MAC and dataless interfaces identified; not every branch independently traced. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

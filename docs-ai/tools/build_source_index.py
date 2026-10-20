@@ -6,6 +6,7 @@ from urllib.parse import unquote, urlsplit
 
 from check_links import DOCS, ROOT, LINK, prose_lines
 from paths import SOURCE_ROOT, require_source
+from doc_license import with_license_notice
 
 
 def collect_references(docs=None, root=None):
@@ -76,7 +77,7 @@ def main():
         lines.append(f"| [{source.as_posix()}](../{source.as_posix()}) | "
                      + ", ".join(links) + " |")
     lines.extend(["", f"Total: {len(references)} distinct directly cited files.", ""])
-    output.write_text("\n".join(lines))
+    output.write_text(with_license_notice("\n".join(lines)))
     print(f"Indexed {len(references)} files in {output.relative_to(ROOT)}")
 
 

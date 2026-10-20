@@ -60,3 +60,7 @@ The default implementation uses shared count, exclusive/upgrade intent, waiter f
 Spin/hardware locks protect contexts where sleeping is unsuitable. Ordinary hardware-lock acquisition returns with preemption disabled; `_nopreempt` entry points require the caller to have disabled it already. Interrupt masking is a separate concern, visible in `splsched()`/restore pairs. `thread_invoke()` explicitly panics if a context switch is attempted with nonzero preemption level. Ticket locks implement FIFO admission through current/next tickets; architecture wrappers determine which implementation backs a particular spin-lock API. [`locks.c`](../../../xnu/osfmk/kern/locks.c#L1037), [`lock_ticket.c`](../../../xnu/osfmk/kern/lock_ticket.c#L40), [`sched_prim.c`](../../../xnu/osfmk/kern/sched_prim.c#L2999).
 
 For practical reading, annotate each blocking call with its condition, interlock, wait event, inheritor if any, and wakeup source. That small record exposes the cross-subsystem protocol much more clearly than following lock function names in isolation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

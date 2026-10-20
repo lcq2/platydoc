@@ -153,3 +153,7 @@ Sources inspected and limits:
 | `IOCPU.cpp` | CPU-controller registration, properties, machine-handler installation and dispatch overrides. Hardware-controller register programming outside this selected path. |
 | Interrupt/filter event-source bodies | Deep provider/index lifetime, handler selection, counted delivery, filter acceptance and teardown. Workloop internals are in the existing protocol chapter. |
 | `IOCommandPool.cpp/.h`, `IOCommandQueue.cpp/.h` | Complete small pool/ring bodies and API ownership/build limits; no hardware consumer benchmark or runtime workload executed. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

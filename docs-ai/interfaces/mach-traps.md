@@ -357,3 +357,7 @@ Likewise, direct ARM absolute/continuous-time selectors and x86 machine-dependen
 | Validation | `python3 -B docs-ai/tools/build_mach_trap_catalog.py --check` verifies the generated catalog against the source snapshot; the general documentation checker validates links and exact excerpts. No syscall execution, compatibility test, or kernel build was performed. |
 
 The generator updates only the marked all-slot table, preserving this explanatory material. Its purpose descriptions are curated from implementation bodies and must be reviewed if behavior changes; extraction is not semantic verification or a C preprocessor.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

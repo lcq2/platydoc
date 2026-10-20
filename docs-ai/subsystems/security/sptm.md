@@ -505,3 +505,6 @@ When reading a new SPTM call site, identify the object passed by physical addres
 | I/O and adjacent domains | Read protected-I/O adjustment/write dispatch, supplied range/filter consumers; surveyed IOMMU/guest storage and TXM/Exclaves interface crossings | Complete IOMMU/DMA enforcement and protected guest runtime are not present here. TXM and Exclaves execution have separate guides. |
 | Build dependencies | Read configuration selection and external library linkage; searched for imported ABI headers | This checkout does not supply the external headers/libraries needed to derive a complete monitor implementation or independently build every selected configuration. |
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -83,3 +83,7 @@ The repository defines [`amfi_t` and entitlement/trust-cache interfaces](../../.
 [`kern_csr.c`](../../../xnu/bsd/kern/kern_csr.c) has distinct Device Tree and legacy boot-argument implementations. With `CONFIG_CSR_FROM_DT`, early `csr_bootstrap()` starts from restrictive configuration, reads local policy properties, and derives selected environment-dependent flags before normal VM initialization. The legacy branch reads boot-argument state. `csr_get_active_config()` masks valid bits; `csr_check(mask)` evaluates the requested allowance bits with branch-specific rules.
 
 CSR is therefore configuration consulted by security-sensitive operations, not a complete list of every protection in the system. Credential authorization, task-port conversion, MAC policies, code-signing enforcement, and hardware-protected memory have their own control paths. See [platform](../platform/README.md) for the lower-level PPL/SPTM and boot boundary.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -232,3 +232,7 @@ This concrete path connects the abstract flags to byte preservation, busy owners
 | External filesystem/storage providers | APFS transactions/cache callbacks, controller queues, durable media semantics and all verification/content-protection algorithms are outside this trace. |
 
 No block-device write, cache-pressure workload or injected I/O failure was executed. Claims here concern the inspected ownership and control paths.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

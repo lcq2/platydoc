@@ -58,3 +58,7 @@ Reference counts keep storage alive; locks protect mutable state. The task lock,
 The thread run-queue field has an unusually explicit rule: when null, the thread lock protects it; when non-null, the corresponding run-queue lock protects it. Transitioning from null to non-null requires both locks, whereas clearing it can happen without the thread lock. The source therefore requires the `thread_get/set/clear_runq*()` helpers. The union containing runnable, wait, and daemon queue links is another warning against casually inspecting a thread without knowing its current state. [`thread.h`](../../../xnu/osfmk/kern/thread.h#L406).
 
 For reference debugging, continue with [`task_ref.c`](../../../xnu/osfmk/kern/task_ref.c) and the original [task-reference guide](../../../xnu/doc/debugging/task_ref.md). For a scheduler trace, continue at [`thread_block_reason()`](../../../xnu/osfmk/kern/sched_prim.c#L3874), where object state becomes a context-switch decision.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

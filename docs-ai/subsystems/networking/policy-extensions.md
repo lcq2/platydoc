@@ -37,3 +37,7 @@ The file's control messages, tunnel lifecycle, and provider reconnection logic a
 The lock relationship is observable in `tcp_lock()`: a subflow redirects to the parent multipath socket's lock. [`mptcp_subflow_add()`](../../../xnu/bsd/netinet/mptcp_subr.c#L2513) and output/scheduling/reassembly files are the next reading route. This chapter inspected the session structure and user-send/locking boundaries, not path selection, loss recovery, or all MPTCP options.
 
 All these facilities are conditional on build/runtime state (`NECP`, `CONTENT_FILTER`, `FLOW_DIVERT`, `IPSEC`, `MPTCP`, and related options). Source presence describes available implementation, not the configuration of an unspecified Apple product.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

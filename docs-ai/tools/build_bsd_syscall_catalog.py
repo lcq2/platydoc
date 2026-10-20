@@ -13,6 +13,7 @@ import hashlib
 import json
 import re
 from paths import DOCS, SOURCE_ROOT, require_source
+from doc_license import with_license_notice
 
 MASTER = SOURCE_ROOT / "bsd/kern/syscalls.master"
 DEST = DOCS / "interfaces/bsd-syscalls"
@@ -153,7 +154,7 @@ def render(rows, metadata):
             lines.extend([f"**Implementation:** {implementations}. {entry['mechanism']}", ""])
             if entry.get("details"):
                 lines.extend([entry["details"], ""])
-        outputs[f"{family}.md"] = "\n".join(lines)
+        outputs[f"{family}.md"] = with_license_notice("\n".join(lines))
     lines = [
         "# BSD syscall number and configuration index", "",
         "[Dispatch and catalog guide](README.md)", "",
@@ -186,7 +187,7 @@ def render(rows, metadata):
         "- These are source declarations across configurations, not the enabled calls in one running kernel.",
         "",
     ])
-    outputs["number-index.md"] = "\n".join(lines)
+    outputs["number-index.md"] = with_license_notice("\n".join(lines))
     return {family: len(entries) for family, entries in families.items()}, outputs
 
 

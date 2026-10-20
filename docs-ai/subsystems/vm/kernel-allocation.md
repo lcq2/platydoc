@@ -123,3 +123,7 @@ There are useful test entry points to read alongside the implementation. [`tests
 The detailed chapters inspect startup policy, runtime decisions, allocation/free/realloc pairs and backing lifetimes, with exact source excerpts and diagrams. They cover the primary zone/kalloc/kmem mechanisms and selected specialized interfaces. Dedicated subsystem pools, every sanitizer instrumentation path, every guard tuning option and external monitor implementations are not claimed as exhaustive audits.
 
 No kernel source was modified or kernel run. Compiler metadata behavior beyond the exposed builtins/records is described as an interface contract; no generated kernel image was available to measure its exact type signatures or startup assignments. Local source references and marked excerpts are checked by [the documentation checker](../../tools/check_links.py).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

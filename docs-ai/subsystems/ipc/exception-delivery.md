@@ -300,3 +300,7 @@ For a caught BSD signal, [`sendsig()`](../../../xnu/bsd/dev/arm/unix_signal.c#L2
 - Kernel-mode aborts have recovery-table and panic paths of their own. This userspace fault trace does not promise delivery of every kernel exception to a userspace server.
 
 The reviewed path covers registration, action lifetime/selection, the five RPC behaviors, kernel reply transport, Unix signal reflection, user-state validation, and the return boundary. It does not audit every hardened entitlement branch, corpse/backtrace protocol, signal trampoline implementation, generated stub, or external debugger. For EL2 and protected monitor crossings, use [exception levels and monitors](../platform/exception-levels-and-monitors.md); those transitions are separate from the Mach RPC described here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

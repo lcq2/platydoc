@@ -304,3 +304,9 @@ A physical page list still does not define device-visible addresses, DMA permiss
 | Device pager | Setup, private population, request callback, deallocation boundary | Driver-specific fault providers, DMA translation hardware and external filesystems cannot be inferred from this generic adapter. |
 
 For a first complete read, follow `ubc_info_init_internal → vnode_pager_data_request → vnode_pagein → ubc_create_upl_kernel → vm_object_upl_request`, then pair each successful allocation with `upl_commit_range` or `upl_abort_range` and the eventual `upl_deallocate`. Keep the filesystem's asynchronous completion in the trace; it is where the page ownership returns.
+
+[Shared regions and transforming pagers](shared-regions-and-transforming-pagers.md) follows the shared-cache installation and dyld/shared-region fault paths, including source busy/paging ownership, destination UPL validation metadata, fixups and pager teardown.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

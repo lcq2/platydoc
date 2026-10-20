@@ -132,3 +132,7 @@ Follow [drivers](../subsystems/drivers/README.md), [VM pager/UPL boundaries](../
 VM tries to recover pages through queues, discardable clean contents, file writeback, compression, and configured swap behavior. These mechanisms operate on objects/pages and backing storage. BSD memorystatus adds process-level priorities, limits, pressure notification, and configured termination/freezing decisions. [vm_pageout.c](../../xnu/osfmk/vm/vm_pageout.c), [vm_compressor.c](../../xnu/osfmk/vm/vm_compressor.c), and [kern_memorystatus.c](../../xnu/bsd/kern/kern_memorystatus.c) occupy different parts of this path.
 
 Process termination then returns to task/thread lifecycle and VM/IPC/resource teardown. This is why memory-pressure debugging cannot stop at a page queue, and why a process kill should not be described as the ordinary implementation of every pageout. Configuration and policy determine which mechanisms are present and when they act. See [reclamation and pressure](../subsystems/vm/reclaim-and-pressure.md) and [process lifecycle](../subsystems/processes/lifecycle.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

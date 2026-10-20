@@ -64,3 +64,7 @@ The vnode header's [lock-domain comment](../../../xnu/bsd/sys/vnode_internal.h#L
 [`vnode_reclaim_internal`](../../../xnu/bsd/vfs/vfs_subr.c#L6841) marks termination, drains I/O and invokes cleanup. [`vclean`](../../../xnu/bsd/vfs/vfs_subr.c#L3012) coordinates filesystem close/sync, buffers, UBC destruction, inactive/reclaim callbacks and identity-cache cleanup as required by flags. It installs `dead_vnodeop_p`, clears filesystem-private data and removes the vnode from its mount. Reclaim increments `v_id`, making stale cached identities fail subsequent validation. `INACTIVE` and `RECLAIM` are distinct callbacks: becoming unused need not destroy reusable cached vnode state.
 
 Mount lifetime has its own counts and locks. [`vfs_busy`](../../../xnu/bsd/vfs/vfs_subr.c#L1037) obtains a shared mount rwlock and rechecks unmount/dead state; `vfs_unbusy` releases it. Mount references, iterator references and crossing references serve other lifetime obligations. Treating all of these as one generic “refcount” loses the conditions that make mount traversal and unmount safe.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

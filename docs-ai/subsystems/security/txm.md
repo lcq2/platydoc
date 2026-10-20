@@ -472,3 +472,7 @@ A useful reading order is:
 | [`thread.c`](../../../xnu/osfmk/kern/thread.c), [`locore.s`](../../../xnu/osfmk/arm64/locore.s), [`startup.c`](../../../xnu/osfmk/kern/startup.c), [`MakeInc.def`](../../../xnu/makedefs/MakeInc.def) | Reviewed association checks, protected-domain resume selector, initialization ordering, and external link dependencies. No reconstruction of imported `txm_enter`, `txm_resume`, or hidden monitor exception handling. |
 
 This is a source-level account of the published checkout. No TXM binary was disassembled, no monitor execution was observed, and no kernel build or hardware test was performed.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

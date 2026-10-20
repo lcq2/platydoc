@@ -148,3 +148,7 @@ A hardware key is cleared from pollers during cleanup, and `IOHibernateVars` is 
 ## Sources inspected and limits
 
 Deep reads cover the common early stage, bitmap scratch allocator, linked collision records, page decoder, x86 temporary mapping windows, legacy ARM temporary table construction, SPTM warm-entry argument use, VM descriptor/hash rebuild, late handoff/decode/read loop, EFI remapping, and wake disposal. Architecture hooks were compared rather than assumed identical. Firmware image selection, authentication/decryption before entry, SPTM restoration bodies, some ARM machine-entry glue, device poller implementations, and real hardware error recovery remain outside this tree or this trace. No restored image was executed or tested.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -284,3 +284,7 @@ Arcade demonstrates a callback that owns transport resources and retries. It cop
 | [`arcade.c`](../../../xnu/osfmk/kern/arcade.c#L183-L353), [`mac_mach.c`](../../../xnu/security/mac_mach.c#L349-L352) | Local upcall/ref/retry paths and MAC callback boundary | External validation service and installed MAC policy bodies cannot be inferred from the AST frontend. |
 
 The source search distinguished live constants, historical comments, per-subsystem payloads, and similarly named trace reasons. It does not establish that all producers execute in every supported configuration or that the source contains the external services. The complete numeric/configuration reference is [AST flavors](ast-flavors.md); the common service paths above are the foundation for following any additional producer.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

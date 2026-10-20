@@ -136,3 +136,7 @@ Search output is a starting point. Read enough surrounding code to see the prepr
 The [observability guide](development/observability.md) maps questions to traces, samples, counters, snapshots, and debugger macros. A macro that displays the fields you are studying can be a useful second explanation of their relationship. A subsystem test can provide a small scenario and expected result; see [build and tests](development/build-and-tests.md) for the different harnesses and their requirements.
 
 Keep three claims separate in your notes: “this body performs this step,” “this configuration selects this body,” and “this happened in a running kernel.” Source reading can establish the first, selected build artifacts help establish the second, and runtime evidence is needed for the third.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

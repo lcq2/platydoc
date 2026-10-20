@@ -467,3 +467,7 @@ The tree contains useful checks but they were not run for this documentation rev
 | [zalloc.c](../../../xnu/osfmk/kern/zalloc.c) and [zalloc.h](../../../xnu/osfmk/kern/zalloc.h) | Fixed typed dispatch/free, exact-zone requirement, statistics transition, startup hooks, typed-zone marking | This page does not audit every sanitizer, memory-tagging, or zone-validation path |
 | [vm_kern.c](../../../xnu/osfmk/vm/vm_kern.c), [hash.h](../../../xnu/libkern/os/hash.h) | Type-hash range/direction consumption, shuffle helper, and hash update/finalization bodies | Guard objects, map placement, and VM recycling are covered by the kernel virtual allocation guide |
 | [Allocator tests](../../../xnu/tests/kalloc.c), [configuration test](../../../xnu/tests/verify_kalloc_config.c) | Test coverage and entry-point survey | Tests were read, not executed; conceptual examples are not test output |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

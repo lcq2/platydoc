@@ -177,3 +177,7 @@ Finally, restricted mappings do not make kernel code unable to corrupt the conte
 ## Sources and limits
 
 This chapter traced the selected IOKit allocation/free pairs, class-operator macros, BSD compatibility wrappers, the x86 pageable suballocator, kernel-extension VM allocation, and XNU's mapping-type selection. It does not audit every IOKit client, DMA mapper, extension-loading operation or tracking callback. No allocator benchmark, live zone dump or hardware protection test was run; configuration-specific statements are derived from the guards and defaults in the cited source.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

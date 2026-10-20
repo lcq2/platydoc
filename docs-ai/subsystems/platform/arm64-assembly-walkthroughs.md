@@ -448,3 +448,7 @@ For an interrupt that occurred during SPTM/TXM/SK execution, [`xnu_return_to_gl2
 The decisive reading checks are: identify the active SP bank; track `B`/`C` independently of handler SP; verify each register was saved before becoming scratch; distinguish `b`/`br` from `bl`; find where x21 stops naming the context; and ensure the final loads cannot accidentally reload a value after its authentication. These checks apply to the actual instruction sequences above without requiring a guessed stack-size constant.
 
 This chapter read the selected vector, spill, dispatcher, synthetic-frame, AST, authentication and restore bodies, their offset definitions, and the relevant synchronous C boundary. It does not rederive every syndrome handler, debug/MTE/SME branch, fatal SP1 path, CPU workaround, or monitor implementation. Exact excerpts are mechanically checked against the checkout; the path was not booted or single-stepped on hardware.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

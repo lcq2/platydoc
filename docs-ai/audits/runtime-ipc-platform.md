@@ -164,3 +164,7 @@ The eleven candidates above are the recommended bounded backlog. P3 follow-ons c
 Missing provider bodies are a different category. Protected-monitor calls, some PPL crossings, firmware/SoC behavior, the external hypervisor provider, and generated MIG stubs must remain interface/build boundaries until the relevant implementation or generated artifact is available. The [monitor guide](../subsystems/platform/exception-levels-and-monitors.md), [platform services](../subsystems/platform/platform-services.md), and [kernel RPC guide](../subsystems/ipc/kernel-rpc-and-exceptions.md) already make those distinctions. More local documentation cannot honestly reconstruct those missing implementations.
 
 Configuration and tests should be part of each approved expansion, not a detached list: inspect the selected definitions and branches, use tests to identify intended contracts and failure cases, and report whether they were actually run. This audit read representative test bodies and local implementation branches; it did not build or execute XNU or tests. Timekeeping's sleep-test gate, ledger tests' preemption requirement, Recount's exit monotonicity test, and IPC's stashed-turnstile reference test are concrete starting points, not claims of comprehensive test coverage.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

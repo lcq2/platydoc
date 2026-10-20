@@ -193,3 +193,7 @@ Read `makeLink/breakLink`, the attach/detach pair, and the borrowed/copy propert
 | Both adjacency snapshots and recursive cursor iteration | Reference movement, invalidation, repeated nodes, reset | No concurrent mutation stress test; exact `where`/`next` limitation is source-only |
 
 The graph relationships here are distinct from device-resource allocation or service-start success. Continue with [matching and termination](service-matching-and-termination.md) for those lifecycle rules, and [notification/arbitration](service-notifications-and-arbitration.md) for callback snapshots and service locks.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

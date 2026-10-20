@@ -443,3 +443,7 @@ Perform positional scatter-read I/O.
 Perform positional gather-write I/O.
 
 **Implementation:** [sys_pwritev_nocancel](../../../xnu/bsd/kern/sys_generic.c#L814). `writev_uio` receives the supplied offset and positional flag; it shares descriptor validation and transfer machinery with vector writes. The ordinary wrapper tests cancellation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

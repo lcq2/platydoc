@@ -253,3 +253,7 @@ Receive a SysV message selected by type and flags.
 Wait for a POSIX semaphore count.
 
 **Implementation:** [sem_wait_nocancel](../../../xnu/bsd/kern/posix_sem.c#L981). The common body pins a typed descriptor, checks object/MAC state and calls Mach `semaphore_wait`, translating its result before dropping the fileproc. Ordinary sem_wait tests cancellation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

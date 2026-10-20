@@ -304,3 +304,7 @@ The function's return is not simply an errno: it describes its push/slot result,
 Completion at this layer establishes the software I/O/UPL conditions described above. It does not by itself prove persistence across power loss: filesystem metadata ordering, filesystem synchronization semantics, device-cache flushes and storage hardware behavior lie beyond a successful generic buffer completion.
 
 This chapter expands buffered writeback, sparse tracking, direct-write coherence and generic completion. It does not reconstruct APFS transactions, every read-ahead/throttling heuristic, every verification provider, vector-UPL internals or the physical device's implementation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

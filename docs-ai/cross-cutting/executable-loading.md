@@ -92,3 +92,7 @@ flowchart LR
 ## Reading and verification limits
 
 The inspected path includes map creation, parser bounds/pass dispatch, segment mapping, page-zero/zero-fill handling, `LC_MAIN`, dynamic-linker result transfer, signature-cache entry handling, and activation entry. It does not audit every Mach-O command, encrypted-image path, architecture grading rule, Rosetta branch, signature parser, or dynamic linker implementation. No executable was loaded or kernel booted as part of this documentation work.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

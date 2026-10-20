@@ -308,3 +308,7 @@ Copy-overwrite is a separate route: [`vm_map_copy_overwrite`](../../../xnu/osfmk
 | `vm_memory_entry.c` / `vm_map_xnu.h` | Named-create, copy/share dispatch, parent restriction, wrapped-object representation, port construction and no-senders teardown | Ledger/purgeable policy variants and all access-mode flag combinations are not exhaustively traced. |
 | `vm_map.c` copy routines | Selector, kernel buffer allocation, entry copyin, copyout ownership and discard | Copy-overwrite and mixed-page-size transformation internals are navigation-level coverage. |
 | Pmap and IPC interfaces | Concrete calls and ownership transitions at the boundary | Architecture-specific page tables and IPC name translation remain in their dedicated guides. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

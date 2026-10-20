@@ -219,3 +219,7 @@ Other acknowledged limits—B+tree balancing, every object-collapse case, contig
 The disposition tables enumerate all Markdown files in the two owned subsystem directories, including short introductions and indexes. The candidate evidence was checked in the cited source bodies; build selectors and tests were inspected selectively to distinguish available implementation from assumed product behavior. No kernel, kext, parser, hardware transfer, pressure workload or test binary was executed.
 
 The checked-in tests provide reading cases and possible future validation routes, not current passing results. External SDKs, entitlements, development kernels, architecture support and legacy tooling can affect whether they can run. This audit is complete as a chapter inventory and prioritized gap assessment, not as an exhaustive source or concurrency audit.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

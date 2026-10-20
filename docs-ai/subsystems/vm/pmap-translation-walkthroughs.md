@@ -344,3 +344,7 @@ Kernel bootstrap mappings and the physical aperture also belong to different add
 | Visibility and activation | Legacy commit and TLB helpers, visible SPTM deferral/activation contracts | No monitor/firmware implementation reconstructed; no kernel build or execution performed. |
 
 To reproduce a walk while reading source, record the pmap's bounds and geometry first; compute each index; record the descriptor's **storage address** separately from its **output address**; stop on invalid/block/leaf as appropriate; then inspect access bits. To explain a fault or teardown, add the map/object decision, reverse-map ownership, and completion boundary. These are the distinct questions exposed by the lookup, construction, and removal bodies above.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

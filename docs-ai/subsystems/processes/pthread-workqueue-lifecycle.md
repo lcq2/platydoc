@@ -190,3 +190,6 @@ Only after AIO and descriptor/event cleanup does `proc_exit()` call `workq_exit(
 
 Selected complete paths were read for the pthread shims, workqueue open, request creation, constrained/cooperative admission, scheduler activity callbacks, creator selection, worker creation/rollback, request selection/binding, user setup/return, ordinary park races, permanent-binding entry/termination, cancellation, join wake, uthread cleanup, and workqueue exit. Every QoS policy, timer backoff, cooperative quantum-expiry branch, work-interval configuration, and idle-death heuristic is not reconstructed. External pthread and libdispatch implementations are interface boundaries, not source audited by this chapter.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

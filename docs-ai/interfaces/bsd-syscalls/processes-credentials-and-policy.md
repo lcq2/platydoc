@@ -723,3 +723,7 @@ Set or query coalition policy such as suppression.
 Set or query coalition policy such as suppression.
 
 **Implementation:** [sys_coalition_policy_get](../../../xnu/bsd/kern/sys_coalition.c#L619). Checks the entitlement and coalition type, finds a referenced coalition and invokes the flavor-specific policy set/get helper before releasing it.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

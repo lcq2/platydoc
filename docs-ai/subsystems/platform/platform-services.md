@@ -53,3 +53,7 @@ Publication has synchronization rules. `commpage_set_timestamp()` clears the tim
 ARM64 `arm64_hypercall.c`, under `APPLEVIRTUALPLATFORM`, instead shows XNU acting as a guest: it issues `hvc #0`, checks host feature support, obtains boot/time metadata, and offers virtual-CPU kick/wait operations. The host implementation is not included. SPTM calls used for protected mappings form yet another boundary; do not infer that guest hypercalls and protected page-table operations share a provider or protocol. [`arm64_hypercall.c`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L58), [`guest operations`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L237), [`hypercall IDs`](../../../xnu/osfmk/arm64/hv_hvc.h#L30).
 
 For the detailed power path, continue with [system sleep policy and orchestration](../drivers/system-sleep-and-wake.md), [hibernation image creation](hibernation-image-creation.md), [physical and VM restore](hibernation-restore.md), and [x86 sleep/resume](x86-sleep-and-resume.md). The [ARM64 CPU lifecycle](cpu-power-lifecycle.md) covers CPU offline/idle/system-suspend coordination.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

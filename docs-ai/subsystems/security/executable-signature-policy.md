@@ -284,3 +284,7 @@ For a concrete investigation, start with `(vnode identity, slice offset)`, then 
 [AMFI interface](../../../xnu/libkern/libkern/amfi/amfi.h), [CoreTrust interface](../../../xnu/libkern/libkern/coretrust/coretrust.h), [trust-cache frontend](../../../xnu/bsd/kern/kern_trustcache.c#L731), [signature hook](../../../xnu/security/mac_vfs.c#L1316-L1424), [TXM](txm.md), [filesystem boundaries](../vfs/README.md).
 
 Deep reads for this chapter cover the permission/MAC path, signature-command cache/read branch, initial-buffer check, segment mapping, process flag/constraint/task-access handling, detached acceptance, mmap/library-validation gates, VM association and its callers. The companion chapters supply blob parsing/publication and actual page hashing. No kernel or executable was run, and the guide does not infer absent policy from the existence of a hook.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

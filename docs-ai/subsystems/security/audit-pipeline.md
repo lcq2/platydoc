@@ -132,3 +132,6 @@ Correspondingly, `audit_pipe_submit_user()` delivers to pipes without the ordina
 
 Read bodies cover constructor/destructor, entry/postselection/commit, batching and backpressure, paired user/kernel output, trail write/space/error decisions, rotation/drain ownership, auditctl, user BSM validation/attachment, and pipe selection/append/read. [The overview](audit.md) retains session and control-interface navigation. Every BSM token case, auditon command, MAC audit-provider decision, session-port policy, and daemon persistence/rotation behavior remains outside this trace.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

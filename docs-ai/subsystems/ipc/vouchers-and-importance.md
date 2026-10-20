@@ -192,3 +192,7 @@ A task's aggregate assertion transition schedules policy work. The update queue 
 | Deep selected paths | [`ipc_voucher.c`](../../../xnu/osfmk/ipc/ipc_voucher.c), [`ipc_voucher.h`](../../../xnu/osfmk/ipc/ipc_voucher.h) | Object/cache representations, creation, deduplication, conversion, release reconciliation, send/receive processing. Manager registration, every extraction/command API, table-growth internals, and deprecated managers are not fully traced. |
 | Deep selected paths | [`ipc_importance.c`](../../../xnu/osfmk/ipc/ipc_importance.c), [`ipc_importance.h`](../../../xnu/osfmk/ipc/ipc_importance.h) | Send link/boost, inheritance creation, receive/unreceive/cleanup, manager release, task-transition/update boundary. Full graph propagation, delayed-drop timing, watchport interactions, and all legacy combinations are not audited. |
 | Focused integration | [`mach_msg.c`](../../../xnu/osfmk/ipc/mach_msg.c#L306), [`ipc_kmsg.c`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5129), [`thread.c`](../../../xnu/osfmk/kern/thread.c#L3364), [`bank.c`](../../../xnu/osfmk/bank/bank.c#L1823) | Receive ordering, send revalidation, thread adoption, bank interpretation. Complete bank account/ledger creation and external userspace voucher scheduling policy remain outside this chapter. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

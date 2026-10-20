@@ -283,3 +283,7 @@ Graft an authenticated disk-image/cryptex filesystem at a mount location.
 Remove a grafted image association.
 
 **Implementation:** [ungraftdmg](../../../xnu/bsd/vfs/vfs_syscalls.c#L850). Checks entitlement/MAC policy, resolves the target, issues the filesystem ungraft ioctl and performs notification/reference cleanup.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

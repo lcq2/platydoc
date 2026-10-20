@@ -162,3 +162,7 @@ mach_voucher_debug_info(
 
 **Local body:** [`mach_voucher_debug_info`](../../../xnu/osfmk/ipc/ipc_voucher.c#L1923).
 Calls visible in this body include `MACH_PORT_VALID`, `ipc_port_translate_send`, `convert_port_to_voucher`, `ip_mq_unlock`, `mach_voucher_extract_all_attr_recipes`, `ipc_voucher_release`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

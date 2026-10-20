@@ -265,3 +265,59 @@ A wired page follows a different transition: [`vm_page_wire`](../../../xnu/osfmk
 | `vm_pageout.c` | External worker object/offset relookup as a concrete lifetime example | Reclaim policy and compressor algorithms remain in the sibling guide. |
 
 Read `vm_object_allocate → vm_page_grab_options → vm_page_insert_internal → vm_page_lookup` first. Then read `vm_object_copy_quickly → vm_object_shadow` and the map/fault guide together. Finish with `vm_object_deallocate → vm_object_terminate → vm_object_reap` to see how the relationships are dismantled.
+
+## Termination retries, pager disconnection and accounting order
+
+The last-reference path is a protocol, not an unconditional destructor call. For a cacheable external object, `vm_object_terminate()` can first reap/flush pages after clearing trusted-pager state. That operation may drop synchronization. The routine therefore checks both `terminating` and the reference count afterward: another path may already be terminating it, or somebody may have acquired a reference while cleanup ran. Those cases release this attempt's reference, unlock and return `KERN_FAILURE`; they do not proceed to free a still-referenced object. [Termination preflight/rechecks](../../../xnu/osfmk/vm/vm_object.c#L1422-L1461).
+
+[Source: `osfmk/vm/vm_object.c`, lines 1450–1470](../../../xnu/osfmk/vm/vm_object.c#L1450-L1470).
+
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_object.c#L1450-L1470 -->
+```c
+	 * Did somebody get a reference to the object while we were
+	 * cleaning it?
+	 */
+	if (os_ref_get_count_raw(&object->ref_count) != 1) {
+		vm_object_lock_assert_exclusive(object);
+		os_ref_release_live_locked_raw(&object->ref_count, &vm_object_refgrp);
+		vm_object_unlock(object);
+		return KERN_FAILURE;
+	}
+
+	/*
+	 *	Make sure no one can look us up now.
+	 */
+
+	VM_OBJECT_SET_TERMINATING(object, TRUE);
+	VM_OBJECT_SET_ALIVE(object, FALSE);
+
+	if (!object->internal &&
+	    object->cached_list.next &&
+	    object->cached_list.prev) {
+		vm_object_cache_remove(object);
+```
+
+Once committed, termination marks the object not alive/terminating, removes external cache-list membership, and disconnects `shadow->vo_copy` if this object was that copy. It deliberately leaves the owned shadow reference for the appropriate caller or asynchronous reaper. If paging/activity remains, waiting inline could deadlock against the operation that just dropped the last ordinary reference but still owns a paging hold. The reaper receives that obligation instead. [Commit and deferral](../../../xnu/osfmk/vm/vm_object.c#L1462-L1520).
+
+```mermaid
+flowchart TD
+    L[Last ordinary reference under object lock] --> F[External flush if required]
+    F --> R[Recheck terminating and reference count]
+    R -->|new owner or another termination| X[Drop this attempt and return]
+    R -->|still sole reference| D[Mark dead and detach copy lookup]
+    D -->|paging or activity remains| Q[Queue asynchronous reaper]
+    Q --> W[Wait for paging and activity to drain]
+    D -->|no outstanding holds| P[Final reap]
+    W --> P
+    P --> S[Drop saved shadow reference in responsible caller]
+```
+
+`vm_object_reap()` first changes ownership/ledger attribution while the pager is still attached, because compressed contents are needed for correct accounting. It then clears `object->pager`, disables the memory-object control association and consumes the final reference. Internal purgeable objects leave their queues and retire applicable tokens before resident-page destruction. Pageout objects use `vm_pageout_object_terminate()` for their special shadow/activity relationship; ordinary objects reap remaining resident pages. [Accounting/control ordering](../../../xnu/osfmk/vm/vm_object.c#L1552-L1610), [purgeable and pageout branches](../../../xnu/osfmk/vm/vm_object.c#L1611-L1695).
+
+The pager callback runs after unlocking the object. On return the routine completes terminating-waiter bookkeeping, destroys/frees storage and leaves no usable object pointer. The asynchronous reaper saves the ordinary shadow before reaping, then deallocates that saved object afterward. Its `KERN_FAILURE` handoff is therefore an ownership signal to the original caller, not proof that no destruction has started. [Pager release and final object cleanup](../../../xnu/osfmk/vm/vm_object.c#L1696-L1740), [reaper](../../../xnu/osfmk/vm/vm_object.c#L2049-L2100).
+
+See [purgeability](purgeable-memory.md) for content loss without object death, [shared-region pagers](shared-regions-and-transforming-pagers.md) for independent map/pager cache references, and [deferred reclaim](deferred-reclamation.md) for shared user/kernel range reclamation. These mechanisms can eventually reach object deallocation but do not replace its reference/paging protocol.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

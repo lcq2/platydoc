@@ -203,3 +203,7 @@ Abort the caller with a structured termination reason.
 Report a structured process fault through the reason/payload interface.
 
 **Implementation:** [os_fault_with_payload](../../../xnu/bsd/kern/kern_exit.c#L1591). Calls `abort_with_payload_internal` with `OS_REASON_IFLAG_USER_FAULT`, enabling throttling and a user-fault branch. Security soft traps send an analytics event; other namespaces construct a user guard exception and invoke `task_violated_guard`, then free the reason and translate its result. This differs from the abort entry's `SIGABRT` delivery.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

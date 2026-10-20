@@ -1005,3 +1005,7 @@ routine vm32_vm_reallocate (
 
 **Local body:** [`vm32_vm_reallocate`](../../../xnu/osfmk/vm/vm32_user.c#L671).
 Calls visible in this body include `vm_sanitize_expand_addr_to_64`, `vm_sanitize_expand_size_to_64`, `mach_vm_reallocate`, `vm_sanitize_trunc_addr_to_32`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

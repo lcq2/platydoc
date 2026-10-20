@@ -106,3 +106,7 @@ routine mach_eventlink_disassociate(
 
 **Local body:** [`mach_eventlink_disassociate`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L428).
 Calls visible in this body include `splsched`, `ipc_eventlink_lock`, `ipc_eventlink_active`, `ipc_eventlink_unlock`, `splx`, `ipc_eventlink_signal_internal_locked`, `thread_deallocate`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -423,3 +423,7 @@ For a first source pass, follow `vnode_create_ext → vnode_create_internal → 
 | [`kpi_vfs.c`](../../../xnu/bsd/vfs/kpi_vfs.c#L3977-L4001), [`ubc_subr.c`](../../../xnu/bsd/kern/ubc_subr.c#L2115-L2133), [`bsd_vm.c`](../../../xnu/osfmk/vm/bsd_vm.c#L694-L710) | Selected authorization invalidation and UBC finalization bridges. Full file-data, buffer, VM-object and signing paths belong to the linked dedicated chapters. |
 
 This is a source-level account of the selected paths in this checkout. No kernel execution, fault injection, filesystem benchmark, or validation of an external filesystem's cache implementation was performed.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

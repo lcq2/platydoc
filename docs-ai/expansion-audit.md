@@ -167,3 +167,7 @@ The [coverage record](coverage.md) describes source review, independent checks a
 ## Publication boundary
 
 Markdown, source excerpts and editable Mermaid diagrams remain the authoring sources. The subsequently requested HTML book is generated locally with `python3 make_docs.py`, including rendered SVG assets, offline search and source previews. It requires no hosted service; see [build and reading instructions](development/building-html.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

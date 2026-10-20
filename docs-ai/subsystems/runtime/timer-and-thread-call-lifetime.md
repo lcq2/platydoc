@@ -236,3 +236,7 @@ Absolute and continuous delayed calls use separate group queues/timers. Delayed 
 Deep review covered low-level enqueue/dequeue/async-dequeue, ordinary expiry and cancellation, thread wait-timer drain, allocated thread-call setup, immediate/delayed submission, ONCE rearm, worker invocation/finish, scheduler block accounting, cancel/wait/free, and signal expiry. Group construction, QoS allocation, and continuous wake adjustment were inspected as connecting interfaces. Long-term timer migration, every coalescing policy input, daemon capacity tuning, worker-retirement races, and each hardware clock backend remain outside the deep path review.
 
 The examples describe source-derived interleavings; no timer workload, cancellation stress test, or clock-accuracy experiment was run. A productive follow-up is to choose one real caller and trace both its final submission prohibition and the lifetime of its callback parameter object. Those client-side conditions are deliberately not supplied by the raw queue API.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

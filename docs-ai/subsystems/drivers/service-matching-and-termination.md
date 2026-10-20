@@ -159,3 +159,7 @@ Detach then advances parent cleanup: it removes the relationship, adjusts busy p
 Deep review covered `attach`/`detach`, matching-state publication, catalogue candidate collection, personality filtering, probe/start ownership, start failure, base open/close, phase-1 traversal, phase-2 eligibility, workloop callback routing, and phase-3 finalization/stop lists. DriverKit launch/stop boundaries and user-reference destruction were followed into their adjacent implementations.
 
 Arbitration deadlock-resolution internals, every notification iterator race, every replacement/rematching option, external executable loading, and family-specific hardware teardown remain outside this chapter's detailed review. A source-reading exercise is to follow a provider termination while `doServiceMatch()` still owns configuration state, then identify the exact call that retries phase 2 when that configuration interval ends. No device was attached or removed to validate these source-derived paths.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

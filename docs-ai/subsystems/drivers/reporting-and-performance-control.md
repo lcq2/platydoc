@@ -182,3 +182,7 @@ These references allow a device operation to remain attributed to its submitter 
 ## Inspection scope
 
 Deep reads covered reporter allocation/swap/cleanup, configuration counts, sampling and partial output, simple/state/histogram update bodies, legend publication, performance-interface registration, tokens, work contexts and final-reference release. Histogram construction and service report forwarding were inspected selectively. External report aggregation, userspace visualization, performance-controller algorithms, concrete driver cancellation and every telemetry/report format are not reconstructed. The documentation describes source synchronization and accounting contracts, not measurements from a running machine.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

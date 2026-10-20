@@ -40,6 +40,8 @@ The first build highlights referenced source files and renders diagrams. Later b
 
 Edit the Markdown and rebuild. Chapter titles, section outlines, search records, concept occurrences, source references and SVG assets are regenerated automatically. The builder refreshes the Markdown table of contents and source-reference index before conversion, then checks links and exact copied excerpts.
 
+Every handbook Markdown page carries a visible CC BY 4.0 notice for original Platydoc text and diagrams. The build synchronizes these notices before validation, and the standalone catalog/navigation generators preserve them. Check notice coverage without editing files with `python3 docs-ai/tools/doc_license.py --check`.
+
 After updating the XNU checkout or adding interfaces, refresh the source-derived syscall and MIG catalogs as well:
 
 ```sh
@@ -70,6 +72,7 @@ python3 make_docs.py --output /tmp/xnu-book --cache /tmp/xnu-book-cache --jobs 4
 | --- | --- |
 | [make_docs.py](../../make_docs.py) | Stable command-line entry point. |
 | [tools/paths.py](../tools/paths.py) | Shared project, documentation and read-only XNU roots; detects an absent or incomplete source checkout. |
+| [tools/doc_license.py](../tools/doc_license.py) | Shared Markdown documentation-license notice, idempotent updates and notice coverage checks. |
 | [book/build.py](../tools/book/build.py) | Markdown conversion, chapter ordering, heading preservation, link rewriting, search records, source highlighting/previews, output staging and build manifest. |
 | [book/source_codec.py](../tools/book/source_codec.py) | Exact source tokenization, deterministic compression, byte preservation and versioned source cache. |
 | [book/concepts.py](../tools/book/concepts.py) | Alphabetical concept/symbol/interface extraction and occurrence links. |
@@ -81,6 +84,14 @@ python3 make_docs.py --output /tmp/xnu-book --cache /tmp/xnu-book-cache --jobs 4
 Path conventions distinguish evidence from project infrastructure. `PROJECT_ROOT` is the Platydoc directory, `SOURCE_ROOT` is its `xnu/` child, and `DOCS` is `docs-ai/`. Kernel paths in inventory records and implementation-location metadata remain XNU-relative (`osfmk/...`); Markdown destinations and generated source-record paths are project-relative where appropriate (`xnu/osfmk/...`). Embedded Markdown links in authored catalog text resolve from the generated chapter, just like links in ordinary Markdown.
 
 The generated `build-manifest.json` records input/tool content hashes, diagram renderers, the highlighter version and artifact counts. `build-info.html` describes the build's scope and links to source/build-tool license notices. Generated HTML and caches should not be edited manually; rebuild them from Markdown and the book tools.
+
+## Documentation license
+
+Original Platydoc text and diagrams, including the Markdown and generated HTML, are licensed under [Creative Commons Attribution 4.0 International](../../LICENSE-DOCS) (`CC-BY-4.0`). Credit Platydoc and its contributors, link the license and indicate changes when reusing this material. The build tools and browser software remain under [GNU GPL version 2](../../LICENSE) (`GPL-2.0-only`).
+
+Every HTML page displays this distinction in its footer. Both project license texts are included as plain-text files for offline reading and linked from the build-information page. The Markdown notice is omitted from rendered chapter/search content to avoid duplication with the HTML footer; the downloadable Markdown retains it.
+
+XNU, reproduced source excerpts and third-party dependencies retain their respective licenses and notices. A source-view page's documentation footer does not change the license of the displayed source. The book includes `xnu/APPLE_LICENSE`, preserves full-file source headers and retains the bundled dependency notices.
 
 ## Compact static storage
 
@@ -102,7 +113,7 @@ Search records and the complete alphabetical index use the same lossless gzip/ba
 
 `source-records.json` maps viewer URLs to their paths, payload filenames, original-byte hashes, payload-file hashes, line counts and heading aliases. The verifier decodes each payload, checks its reconstructed bytes and line map, and validates source citations against that map. It also decodes the search/index data to check their destinations; compression does not exempt these links from validation.
 
-Original Markdown and complete license notices use this same source viewer and exact-byte download path. Compression changes storage, not their contents. `_downloads/` is reserved for linked binary assets such as images or PDFs.
+Original Markdown and complete license notices use this same source viewer and exact-byte download path. Project licenses also have small plain-text copies under `licenses/` for reading without JavaScript. Compression changes storage, not their contents. `_downloads/` is reserved for linked binary assets such as images or PDFs.
 
 The source cache is `.docs-cache/source-codec/`, keyed by file content, basename, Pygments version and `source_codec.py`'s `CODEC_VERSION`. Bump that version when changing tokenization or record semantics. The obsolete `.docs-cache/highlight/` directory from older builds may be removed after a successful compact build; retain the cached SVG files elsewhere in `.docs-cache/` to reuse rendered diagrams. Do not copy caches or vendored build tools to a static host—only the generated output directory is needed.
 
@@ -118,3 +129,7 @@ node docs-ai/tools/book/tests/assets.test.mjs
 ```
 
 These include source ranges and Markdown heading previews, exact token/download byte preservation, compressed payload integrity, both gzip decoding paths, concept destinations, invalid links/SVGs, search matching/pagination and bounded preview context. The JavaScript tests execute the implementation helpers with a small DOM fixture; they do not substitute for a visual browser check.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import build_bsd_syscall_catalog as bsd
 import build_mach_trap_catalog as traps
 import build_mig_catalog as mig
+import doc_license
 import paths
 
 
@@ -147,6 +148,8 @@ class CatalogPathsTests(unittest.TestCase):
         self.assertEqual(families, {"test-family": 1})
         for text in outputs.values():
             self.assert_source_links(text, self.bsd_out)
+            self.assertEqual(text.count(doc_license.BEGIN), 1)
+            self.assertEqual(text, doc_license.with_license_notice(text))
         self.assertEqual(before, self.snapshot())
 
     def test_mig_renderer_registration_excerpt_and_test_links_match_checkout(self):
@@ -175,7 +178,10 @@ class CatalogPathsTests(unittest.TestCase):
         self.assertEqual(body.splitlines(),
                          target.read_text().splitlines()[int(first)-1:int(last)])
         for name in ("probe.md", "subsystems.md"):
-            self.assert_source_links((self.mig_out / name).read_text(), self.mig_out)
+            page = (self.mig_out / name).read_text()
+            self.assert_source_links(page, self.mig_out)
+            self.assertEqual(page.count(doc_license.BEGIN), 1)
+            self.assertEqual(page, doc_license.with_license_notice(page))
         self.assertEqual(before, self.snapshot())
 
     def test_mach_trap_generation_uses_source_table_header_and_bodies(self):

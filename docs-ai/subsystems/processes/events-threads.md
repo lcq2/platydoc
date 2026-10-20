@@ -40,7 +40,7 @@ The locking contract at the top of [`eventvar.h`](../../../xnu/bsd/sys/eventvar.
 
 [`bsdthread_terminate()`](../../../xnu/bsd/pthread/pthread_shims.c#L366) does meaningful local preparation: it handles a workqueue thread leaving the pool and arranges delayed joiner wake/port cleanup when the argument denotes a ulock address. It then calls `pthread_functions->bsdthread_terminate`. A file named “shims” is therefore neither the whole pthread implementation nor necessarily just trivial forwarding. User pthread object layout and the external implementation cannot be reconstructed fully from this tree alone.
 
-An additional in-tree wait/wake mechanism is [`sys_ulock.c`](../../../xnu/bsd/kern/sys_ulock.c#L505). `sys_ulock_wait()` normalizes arguments into `sys_ulock_wait2()`, and the wait/wake paths distinguish unfair-lock ownership from compare-and-wait operations, including shared variants. This chapter inspected entry validation and operation selection only; the full keying, turnstile, timeout, and cleanup races remain separate work. It should not be conflated with the delegated `psynch_*` family.
+An additional in-tree wait/wake mechanism is [`sys_ulock.c`](../../../xnu/bsd/kern/sys_ulock.c#L505). `sys_ulock_wait()` normalizes arguments into `sys_ulock_wait2()`, and the wait/wake paths distinguish unfair-lock ownership from compare-and-wait operations, including shared variants. The [user-lock companion](user-lock-wait-and-wake.md) follows keying, protected comparison, turnstile inheritance, wake selection, timeout and final-waiter cleanup. It should not be conflated with the delegated `psynch_*` family.
 
 ## How work reaches a servicing thread
 
@@ -66,3 +66,7 @@ flowchart TD
 [`workq_constrained_allowance()`](../../../xnu/bsd/pthread/pthread_workqueue.c#L4020) demonstrates admission control. It checks the constrained scheduled-thread limit, aggregates active threads at the requested QoS and higher, includes recently blocked threads still considered busy, and compares against available parallelism. It can schedule delayed reevaluation. “Blocked” therefore does not always mean the pool immediately creates a replacement. Cooperative requests have separate queues/counters; overcommit is another request class, not a synonym for ordinary constrained work.
 
 [`workq_kernreturn()`](../../../xnu/bsd/pthread/pthread_workqueue.c#L3750) dispatches userspace requests for threads and worker returns. Return paths may service events, rebind, park, or retire a worker. On process exit, `workq_mark_exiting()` runs before descriptor/event teardown and `workq_exit()` afterward, so event sources cannot outlive the pool through an uncontrolled request. The full request selector and every park/unpark transition were not audited for this chapter; the cited routines are a concrete route into that deeper study.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

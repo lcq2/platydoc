@@ -172,3 +172,7 @@ By default, wake rebases nanotime through `rtc_sleep_wakeup(acpi_idle_abstime)` 
 ## Sources inspected and limits
 
 Deep reads cover `acpi_sleep_kernel`, `acpi_hibernate`, `acpi_idle_kernel`, sleep/wake assembly, temporary CR3 mappings, nanotime/commpage rebasing, hibernation active hooks, power-management dispatch wrappers, fast/full CPU startup, and target reinitialization. ARM comparison relies on the separately traced [CPU lifecycle](cpu-power-lifecycle.md) and [restore](hibernation-restore.md) chapters. ACPI firmware methods, concrete CPU power-driver state machines, VMX/hypervisor internals, all hardware MSRs, and every platform's resume-vector installation remain outside this trace. No sleep transition was executed on hardware.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

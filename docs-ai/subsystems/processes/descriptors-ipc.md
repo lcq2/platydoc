@@ -39,11 +39,11 @@ Readiness also uses methods on the underlying object. `select()` walks descripto
 
 ## Pipes and transferred file references
 
-[`pipe()`](../../../xnu/bsd/kern/sys_pipe.c#L392) allocates a paired set of `struct pipe` endpoints, creates one read and one write fileproc, installs `pipeops`, links `pipe_peer`, and publishes the two descriptors after initialization. In this path the interface is half duplex. `pipe_read()`, `pipe_write()`, and `pipeclose()` own buffering, blocking, peer closure, and readiness behavior. Those longer algorithms were surveyed, not exhaustively traced here.
+[`pipe()`](../../../xnu/bsd/kern/sys_pipe.c#L392) allocates a paired set of `struct pipe` endpoints, creates one read and one write fileproc, installs `pipeops`, links `pipe_peer`, and publishes the two descriptors after initialization. In this path the interface is half duplex. Continue with [pipe buffering, atomic writes and closure](pipes-and-unix-socket-rights.md) for the `pipe_read()`, `pipe_write()` and `pipeclose()` mechanisms.
 
 UNIX-domain `SCM_RIGHTS` transfers preserve open-file identity rather than copying an integer fd into another process. [`unp_internalize()`](../../../xnu/bsd/kern/uipc_usrreq.c#L2494) validates control metadata, looks up each sending fd under the process descriptor lock, checks whether its fileglob is sendable and whether guards permit transfer, and replaces the fd array with retained/queued fileglob references. [`unp_externalize()`](../../../xnu/bsd/kern/uipc_usrreq.c#L2385) reserves all destination fd slots before committing, creates fileprocs referring to those fileglobs, removes message-queue bookkeeping, and publishes the new fd numbers. The sender's and receiver's numbers can differ.
 
-The fileglob tracks message references separately (`fg_msgcount`, `f_msglist`). [`unp_gc()`](../../../xnu/bsd/kern/uipc_usrreq.c#L2556) exists because sockets containing descriptor references can form cycles that simple reference counting cannot reclaim. The internalize/externalize paths were read; a correctness analysis of that collector is outside this chapter.
+The fileglob tracks message references separately (`fg_msgcount`, `f_msglist`). [`unp_gc()`](../../../xnu/bsd/kern/uipc_usrreq.c#L2556) exists because sockets containing descriptor references can form cycles that simple reference counting cannot reclaim. The [rights-collection companion](pipes-and-unix-socket-rights.md#why-reference-counting-needs-a-collector) follows root marking, lock-conflict restarts, temporary references, queue flushing and final release.
 
 Mach fileports provide another transfer interface. [`sys_fileport_makeport()`](../../../xnu/bsd/kern/kern_descrip.c#L6066) checks sendability/guards, retains the fileglob, creates a fileport, and copies a send right into the task's IPC namespace. `fileport_releasefg()` drops that ownership when the port is destroyed. Conversely, `sys_fileport_makefd()` accepts a typed `IKOT_FILEPORT` send right and calls `fileport_makefd()` to allocate a descriptor sharing the fileglob; the syscall sets `FP_CLOEXEC`. This is a direct connection between the descriptor and [Mach IPC](../ipc/README.md) object models.
 
@@ -57,4 +57,8 @@ Mach fileports provide another transfer interface. [`sys_fileport_makeport()`](.
 | Common SysV permission handling | [`sysv_ipc.c`](../../../xnu/bsd/kern/sysv_ipc.c) | Credentials and IPC permission records |
 | POSIX shared memory/semaphores | [`posix_shm.c`](../../../xnu/bsd/kern/posix_shm.c), [`posix_sem.c`](../../../xnu/bsd/kern/posix_sem.c) | Distinct APIs with their own objects; some descriptor types in `file_internal.h` |
 
-This table is a navigation survey. Build-time `SYSV_*` guards and syscall-table configuration must be checked before assuming any particular facility is enabled.
+Continue with [POSIX named IPC](posix-named-ipc.md), [System V IPC](system-v-ipc.md) and [user-address wait/wake](user-lock-wait-and-wake.md) for object ownership, blocking and cleanup. Build-time `SYSV_*` guards and syscall-table configuration must be checked before assuming any particular facility is enabled.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

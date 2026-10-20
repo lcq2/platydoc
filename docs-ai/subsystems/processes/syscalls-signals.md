@@ -62,3 +62,7 @@ Posting does not execute a user handler on the posting CPU's call stack. [`bsd_a
 The BSD bridge first asks `machine_exception()` for an architecture-specific translation, then applies generic mappings: invalid-address `EXC_BAD_ACCESS` becomes `SIGSEGV`, other bad-access cases generally become `SIGBUS`, bad instructions become `SIGILL`, and breakpoints become `SIGTRAP`. There is additional stack-overflow handling to select `SIGSEGV` and account for alternate-stack readiness. The bridge stores exception metadata in the uthread and calls [`threadsignal()`](../../../xnu/bsd/kern/kern_sig.c#L1785), which sets pending state and requests a BSD AST.
 
 This path connects hardware faults, [Mach exception IPC](../ipc/README.md), debugger interception, and POSIX signals. It does not mean every Mach exception is synonymous with a signal, or that a successful exception handler must terminate the process.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -232,3 +232,7 @@ This is why detaching a namespace pointer, finishing `VFS_UNMOUNT`, reaching zer
 Some work has already happened: file data may have been written, caches purged, vnodes reclaimed, and `MNT_ASYNC` cleared. Restoring admission permits further use of the still-mounted filesystem; it does not reconstruct the exact pre-call cache or vnode population.
 
 These paths explain the generic mount lifecycle and its main failure points. Filesystem transaction semantics, APFS container/volume management, every trigger/submount interaction and all product-specific mount-role policy remain outside the implementation supplied here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

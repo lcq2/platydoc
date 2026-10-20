@@ -431,3 +431,7 @@ A useful source-reading checklist is to record the entry bits before and after a
 | Focused review | Receive-first teardown in [`ipc_space.c`](../../../xnu/osfmk/ipc/ipc_space.c), set destruction in [`ipc_pset.c`](../../../xnu/osfmk/ipc/ipc_pset.c), relevant movement/recovery checks in [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c) | Policy behavior depends on port type, task policy, build flags, and runtime enforcement. This is not a complete policy matrix. |
 
 For the original design context, see [port types](../../../xnu/doc/mach_ipc/port_types.md), [guard exceptions](../../../xnu/doc/mach_ipc/guard_exceptions.md), and [IPC security concepts](../../../xnu/doc/mach_ipc/ipc_security_concepts.md). The claims above follow active source branches where older comments and current implementation differ.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

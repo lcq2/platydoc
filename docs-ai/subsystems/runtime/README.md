@@ -74,3 +74,7 @@ Continue into the neighboring guides for [processes and BSD](../processes/README
 | Peripheral survey with selected bodies | [`work_interval.c`](../../../xnu/osfmk/kern/work_interval.c), [`coalition.c`](../../../xnu/osfmk/kern/coalition.c), [`thread_group.c`](../../../xnu/osfmk/kern/thread_group.c), [`recount.c`](../../../xnu/osfmk/kern/recount.c), [`ledger.c`](../../../xnu/osfmk/kern/ledger.c), [`bank.c`](../../../xnu/osfmk/bank/bank.c), [`ipc_voucher.h`](../../../xnu/osfmk/ipc/ipc_voucher.h) | Structures and connecting operations; work-interval priority/RT permission and selected join/refcount boundaries are deepened in the new policy guides. Full coalition, bank, voucher and accounting internals remain navigation coverage. |
 
 The existing [Clutch/Edge design](../../../xnu/doc/scheduler/sched_clutch_edge.md), [task-reference debugging](../../../xnu/doc/debugging/task_ref.md), [Recount](../../../xnu/doc/observability/recount.md), and [coalition accounting](../../../xnu/doc/observability/coalitions.md) documents complement the source. Their introductory/design sections were consulted; code in this checkout controls implementation-specific statements here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -391,3 +391,7 @@ Here `Referenced` describes the possible lifetime after worker cleanup; if the w
 The walkthrough is for the local ARM64 implementation. Common thread/scheduler/termination code is shared, but x86 register layouts, stack-switch assembly, CR3/PCID operations and return mechanisms must be traced in their own implementation; [x86 pmap](../vm/pmap-x86.md) and [x86 sleep/resume](x86-sleep-and-resume.md) cover selected adjacent paths. The [coverage audit](../../coverage-audit.md) retains ordinary x86 entry/return as a separate expansion item.
 
 This was a static source review, including the adjacent creation, handoff, return and destruction bodies. It is not a runtime trace or a proof of all matrix-state, debug, PAC, MTE, scheduler or protected-monitor configurations.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

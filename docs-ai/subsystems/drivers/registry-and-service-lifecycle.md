@@ -60,3 +60,7 @@ Provider opening is another operation. `open` uses arbitration, checks inactivit
 `detach` removes the service-plane relationship, updates busy propagation and termination scheduling, and can initiate provider rematching when the appropriate flag is set. `free` separately releases PM, interrupt, user-server, and superclass resources. An inactive service can therefore remain allocated while references or clients still exist. [`detach`](../../../xnu/iokit/Kernel/IOService.cpp#L946), [`free`](../../../xnu/iokit/Kernel/IOService.cpp#L832).
 
 When debugging a missing device, follow these questions in order: did its provider publish; did the catalogue produce a personality; did passive/family matching accept it; was the executable available; did probe return an instance; did start succeed; and did the resulting service publish what its next client expects? For a disappearing device, inspect inactive/configuration flags, outstanding clients and opens, and callback completion before assuming the C++ destructor is the relevant boundary.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -144,3 +144,7 @@ At the end it releases cached routes, publishes the detached event, clears detac
 | `dlil.c`, `dlil_input.c`, `dlil_output.c`, `dlil_subr.c`, interface KPI | Read packet dispatch/consumption, references, attach serialization, and detach barriers/cleanup. Driver hardware rings, interrupt handling, and DMA completion are provider-specific and not established here. |
 
 The conventional mbuf path and Skywalk's packet-pool path meet at specific adapters. See [Skywalk lifecycles](skywalk-lifecycles.md) before transferring an mbuf ownership rule to channel packets.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

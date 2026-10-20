@@ -1,40 +1,29 @@
 # Platydoc
 
-Platydoc is a source-based technical handbook for Apple XNU. It explains subsystem boundaries, key structures, execution paths, ownership, synchronization and failure handling, with links to the implementation, checked source excerpts and diagrams. The current handbook was researched against the `xnu-12377.121.6` snapshot.
+Platydoc is a technical handbook for Apple's XNU kernel, researched against `xnu-12377.121.6`. It explains subsystems, data structures and execution paths through source references, code excerpts and diagrams.
 
-Start with the [handbook](docs-ai/README.md), [architecture](docs-ai/architecture.md) or [complete contents](docs-ai/table-of-contents.md). The [coverage record](docs-ai/coverage.md) and [coverage audit](docs-ai/coverage-audit.md) distinguish examined mechanisms, remaining gaps and unavailable external implementations.
+Read the [handbook](docs-ai/README.md) or browse the [table of contents](docs-ai/table-of-contents.md).
 
 ## Project layout
 
-| Path | Purpose |
-| --- | --- |
-| `xnu/` | Apple XNU source input, kept separate as a checkout or submodule. Documentation work does not modify it. Its [upstream README](xnu/README.md) and [technical documentation](xnu/doc/) remain intact. |
-| `docs-ai/` | Editable handbook, authored interface metadata, catalog generators, checks and HTML reader tools. |
-| `make_docs.py` | Documentation build entry point. |
-| `docs-ai-html/` | Generated standalone HTML book. |
-| `.docs-cache/` | Reusable source-token and SVG caches. |
-| [AGENTS.md](AGENTS.md) | Research, authoring, regeneration, verification and release-maintenance instructions. |
-
-Kernel paths written in the handbook, such as `osfmk/vm/vm_map.c`, are normally relative to `xnu/`. Documentation commands run from the Platydoc root. The [shared path module](docs-ai/tools/paths.py) makes this distinction explicit for tools; generated output and caches belong outside the kernel source input.
+- `docs-ai/` — Markdown documentation and build tools.
+- `xnu/` — upstream kernel source, kept separate from documentation.
+- `docs-ai-html/` — generated static book, excluded from Git.
 
 ## Build and read
 
-Populate `xnu/` with the selected XNU source checkout before building. If it is configured as a Git submodule, initialize that submodule using the repository's Git configuration. Install the dependencies listed in the [build guide](docs-ai/development/building-html.md), then run from this directory:
+Populate `xnu/` with the documented source release and install the dependencies in the [build guide](docs-ai/development/building-html.md). From the project root, run:
 
 ```sh
 python3 make_docs.py
 ```
 
-Open `docs-ai-html/index.html`. The generated folder is self-contained and can be copied elsewhere for offline reading. It includes chapter navigation, full-documentation search, an alphabetical index, SVG diagrams and syntax-highlighted source previews. Search and source viewing use local JavaScript and work with `file://` URLs; no server or CDN is required.
+Open `docs-ai-html/index.html` in a browser. The book works offline and on static hosts such as GitHub Pages, with full-text search, an alphabetical index, SVG diagrams and syntax-highlighted source previews.
 
-After changing Markdown, rebuild the book. After selecting a new source release, review the affected explanations and authored metadata before regenerating the interface catalogs:
+Edit the Markdown and rerun the build to update the book. See [AGENTS.md](AGENTS.md) for research, validation and release-update instructions.
 
-```sh
-python3 make_docs.py --refresh-catalogs
-```
+## License
 
-The [maintenance instructions](AGENTS.md) explain source provenance, exact excerpts, catalog ownership, release migration and validation. Catalog generation checks declarations and metadata; it does not research changed implementation semantics or turn source analysis into a kernel runtime test.
+Platydoc's original text and diagrams, in Markdown and generated HTML, are licensed under [Creative Commons Attribution 4.0 International](LICENSE-DOCS) (`CC-BY-4.0`). Credit Platydoc and its contributors, link the license and indicate changes when reusing the documentation.
 
-## Attribution
-
-XNU retains its original notices and [Apple license](xnu/APPLE_LICENSE). The documentation tools preserve source headers and include notices for bundled build dependencies in the generated book. See the [HTML build guide](docs-ai/development/building-html.md) for the build components and provenance records.
+Build tools and browser software remain under [GNU GPL version 2](LICENSE) (`GPL-2.0-only`). XNU, reproduced source excerpts and bundled third-party dependencies retain their respective licenses and notices.

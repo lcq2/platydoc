@@ -58,3 +58,7 @@ routine mach_voucher_attr_control_create_mach_voucher(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

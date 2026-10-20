@@ -179,3 +179,7 @@ SPTM hibernation resume copies the handoff region before other activity because 
 ## Inspection scope
 
 Read bodies include startup sorting/cursor execution; processor registration/boot/start/wait/exit; common shutdown, context loading and reinitialization; ARM64 timer/IPI departure; startup, idle, sleep and timebase code; legacy/SPTM warm initialization; context-switch assembly; I/O Kit CPU-start wrapper; and ARM hibernation queue-lock/image-entry boundaries. All SoC register sequences, platform CPU driver implementations, CPU availability policy, and hardware execution remain outside this trace. Dedicated companion chapters now cover [x86 power paths](x86-sleep-and-resume.md), [image creation](hibernation-image-creation.md), and [restore](hibernation-restore.md), with their own configuration and external-implementation limits. No kernel was booted or power transition tested.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

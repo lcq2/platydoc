@@ -131,3 +131,7 @@ routine upl_commit_range(
 
 **Local body:** [`upl_commit_range`](../../../xnu/osfmk/vm/vm_upl.c#L596).
 Calls visible in this body include `DELAYED_WORK_LIMIT`, `vm_page_delayed_work_get_ctx`, `vector_upl_is_valid`, `upl_lock`, `upl_unlock`, `vector_upl_subupl_byoffset`, `btref_get`, `__builtin_frame_address`, `upl_adjusted_size`, `DEBUG4K_ERROR`, `p`, `vm_object_lock`.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

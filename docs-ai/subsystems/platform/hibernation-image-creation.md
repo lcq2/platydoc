@@ -190,3 +190,7 @@ The x86 branch returns Sleep, Restart, or Halt on success according to mode; abo
 ## Sources inspected and limits
 
 Deep reads cover `IOHibernateSystemSleep`, setup/publication/timeout, page-list allocation and final scan, dirty-queue flushing and discard, VM metadata compaction, the common image writer, poller collection/open/close/completion, and buffered reads/writes. Headers and architecture hooks were read to distinguish shared ABI from configuration-specific implementation. No kernel build, firmware boot, disk fault injection, or cryptographic validation was performed. Storage-driver polling implementations, bootloader validation, SEP/SPTM internals, and the omitted secure-HMAC producer remain external. The next chapter follows the actual early and late restore bodies and the resources they must reestablish.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

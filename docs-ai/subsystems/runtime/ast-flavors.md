@@ -151,3 +151,7 @@ Names such as `SCHED_AST_URGENT_SET_REASON_*` are instrumentation reason constan
 All 22 active top-level bits were matched to their current consumer or scheduler-reason use, with representative producer bodies read for each. The three kevent bits, seven telemetry bits, three Kperf flag bits, public composites, private asynchronous subset, retired comments, and configuration guards were compared against the definitions above. The [mechanism chapter's source table](ast-mechanism.md#sources-inspected-and-limits) records the deeper paths reviewed.
 
 This is a source walkthrough, not execution of a kernel configuration matrix. MAC policy providers, the Arcade validation service, and generated/user-side RPC behavior beyond visible call sites are not reconstructed. Feature guards in a shared enum do not establish that the corresponding feature is active on a particular machine, and an AST request does not promise successful external reporting or a retained reference to every object mentioned by its payload.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

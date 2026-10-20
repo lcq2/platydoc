@@ -334,3 +334,7 @@ A stale comment above SPTM `pmap_tte_deallocate()` still mentions an exclusive p
 | Common VM fault handoff | Caller allocation/retry contract covered; object lookup, paging, COW, and wiring are developed in the other VM guides. |
 
 External SPTM/TXM bodies are unavailable. The discussion identifies monitor requests, inputs, return values, and the ordering XNU relies on; it does not claim to prove the monitor's implementation or hardware behavior.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

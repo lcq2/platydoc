@@ -266,3 +266,56 @@ Follow [detailed send and receive](message-send-receive.md) for the precise owne
 | Boundary review | [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c), [`ipc_kobject.c`](../../../xnu/osfmk/kern/ipc_kobject.c), [`ipc_mig.c`](../../../xnu/osfmk/kern/ipc_mig.c), [`exception.c`](../../../xnu/osfmk/kern/exception.c) | Destination policy and kernel/user server distinction. Full RPC/exception traces are owned by the linked guide. Generated MIG source and external libdispatch implementation were not built or inspected. |
 
 The snippets are exact ranges from this checkout. These are static source traces, not execution measurements; enabled platform, policy, and configuration branches still matter.
+
+## Trailer layout at receive time
+
+The receive trailer is selected through message options and appended beyond the message bytes counted by `msgh_size`. Header/body resources can already have been installed before the final byte-copy to userspace. Trailer capacity therefore participates in receive-size selection but is not another user-send descriptor. [Trailer definitions/options](../../../xnu/osfmk/mach/message.h#L721-L910), [deflation](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4581-L4661), [final byte copy](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4740).
+
+| Cumulative trailer form | Added fields | Where this path gets them |
+| --- | --- | --- |
+| `mach_msg_trailer_t` | Type and size | Kernel-selected format and requested output size |
+| `mach_msg_seqno_trailer_t` | `msgh_seqno` | Selected destination-port sequence in the receive result |
+| `mach_msg_security_trailer_t` | `msgh_sender` | Task security token captured at send conversion, or kernel template |
+| `mach_msg_audit_trailer_t` | `msgh_audit` | Task audit token captured at send conversion, or kernel template |
+| Context form | `msgh_context` | Destination context saved for this receive, converted to receiver width |
+| MAC form | Additional named fields | The inspected deflation body zeroes the post-audit area and writes context; field names do not establish a populated MAC-policy label |
+
+The ordinary sender cannot forge the task tokens by adding similarly named bytes to the message body. Conversely, a token is sender metadata, not automatic authorization for an arbitrary server operation. The server's policy remains a separate decision. [Token capture](../../../xnu/osfmk/ipc/ipc_kmsg.c#L528-L554).
+
+On ARM64, explicit 32- and 64-bit output views share the token/sequence layout, while context and later fields differ. The implementation asserts the common offsets and widths, writes the selected sequence/size, clears the post-audit area and selects the appropriate context representation:
+
+[Source: `osfmk/ipc/ipc_kmsg.c`, lines 4617–4640](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640).
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640 -->
+```c
+	trailer_assert_same_field(msgh_sender);
+	trailer_assert_same_field(msgh_audit);
+
+	trailer->msgh_trailer_size = dctx->dctx_trailer_size;
+	trailer->msgh_seqno        = msgr->msgr_seqno;
+
+	/*
+	 * Lastly update fields that are 32bit versus 64bit dependent,
+	 * which are all after msgh_context (including this field).
+	 *
+	 * These cover:
+	 * - mach_msg_context_trailer_t   (the above + msgh_context)
+	 * - mach_msg_mac_trailer_t       (the above + msg_ad + msgh_labels)
+	 */
+
+	bzero((char *)trailer + sizeof(mach_msg_audit_trailer_t),
+	    MAX_TRAILER_SIZE - sizeof(mach_msg_audit_trailer_t));
+
+	if (dctx->dctx_isU64) {
+		out64->msgh_context = msgr->msgr_context;
+	} else {
+		out32->msgh_context = (typeof(out32->msgh_context))msgr->msgr_context;
+	}
+#undef trailer_assert_same_field
+```
+
+The port's sequence number describes selection from that endpoint; it does not order completion across independent server threads or all members of a port set. Similarly, receive-context output and strict reply persona state are different fields with different purposes. Continue with [reply checks](guards-and-policy-enforcement.md) and [delivery/error ownership](message-send-receive.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

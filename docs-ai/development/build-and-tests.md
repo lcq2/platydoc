@@ -91,3 +91,7 @@ Formal models under [tools/tla](../../xnu/tools/tla/) provide another level of e
 ## Sources inspected and limits
 
 This page inspected the root build dispatch, target normalization, SDK/tool selection, `doconf` invocation, selected source-list entries, BSD generated-source rules, final kernel-output rules, and the test-harness documentation/makefile entries linked above. It did not expand all target configurations, regenerate interfaces, build artifacts, run kernel tests, or validate installation on hardware.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

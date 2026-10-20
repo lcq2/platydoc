@@ -136,3 +136,7 @@ Sources inspected and limits:
 | `spec_vnops.c`, `specdev.h`, `vfs_subr.c` | Deep open/read/write/close, alias and aggregate-open accounting; strategy dispatch and policy setup inspected. Full throttle algorithm and every ioctl/filter/revoke branch not audited. |
 | `fifo_vnops.c`, `fifo.h` | Deep socket-pair creation, open rendezvous, read/write, close and vnode allocation/free. Event-filter and ioctl details surveyed only. |
 | Driver implementation | Actual device removal, DMA and hardware completion vary by driver and are not established by the device-switch interface alone. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

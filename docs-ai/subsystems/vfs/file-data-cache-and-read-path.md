@@ -202,3 +202,7 @@ These steps follow [`resident streaming`](../../../xnu/bsd/vfs/vfs_cluster.c#L48
 | Filesystem and device implementations | `mockfs_read` supplies a visible caller. Production APFS extent, inode locking, content-protection and integrity algorithms, remote-cache coherence and storage hardware are not reconstructed from these generic helpers. |
 
 No read/truncate race workload, filesystem corruption test or storage fault injection was run. The diagrams describe the inspected paths, not a guarantee that every filesystem dispatches through them.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

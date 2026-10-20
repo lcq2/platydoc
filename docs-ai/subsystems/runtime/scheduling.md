@@ -78,3 +78,7 @@ Edge adds placement across psets to Clutch's selection within a pset. `sched_edg
 For deeper Edge study, read `sched_edge_migration_check()`, `sched_edge_migrate_edges_evaluate()`, `sched_edge_steal_thread()`, and `sched_edge_tg_preferred_pset_change()`, then the original [design document](../../../xnu/doc/scheduler/sched_clutch_edge.md). The [Clutch and Edge chapter](clutch-and-edge.md) traces migration weights, availability retries, and representative stealing; other rebalancing heuristics remain partial. [`sched_clutch.c`](../../../xnu/osfmk/kern/sched_clutch.c#L5754).
 
 Realtime work has its own pset queue and policy hooks; see `sched_rt_choose_thread()`, `rt_runq_insert()`, and realtime fields in `thread`. `sched_rt.h` explicitly says realtime code is still being moved from the core into `sched_rt.c`, so both files are needed. The dualq dispatch table is a more compact alternative policy to read, using common timeshare machinery with per-processor and pset queues. [`sched_rt.h`](../../../xnu/osfmk/kern/sched_rt.h#L108), [`sched_rt.c`](../../../xnu/osfmk/kern/sched_rt.c#L640), [`sched_dualq.c`](../../../xnu/osfmk/kern/sched_dualq.c#L105).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

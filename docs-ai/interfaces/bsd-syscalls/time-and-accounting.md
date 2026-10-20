@@ -123,3 +123,7 @@ Read NTP calendar/error/state information.
 Convert a local timestamp through the platform's remote-time bridge.
 
 **Implementation:** [__mach_bridge_remote_time](../../../xnu/bsd/kern/kern_time.c#L959). Returns `mach_bridge_remote_time(local_timestamp)` in the 64-bit syscall result; synchronization/provider details live behind that kernel time helper.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

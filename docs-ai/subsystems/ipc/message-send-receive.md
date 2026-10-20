@@ -328,3 +328,62 @@ Unless the caller asks to observe send interruptions, `mach_msg2_internal()` ret
 For a line-by-line pass, follow `mach_msg_trap_send()` → `ipc_kmsg_copyin_from_user()` → header/body converters → `ipc_kmsg_send()` → `ipc_mqueue_send_locked()` → `ipc_mqueue_post()`. Then switch threads: `mach_msg_trap_receive()` → `ipc_mqueue_receive_on_thread_and_unlock()` → selection or continuation → `mach_msg_receive_results()` → `ipc_kmsg_copyout()` → `ipc_kmsg_put_to_user()`.
 
 The concrete functions above were read through their principal success, blocking, and failure branches. Descriptor inflation/deflation, OOL ports, guarded ports, trailer layouts, queue-set membership, and destination policy were read at the corresponding boundaries. This is not a full proof of every waitq, scheduler, VM-copy, importance, voucher, or security-policy invariant. Their implementations span [runtime](../runtime/README.md), [VM](../vm/README.md), [port lifetime](ports-and-rights-lifecycle.md), and [policy/attribution](policies-and-attribution.md). Kernel-originated RPC, generated MIG handlers, and Mach exception replies continue in [kernel RPC and exceptions](kernel-rpc-and-exceptions.md).
+
+## Destruction cascades use a per-thread reaping queue
+
+Destroying a kmsg can release a receive right whose port contains more messages; notifications and right cleanup can cause additional IPC destruction. Unbounded recursive cleanup would consume kernel stack. `ipc_kmsg_destroy()` instead signs/re-signs a message when its destruction flags require header changes, enqueues it on `current_thread()->ith_messages`, and drains only if this invocation became responsible for the previously empty queue. [Destruction flags and enqueue](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1275-L1309).
+
+`ipc_kmsg_delayed_destroy_queue()` concatenates another queue onto this per-thread queue. The endpoint-death path can hand over queued messages and later call the drainer after port synchronization has been released. “Delayed” here describes control-flow/locking deferral, not a worker thread that eventually collects all messages. [Queue helpers](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1312-L1342), [port-death drain](../../../xnu/osfmk/ipc/ipc_port.c#L1225-L1262).
+
+The current message stays on the queue during cleanup. Any nested destruction sees a nonempty queue, enqueues its work and returns; the outer loop picks it up afterward. Messages must be signed, and the drain contract requires no locks held:
+
+[Source: `osfmk/ipc/ipc_kmsg.c`, lines 1353–1379](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1353-L1379).
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L1353-L1379 -->
+```c
+ipc_kmsg_reap_delayed(void)
+{
+	ipc_kmsg_queue_t queue = &(current_thread()->ith_messages);
+	ipc_kmsg_t kmsg;
+
+	/*
+	 * must leave kmsg in queue while cleaning it to assure
+	 * no nested calls recurse into here.
+	 */
+	while ((kmsg = ipc_kmsg_queue_first(queue)) != IKM_NULL) {
+		/*
+		 * Kmsgs queued for delayed destruction either come from
+		 * ipc_kmsg_destroy() or ipc_kmsg_delayed_destroy_queue(),
+		 * where we handover all kmsgs enqueued on port to destruction
+		 * queue in O(1). In either case, all kmsgs must have been
+		 * signed.
+		 *
+		 * For each unreceived msg, validate its signature before freeing.
+		 */
+		ipc_kmsg_clean(kmsg, ipc_kmsg_validate_signature(kmsg));
+		ipc_kmsg_rmqueue(queue, kmsg);
+		ipc_kmsg_free(kmsg);
+	}
+}
+
+static pthread_priority_compact_t
+ipc_get_current_thread_priority(void)
+```
+
+```mermaid
+flowchart TD
+    A[Destroy message A] --> Q[Append A to thread destruction queue]
+    Q --> C[Outer drainer cleans A while A stays queued]
+    C -->|right cleanup destroys another port| B[Append B and C without recursive drain]
+    B --> R[Finish A cleanup then remove and free A]
+    R --> N[Clean next queued message]
+    N -->|queue empty| E[Return to outer caller]
+```
+
+`ipc_kmsg_clean()` releases resources represented by the validated kernel message; `ipc_kmsg_free()` releases the allocation after cleanup. Confusing these operations risks treating buffer release as if it had also consumed all owned rights and VM copies. The queue link itself is an ordering aid, not a second independent owning copy of those resources. [Cleanup](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1175), [free](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1025).
+
+This explains why error rollback and port death can finish outside the original namespace/queue lock, and why some call sites return a boolean indicating that their caller owes a drain. It does not make earlier right movement or VM deallocation transactional; the phase-specific failure rules above still apply.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -61,3 +61,7 @@ This is a static review of selected paths in this checkout. No kernel image was 
 The SPTM interface header includes externally supplied `sptm/sptm_xnu.h`; its implementation is not in this tree. Legacy pmap comments also refer to `doc/arm/PPL.md`, which is absent here. Follow the available call sites without treating those missing components as inspected implementation. [`sptm.h`](../../../xnu/osfmk/arm64/sptm/sptm.h#L30), [`pmap_ppl_interface.c`](../../../xnu/osfmk/arm/pmap/pmap_ppl_interface.c#L30).
 
 The [protected-security expansion](../security/protected-execution.md) adds detailed SPTM/TXM call and policy lifetimes, Exclaves scheduler/upcall execution, physical ownership and service boundaries. Use it alongside the machine-transition descriptions here.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -34,3 +34,7 @@ An `ipc_voucher` is an immutable-after-creation set of indices into resource-man
 The connecting operation is concrete: `thread_set_voucher_name()` converts the port name to a voucher reference, asks `bank_get_bank_ledger_thread_group_and_persona()` for bank attributes, replaces `ith_voucher` under the thread mutex, swaps the bank ledger, updates bank-derived thread-group state, and releases the previous voucher. Follow [IPC](../ipc/README.md) for transport and redemption, and the bank functions for attribution rules. [`thread.c`](../../../xnu/osfmk/kern/thread.c#L3364), [`bank.c`](../../../xnu/osfmk/bank/bank.c#L1823).
 
 These are navigation-level treatments of work intervals, ledgers, coalitions, and vouchers. The creation/teardown links were inspected, but their full policy combinations, external runtime behavior, and accounting accuracy were not audited. The source's [Recount guide](../../../xnu/doc/observability/recount.md) and [coalition guide](../../../xnu/doc/observability/coalitions.md) provide the next reading steps.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

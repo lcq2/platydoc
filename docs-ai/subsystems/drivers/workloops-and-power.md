@@ -56,3 +56,7 @@ Power registration is distinct from ordinary attachment. `PMinit` establishes PM
 `IOPMrootDomain` coordinates system sleep and wake with the device power machinery. `privateSleepSystem` checks that sleep is enabled and queues a demand-sleep policy stimulus. It does not immediately stop processors. In the eventual sleep transition, `powerChangeDone` performs root-domain bookkeeping, optional hibernation work, and calls `getPlatform()->sleepKernel()`. Execution resumes after that call on wake. [`privateSleepSystem`](../../../xnu/iokit/Kernel/IOPMrootDomain.cpp#L3025), [`powerChangeDone` sleep boundary](../../../xnu/iokit/Kernel/IOPMrootDomain.cpp#L3155).
 
 The complete decision includes power assertions, clients, thermal state, wake capabilities, and platform policy. Those branches were surveyed only at their entry boundaries here. Continue in [platform](../platform/README.md) and the upstream [hibernation document](../../../xnu/doc/lifecycle/hibernation.md) for processor and image-save details; this chapter establishes who queues, acknowledges, and performs driver transitions.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

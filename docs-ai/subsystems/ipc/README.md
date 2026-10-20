@@ -72,3 +72,9 @@ The review follows selected implementation paths in this checkout. It is not a s
 | Focused/interface review | [`mach_kernelrpc.c`](../../../xnu/osfmk/ipc/mach_kernelrpc.c), [`mach_port.c`](../../../xnu/osfmk/ipc/mach_port.c), [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c), [`ipc_voucher.c`](../../../xnu/osfmk/ipc/ipc_voucher.c), [`ipc_importance.c`](../../../xnu/osfmk/ipc/ipc_importance.c) | Representative trap wrappers and integration entry points. Full service lifecycle and external libdispatch/XPC behavior remain outside this review; detailed voucher and guard boundaries are reviewed separately above. |
 
 The original [kmsg layout guide](../../../xnu/doc/mach_ipc/kmsg.md), [port types](../../../xnu/doc/mach_ipc/port_types.md), [IPC security concepts](../../../xnu/doc/mach_ipc/ipc_security_concepts.md), and [guard exceptions](../../../xnu/doc/mach_ipc/guard_exceptions.md) are useful companion references. Selected design sections were consulted; use source conditions for checkout-specific behavior.
+
+[Synchronous dependencies and special reply ports](synchronous-dependencies-and-special-replies.md) traces client donation, destination/workloop handoff, state-dependent references and receive reset. Label substitution, detailed trailers and per-thread destruction are expanded in the policy, representation and delivery chapters.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

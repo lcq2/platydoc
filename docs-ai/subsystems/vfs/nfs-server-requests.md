@@ -195,3 +195,7 @@ Sources inspected and limits:
 | `nfs_subs.c`, `nfs_serv.c` | Deep file-handle conversion, mount busy/reference conversion, credential mapping, READ/WRITE/COMMIT and selected gather/coalescing/timer flow. |
 | GSS, lockd, other procedures | Interface boundaries and request cleanup reviewed; cryptography, daemon exchanges, every mutation RPC and complete lock service are outside this chapter. |
 | Missing implementations | No NFS client filesystem bodies or APFS disk transaction implementation inferred from server interfaces. |
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

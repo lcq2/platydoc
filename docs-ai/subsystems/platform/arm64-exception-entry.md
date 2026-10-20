@@ -284,3 +284,7 @@ flowchart TD
 ## Sources inspected and limits
 
 The trace follows vector bodies, spill/pointer-authentication macros, selected boot installation, PCB allocation, synchronous dispatch, abort handling, IRQ/FIQ bookkeeping, and the corresponding return path. Excerpts preserve actual source lines; they are not pseudocode. It does not audit every syndrome, every SoC register workaround, matrix-state lifecycle, panic-lockdown policy, or external monitor code, and it was not validated by booting a kernel. For a reproducible reading route start at [`EL0_64_VECTOR`](../../../xnu/osfmk/arm64/locore.s#L908), follow x0 and `sp` independently through [`fleh_dispatch64`](../../../xnu/osfmk/arm64/locore.s#L1063), then select one branch of [`sleh_synchronous`](../../../xnu/osfmk/arm64/sleh.c#L770) before reading [exception return](arm64-exception-return.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

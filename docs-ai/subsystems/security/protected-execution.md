@@ -97,3 +97,7 @@ The source supports concrete distinctions:
 - Successful RPC transport does not automatically imply the operation's typed result is successful.
 
 The detailed pages identify the specific code establishing each distinction. They also identify absent headers/layouts, external implementation, configuration branches and stale comments where the executable bodies establish a different sequence. No monitor, kernel, hardware protection test or secure service was executed for this documentation.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

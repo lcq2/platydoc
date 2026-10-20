@@ -53,3 +53,7 @@ For another CPU, `cpu_start()` chooses its initial thread, fills its CPU/thread 
 Once the scheduler chooses another thread, `machine_switch_context()` switches pmap/extended state before assembly `Switch_context`. The assembly saves the old kernel context unless a continuation makes that unnecessary, installs the new thread registers/stack, restores its context, and synchronizes process-dependent keys. Even a switch between threads sharing a pmap performs needed maintenance synchronization: ARM cache/TLB completion cannot be left pending on the old CPU after migration. Scheduling choice remains in [runtime](../runtime/scheduling.md). [`pcb.c`](../../../xnu/osfmk/arm64/pcb.c#L437), [`machine_switch_context()`](../../../xnu/osfmk/arm64/pcb.c#L499), [`cswitch.s`](../../../xnu/osfmk/arm64/cswitch.s#L367).
 
 x86_64 uses `idt64.s` and `x86_saved_state` instead. Its `hndl_syscall` dispatches by syscall-class bits to Unix, Mach, machine-dependent, or diagnostic handlers; the return path also calls common `ast_taken_user()`. Shared semantics do not imply shared register conventions. [`idt64.s`, dispatch](../../../xnu/osfmk/x86_64/idt64.s#L1858), [`AST return`](../../../xnu/osfmk/x86_64/idt64.s#L1547).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

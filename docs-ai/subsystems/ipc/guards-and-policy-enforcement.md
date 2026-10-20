@@ -159,3 +159,96 @@ Send-possible registration can also create a port importance contribution for an
 | Deep selected paths | [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c), [`thread.c`](../../../xnu/osfmk/kern/thread.c#L2429) | Type policy inputs, movement denial versus telemetry, notification policy, guard encoding/staging/AST. Product-specific entitlement provisioning and the complete policy-tunable matrix are outside the review. |
 | Focused integration | [`ipc_kmsg.c`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1471) | Reply persona linkage, validation, and send gating. Full message schema validation remains in the transport guides. |
 | Design companions | [Guard exceptions](../../../xnu/doc/mach_ipc/guard_exceptions.md), [port types](../../../xnu/doc/mach_ipc/port_types.md), [IPC security concepts](../../../xnu/doc/mach_ipc/ipc_security_concepts.md) | Encoding/design context and selected policy descriptions; implementation branches above take precedence for this checkout. External service-manager behavior is not reconstructed. |
+
+## Copyout labels can substitute the capability
+
+The label check is not always a yes/no filter. `ipc_kobject_label_check_or_substitute()` can consume the original send right and return another send capability. Its caller holds the active space's write lock and the active port lock. A substitution releases both; ordinary success retains the caller's lock context. This difference drives explicit restart loops in both descriptor/object copyout and reply-header copyout. [Helper contract and body](../../../xnu/osfmk/kern/ipc_kobject.c#L1400-L1489), [object copyout](../../../xnu/osfmk/ipc/ipc_object.c#L853-L935), [reply-header retry](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3253-L3371).
+
+`IPC_LABEL_SUBST_TASK_READ` and `IPC_LABEL_SUBST_THREAD_READ` select helpers that inspect the labeled read port's underlying task/thread. They use `ikol_alt_port` only when that object belongs to the receiving task; the alternate port's identity comes from kernel label setup, not a name provided by the receiving application. The implementation therefore needs both the kobject and `space->is_task`, not merely the public right disposition. [Substitution helpers](../../../xnu/osfmk/kern/ipc_kobject.c#L1340-L1397).
+
+Only send rights take substitution. A labeled kobject receive-right copyout is an invariant violation; an incompatible substitution disposition is refused. Without substitution, the space privilege mask must include all required label privileges. An inactive/denied reply becomes a dead reply name in the header path, whereas ordinary object copyout reports `KERN_INVALID_CAPABILITY`. Those are distinct caller contracts, not one universal error mapping. [Label decision](../../../xnu/osfmk/kern/ipc_kobject.c#L1434-L1489), [header denial](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3337-L3350).
+
+The ownership change is visible in the helper:
+
+[Source: `osfmk/kern/ipc_kobject.c`, lines 1459–1483](../../../xnu/osfmk/kern/ipc_kobject.c#L1459-L1483).
+
+<!-- source-excerpt: ../../../xnu/osfmk/kern/ipc_kobject.c#L1459-L1483 -->
+```c
+
+		if (subst != IP_NULL) {
+			ip_reference(subst);
+			is_write_unlock(space);
+
+			/*
+			 * We do not hold a proper send right on `subst`,
+			 * only a reference.
+			 *
+			 * Because of how thread/task termination works,
+			 * there is no guarantee copy_send() would work,
+			 * so we need to make_send().
+			 *
+			 * We can do that because ports tagged with
+			 * IPC_LABEL_SUBST_{THREAD,TASK} do not use
+			 * the no-senders notification.
+			 */
+
+			ip_label_put(port, label);
+			ipc_port_release_send_and_unlock(port);
+			/* no check: dPAC integrity */
+			port = ipc_port_make_send_any(subst);
+			ip_release(subst);
+			*subst_portp = port;
+			return true;
+```
+
+The temporary reference stabilizes the alternate port but is not itself a send right. Because termination can invalidate the assumptions of copying an existing send right, the helper makes a send right through `ipc_port_make_send_any()` and releases the temporary reference. Its source comment explicitly relies on these substituted ports not using no-senders notification. The retry then rechecks space liveness, table capacity and the new port; the old lock/right must not be reused. [Object restart](../../../xnu/osfmk/ipc/ipc_object.c#L909-L931).
+
+```mermaid
+flowchart TD
+    A[Space and original port locked] --> B[Check label and receiving task]
+    B -->|ordinary authorized capability| C[Install namespace entry]
+    B -->|alternate capability selected| D[Reference alternate port]
+    D --> E[Unlock space and consume original send right]
+    E --> F[Make alternate send right and release temporary reference]
+    F --> G[Reacquire space lock and retry copyout]
+    G --> B
+    B -->|inactive or denied| H[Caller-specific dead name or error]
+```
+
+## Strict reply: a consumed check, with two independent voucher locations
+
+A request's voucher port and the responding thread's adopted voucher occupy different kernel state. Receive-header copyout optionally converts the request voucher, extracts its bank persona, releases the temporary voucher reference, and records a usable persona on the reply port. No usable persona means this helper installs no new context. A receive that does not participate clears the stored context explicitly. [Recording](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1471-L1502), [receive gating](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3378-L3400).
+
+At send, the surrounding predicates select a non-kernel send-once destination with context and strict enforcement enabled. The validator snapshots and clears `ip_reply_context` before checking the adopted voucher. Even failure consumes the recorded check:
+
+[Source: `osfmk/ipc/ipc_kmsg.c`, lines 1525–1542](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1525-L1542).
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L1525-L1542 -->
+```c
+	uint32_t dest_ctx = dest_port->ip_reply_context;
+	dest_port->ip_reply_context = 0;
+
+	if (!ip_active(dest_port)) {
+		return MACH_MSG_SUCCESS;
+	}
+
+	if (voucher == IPC_VOUCHER_NULL || !MACH_PORT_VALID(voucher_name)) {
+		if ((option & MACH_SEND_KERNEL) == 0) {
+			mach_port_guard_exception(voucher_name,
+			    MPG_PAYLOAD(MPG_FLAGS_STRICT_REPLY_INVALID_VOUCHER, dest_ctx),
+			    kGUARD_EXC_STRICT_REPLY);
+		}
+		return MACH_SEND_INVALID_CONTEXT;
+	}
+
+	kern_return_t __assert_only kr;
+	uint32_t persona_id = 0;
+```
+
+A valid adopted voucher with a different persona takes the mismatched-persona guard path and returns `MACH_SEND_INVALID_CONTEXT`. An already inactive destination passes this particular context check so the surrounding send code handles endpoint death. Attaching a valid voucher to the outgoing reply message does not replace adopting the required execution context on the worker. [Persona mismatch](../../../xnu/osfmk/ipc/ipc_kmsg.c#L1544-L1564), [actual send arguments](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5161-L5189).
+
+For an illustrative worker pool, receiving request A with persona P and then dispatching its reply capability to worker B is insufficient: B must have the matching adopted context when this enforced path runs. The kernel source establishes that condition; it does not establish how an external dispatch library manages its worker pool. Scheduler dependency transfer is separately explained in [synchronous IPC](synchronous-dependencies-and-special-replies.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -177,3 +177,7 @@ User-server `clientClose()` snapshots its services under the server lock before 
 Follow a successful open through owner registration, one external method, provider termination during that method, and final `ipcExit()`. Then compare the wrapper surviving as a mappings-set export with a current no-senders notification releasing the original wrapper. The cited bodies provide each ownership transition; no live connection was exercised for this chapter.
 
 Deep review covered open policy/setup failure, typed port export/import, owner-list cleanup, explicit close, no-senders generation checks, active-call finalization, DriverKit server/rpc/trap conversion, descriptor cleanup, user-client entitlement branches, and remote-stop coordination. Legacy method shims, every asynchronous notification/`OSAction` variant, generated method schemas, daemon check-in authentication internals, and external driver behavior remain outside the detailed trace.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

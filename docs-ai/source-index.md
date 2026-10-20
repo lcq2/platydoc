@@ -14,6 +14,8 @@ Regenerate with `python3 docs-ai/tools/build_source_index.py`.
 | Cited file | Guides |
 | --- | --- |
 | [AGENTS.md](../AGENTS.md) | [development/building-html](development/building-html.md) |
+| [LICENSE](../LICENSE) | [development/building-html](development/building-html.md) |
+| [LICENSE-DOCS](../LICENSE-DOCS) | [development/building-html](development/building-html.md) |
 | [README.md](../README.md) | [README](README.md) |
 | [make_docs.py](../make_docs.py) | [development/building-html](development/building-html.md) |
 
@@ -1053,4 +1055,8 @@ Regenerate with `python3 docs-ai/tools/build_source_index.py`.
 | [xnu/tools/lldbmacros/tests/README.md](../xnu/tools/lldbmacros/tests/README.md) | [development/build-and-tests](development/build-and-tests.md) |
 | [xnu/tools/tla/README.md](../xnu/tools/tla/README.md) | [development/build-and-tests](development/build-and-tests.md) |
 
-Total: 959 distinct directly cited files.
+Total: 961 distinct directly cited files.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

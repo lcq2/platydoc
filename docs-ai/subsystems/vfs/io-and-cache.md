@@ -77,3 +77,7 @@ For conventional buffers, [`buf_getblk`](../../../xnu/bsd/vfs/vfs_bio.c#L3245) h
 [`buf_bread`](../../../xnu/bsd/vfs/vfs_bio.c#L2498) starts or finds a read and waits for it. [`buf_bwrite`](../../../xnu/bsd/vfs/vfs_bio.c#L2548) submits a strategy request and waits unless asynchronous. [`buf_bdwrite`](../../../xnu/bsd/vfs/vfs_bio.c#L2696) marks delayed dirty work without immediate submission; [`buf_bawrite`](../../../xnu/bsd/vfs/vfs_bio.c#L2738) submits asynchronously, with limits on outstanding vnode writes. `buf_brelse` relinquishes buffer ownership; it is not a durability operation.
 
 These paths share mount I/O constraints, VM resources, vnode write accounting and completion rules. No-cache/direct requests, compressed-file helpers, verification, content protection and I/O throttling add substantial branches. Their existence is recorded here, but their complete algorithms were not audited.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

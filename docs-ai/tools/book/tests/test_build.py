@@ -1,11 +1,19 @@
 """Regression checks for source previews, heading links and code preservation."""
 import os
 from pathlib import Path
+import posixpath
+import shutil
 import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from book.build import Book, DOCS, ROOT, SOURCE_ROOT, Node, source_headings, validate_output_paths
+from book.build import (
+    Book, DOCS, ROOT, SOURCE_ROOT, DOM, Node, register_license_notices,
+    shell, source_headings, validate_output_paths,
+)
+from doc_license import LICENSE_URL, NOTICE, with_license_notice
 
 
 class SourcePreviewTests(unittest.TestCase):
@@ -62,6 +70,84 @@ class SourcePreviewTests(unittest.TestCase):
             with self.subTest(output=output, cache=cache):
                 with self.assertRaisesRegex(ValueError, "read-only xnu"):
                     validate_output_paths(output, cache)
+
+
+class LicenseTests(unittest.TestCase):
+    def test_shared_footer_scopes_license_and_keeps_nested_offline_links(self):
+        for current in (
+            "index.html", "concept-index.html", "build-info.html",
+            "subsystems/vm/pmap.html", "_sources/xnu/osfmk/vm/vm_map.c.html",
+            "_directories/xnu/osfmk.html",
+        ):
+            with self.subTest(page=current):
+                dom = DOM(shell("Example", "<h1>Example</h1>", current)).root
+                footer = next(n for n in dom.walk() if n.tag == "footer")
+                links = [n for n in footer.walk() if n.tag == "a"]
+                license_link = next(n for n in links if n.attrs.get("rel") == "license")
+                self.assertEqual(license_link.attrs["href"], LICENSE_URL)
+                self.assertEqual(license_link.text(), "CC BY 4.0")
+                local = {
+                    posixpath.normpath(posixpath.join(
+                        posixpath.dirname(current), n.attrs["href"]))
+                    for n in links if "://" not in n.attrs["href"]
+                }
+                self.assertIn("licenses/CC-BY-4.0.txt", local)
+                self.assertIn("licenses/GPL-2.0.txt", local)
+                self.assertIn("build-info.html#licenses", local)
+                self.assertIn("Original Platydoc documentation and diagrams", footer.text())
+                self.assertIn("XNU source, quoted code and third-party materials", footer.text())
+                self.assertIn("retain their original licenses", footer.text())
+
+    def test_license_files_are_copied_exactly_and_registered_as_sources(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            original = {
+                "LICENSE-DOCS": b"CC license text\r\n",
+                "LICENSE": b"GPL license text\n",
+                "xnu/APPLE_LICENSE": b"Apple license text\n",
+                "book/vendor/mermaid/LICENSE.txt": b"Mermaid license\n",
+                "book/vendor/mermaid/THIRD_PARTY_NOTICES.txt": b"Other notices\n",
+                "book/vendor/mermaid/PROVENANCE.txt": b"Provenance\n",
+            }
+            for path, data in original.items():
+                file = root/path
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_bytes(data)
+            book = Book([], root/"output", root/"cache")
+            with patch("book.build.ROOT", root), \
+                    patch("book.build.SOURCE_ROOT", root/"xnu"), \
+                    patch("book.build.HERE", root/"book"):
+                links = register_license_notices(book)
+            for filename, source in (
+                ("CC-BY-4.0.txt", "LICENSE-DOCS"), ("GPL-2.0.txt", "LICENSE"),
+            ):
+                self.assertEqual((book.output/"licenses"/filename).read_bytes(), original[source])
+                self.assertEqual(links[filename], "_sources/" + source + ".html")
+            self.assertEqual(set(book.sources), set(original))
+            self.assertEqual(links["APPLE_LICENSE.txt"], "_sources/xnu/APPLE_LICENSE.html")
+            for path, data in original.items():
+                self.assertEqual((root/path).read_bytes(), data)
+
+    @unittest.skipUnless(shutil.which("cmark-gfm"), "cmark-gfm is not installed")
+    def test_markdown_notice_is_preserved_but_not_duplicated_in_content_or_search(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            original = with_license_notice("# Example\n\nExplains virtual memory.\n")
+            path = root/"example.md"
+            path.write_text(original)
+            page = {
+                "file": path, "path": "example.md", "url": "example.html",
+                "title": "Example", "chapter": "Example",
+                "sections": source_headings(path), "markdown": original,
+            }
+            book = Book([page], root/"output", root/"cache")
+            book.prepare()
+            self.assertNotIn("CC BY", page["dom"].text())
+            self.assertIn("virtual memory", page["dom"].text())
+            self.assertTrue(all("CC BY" not in item["text"] for item in book.search))
+            self.assertEqual(page["markdown"], original)
+            self.assertEqual(path.read_text(), original)
+            self.assertIn(NOTICE, original)
 
 if __name__ == "__main__":
     unittest.main()

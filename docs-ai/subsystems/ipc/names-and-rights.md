@@ -317,3 +317,7 @@ The lookup design also depends on the port/port-set zones' sequestering and clea
 ## Sources inspected and boundaries
 
 This page follows current structure definitions, generation allocation/reuse, reverse lookup, send accounting, copyout, and lookup lifetime in `ipc_entry`, `ipc_space`, `ipc_object`, `ipc_port`, `ipc_pset`, and `ipc_right`. It does not reproduce every policy-specific label or every transport optimization. Continue with [port and right lifecycle](ports-and-rights-lifecycle.md) for the API paths, receive movement, destruction, and notifications, then [message transport](message-path.md) for message construction and error cleanup.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

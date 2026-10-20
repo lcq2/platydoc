@@ -603,3 +603,6 @@ For one concrete trace, start at a [large heap allocation](kalloc-heaps-and-rout
 | [Allocator guard-object design note](../../../xnu/doc/allocators/guard-objects.md) | Used as context and checked against current implementation; claims here follow the C code's actual bitmap and empty-chunk behavior |
 | Architecture pmap and protected monitor | Mapping-type call boundary documented; architecture enforcement and page-table internals belong to [pmap chapters](pmap-mapping-lifecycle.md) |
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

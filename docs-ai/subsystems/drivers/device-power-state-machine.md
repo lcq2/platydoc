@@ -211,3 +211,7 @@ System sleep introduces a further activity-generation boundary. On root power-do
 | Driver hardware and platform policy | Device-specific `setPowerState`, external power-controller code, electrical timing, every DriverKit behavior and all boot/debug timeout choices are not established by these generic bodies. No device-power or suspend/resume test was executed. |
 
 To investigate a concrete service, record its ordered table, all ready power parents and their flags, client desires, current/head target, machine state and pending acknowledgment owners. That set connects a user-visible stuck device to the exact request, callback or dependency that must make progress.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

@@ -185,3 +185,7 @@ Tests, build scripts, library wrappers, external headers and upstream documentat
 The baseline inventory is a snapshot before the four implementation chapters added during this audit. Re-running its generator updates the snapshot to the then-current explanatory guides; audit-only citations remain excluded. The four area reports are review records and expansion plans, not substitutes for the proposed chapters.
 
 The historical [expansion audit](expansion-audit.md) remains the record of completed passes. This report supersedes its older gap list for prioritization. The generated TOC and source index include audit documents for navigation; their raw totals must not be interpreted as newly explained kernel behavior. HTML and SVG publication remain outside this Markdown work.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

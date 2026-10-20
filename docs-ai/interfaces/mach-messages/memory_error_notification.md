@@ -71,3 +71,7 @@ simpleroutine llc_memory_error_notification(
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
 Local source occurrences to follow: [osfmk/kern/memory_error_logging.c:109](../../../xnu/osfmk/kern/memory_error_logging.c#L109). These may be senders, wrappers or declarations; they do not establish a local receiver.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

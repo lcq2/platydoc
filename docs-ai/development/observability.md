@@ -116,3 +116,7 @@ Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehos
 ## Sources inspected and limits
 
 The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. DTrace, logging, panic/core dumps, and sanitizer backends were surveyed as navigation boundaries, not reviewed end to end. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

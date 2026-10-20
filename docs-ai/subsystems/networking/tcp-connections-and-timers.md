@@ -183,3 +183,7 @@ Even `tcp_close()` may defer cleanup after canceling timers:
 | Timers and close | Read timer list/reference/lock handoff, per-connection revalidation, retransmission/persist/keepalive/delayed-ACK branches, probe/recovery boundaries, and close deferral/final detach. Exact runtime tuning and hardware/network behavior were not measured. |
 
 For packet construction, routes, and interface completion continue with [packet/route/interface lifecycle](packets-routes-and-interfaces.md). Filter diversion and multipath have separate state machines described at their boundaries in [policy extensions](policy-extensions.md).
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

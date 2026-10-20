@@ -607,3 +607,6 @@ For one complete trace, read the wrapper → trap → proxy loop → request-res
 
 The local evidence establishes a copied userspace IPC boundary, domain/service checks, thread-context ownership, external scheduler exchange, host wait/donation, controlled upcall dispatch, and domain-specific interrupt resumption. It does not by itself prove the secure environment's complete isolation, capability-transfer semantics, or scheduler implementation.
 
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->

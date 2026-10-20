@@ -19,6 +19,7 @@ import audit_inventory
 import build_source_index
 import check_excerpts
 import check_links
+import doc_license
 import paths
 
 
@@ -155,6 +156,8 @@ class RelocatedToolTests(unittest.TestCase):
         self.assertNotIn("\n## xnu\n", index)
         self.assertIn("(../xnu/osfmk/kern/entry.c)", index)
         self.assertIn("(../make_docs.py)", index)
+        self.assertEqual(index.count(doc_license.BEGIN), 1)
+        self.assertEqual(index, doc_license.with_license_notice(index))
 
     def test_missing_checkout_fails_with_the_checkout_diagnostic(self):
         (self.source / "APPLE_LICENSE").unlink()

@@ -442,6 +442,7 @@ pre.source-code { padding: 1rem 0; }
 .page-navigation > a > strong { display: block; font-weight: 600; }
 .page-navigation > a:only-child.page-previous { text-align: left; }
 .book-footer { margin-top: 2.5rem; padding-top: 1.2rem; border-top: 1px solid var(--line); }
+.book-footer p { margin: 0 0 .6rem; }
 .book-footer a { color: var(--muted); }
 .dialog-heading { display: flex; align-items: start; gap: .8rem; margin-bottom: .8rem; }
 .dialog-heading > h2 { margin: 0 auto 0 0 !important; }

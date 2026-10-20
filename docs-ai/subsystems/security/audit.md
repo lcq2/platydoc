@@ -53,3 +53,7 @@ flowchart LR
 | [`audit_pipe.c`](../../../xnu/bsd/security/audit/audit_pipe.c) | Character-device consumers, queues, selection, reads/ioctls/readiness; independent selection can require records even without trail selection |
 
 Audit records describe selected activity; they are not the authorization decision itself. A denied operation can be recorded, an allowed operation can be unselected, and session events have special handling. Configuration, failure policies, pipe selection, and the userspace service all affect observable output. The audit daemon and its persistence/rotation policy are outside this source trace.
+
+<!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
+Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
+<!-- END PLATYDOC DOCUMENTATION LICENSE -->
