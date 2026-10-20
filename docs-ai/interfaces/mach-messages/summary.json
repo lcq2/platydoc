@@ -1,0 +1,590 @@
+[
+  {
+    "file": "libsyscall/mach/servers/netname.defs",
+    "page": "netname.md",
+    "slots": 4,
+    "routine_slots": 4,
+    "reserved_slots": 0,
+    "mechanism_slots": 4,
+    "bases": [
+      1040
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/UserNotification/UNDReply.defs",
+    "page": "UNDReply.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      6200
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/UserNotification/UNDRequest.defs",
+    "page": "UNDRequest.md",
+    "slots": 8,
+    "routine_slots": 7,
+    "reserved_slots": 1,
+    "mechanism_slots": 7,
+    "bases": [
+      6000
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/device/device.defs",
+    "page": "device.md",
+    "slots": 91,
+    "routine_slots": 90,
+    "reserved_slots": 1,
+    "mechanism_slots": 90,
+    "bases": [
+      2800
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/gssd/gssd_mach.defs",
+    "page": "gssd_mach.md",
+    "slots": 9,
+    "routine_slots": 9,
+    "reserved_slots": 0,
+    "mechanism_slots": 9,
+    "bases": [
+      999
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/kextd/kextd_mach.defs",
+    "page": "kextd_mach.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      77000
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/lockd/lockd_mach.defs",
+    "page": "lockd_mach.md",
+    "slots": 3,
+    "routine_slots": 3,
+    "reserved_slots": 0,
+    "mechanism_slots": 3,
+    "bases": [
+      1023
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/arcade_register.defs",
+    "page": "arcade_register.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      51471
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/arcade_upcall.defs",
+    "page": "arcade_upcall.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      61471
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/audit_triggers.defs",
+    "page": "audit_triggers.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      123
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/clock.defs",
+    "page": "clock.md",
+    "slots": 3,
+    "routine_slots": 3,
+    "reserved_slots": 0,
+    "mechanism_slots": 3,
+    "bases": [
+      1000
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/clock_priv.defs",
+    "page": "clock_priv.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      1200
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/clock_reply.defs",
+    "page": "clock_reply.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      3125107
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/coalition_notification.defs",
+    "page": "coalition_notification.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      5300
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/doubleagent_mig.defs",
+    "page": "doubleagent_mig.md",
+    "slots": 4,
+    "routine_slots": 4,
+    "reserved_slots": 0,
+    "mechanism_slots": 4,
+    "bases": [
+      6300
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/exc.defs",
+    "page": "exc.md",
+    "slots": 3,
+    "routine_slots": 3,
+    "reserved_slots": 0,
+    "mechanism_slots": 3,
+    "bases": [
+      2401
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/fairplayd_notification.defs",
+    "page": "fairplayd_notification.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      41471
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/host_notify_reply.defs",
+    "page": "host_notify_reply.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      950
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/host_priv.defs",
+    "page": "host_priv.md",
+    "slots": 26,
+    "routine_slots": 23,
+    "reserved_slots": 3,
+    "mechanism_slots": 23,
+    "bases": [
+      400
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/host_security.defs",
+    "page": "host_security.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      600
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/iocompressionstats_notification.defs",
+    "page": "iocompressionstats_notification.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      5600
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/ktrace_background.defs",
+    "page": "ktrace_background.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      670
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/ledger.defs",
+    "page": "ledger.md",
+    "slots": 0,
+    "routine_slots": 0,
+    "reserved_slots": 0,
+    "mechanism_slots": 0,
+    "bases": [
+      5000
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/mach_eventlink.defs",
+    "page": "mach_eventlink.md",
+    "slots": 4,
+    "routine_slots": 4,
+    "reserved_slots": 0,
+    "mechanism_slots": 4,
+    "bases": [
+      716200
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_exc.defs",
+    "page": "mach_exc.md",
+    "slots": 6,
+    "routine_slots": 6,
+    "reserved_slots": 0,
+    "mechanism_slots": 6,
+    "bases": [
+      2405
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_host.defs",
+    "page": "mach_host.md",
+    "slots": 36,
+    "routine_slots": 32,
+    "reserved_slots": 4,
+    "mechanism_slots": 32,
+    "bases": [
+      200
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_port.defs",
+    "page": "mach_port.md",
+    "slots": 43,
+    "routine_slots": 43,
+    "reserved_slots": 0,
+    "mechanism_slots": 43,
+    "bases": [
+      3200
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_test_upcall.defs",
+    "page": "mach_test_upcall.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      125
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/mach_vm.defs",
+    "page": "mach_vm.md",
+    "slots": 30,
+    "routine_slots": 29,
+    "reserved_slots": 1,
+    "mechanism_slots": 29,
+    "bases": [
+      4800
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_voucher.defs",
+    "page": "mach_voucher.md",
+    "slots": 5,
+    "routine_slots": 5,
+    "reserved_slots": 0,
+    "mechanism_slots": 5,
+    "bases": [
+      5400
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/mach_voucher_attr_control.defs",
+    "page": "mach_voucher_attr_control.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      5600
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/memory_entry.defs",
+    "page": "memory_entry.md",
+    "slots": 4,
+    "routine_slots": 4,
+    "reserved_slots": 0,
+    "mechanism_slots": 4,
+    "bases": [
+      4900
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/memory_error_notification.defs",
+    "page": "memory_error_notification.md",
+    "slots": 3,
+    "routine_slots": 3,
+    "reserved_slots": 0,
+    "mechanism_slots": 3,
+    "bases": [
+      5900
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/notify.defs",
+    "page": "notify.md",
+    "slots": 9,
+    "routine_slots": 6,
+    "reserved_slots": 3,
+    "mechanism_slots": 6,
+    "bases": [
+      64
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/processor.defs",
+    "page": "processor.md",
+    "slots": 6,
+    "routine_slots": 6,
+    "reserved_slots": 0,
+    "mechanism_slots": 6,
+    "bases": [
+      3000
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/processor_set.defs",
+    "page": "processor_set.md",
+    "slots": 11,
+    "routine_slots": 11,
+    "reserved_slots": 0,
+    "mechanism_slots": 11,
+    "bases": [
+      4000
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/prof.defs",
+    "page": "prof.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      2450
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/resource_notify.defs",
+    "page": "resource_notify.md",
+    "slots": 6,
+    "routine_slots": 6,
+    "reserved_slots": 0,
+    "mechanism_slots": 6,
+    "bases": [
+      827800
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/restartable.defs",
+    "page": "restartable.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      8000
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/semaphore.defs",
+    "page": "semaphore.md",
+    "slots": 7,
+    "routine_slots": 7,
+    "reserved_slots": 0,
+    "mechanism_slots": 7,
+    "bases": [
+      617200
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/sysdiagnose_notification.defs",
+    "page": "sysdiagnose_notification.md",
+    "slots": 2,
+    "routine_slots": 2,
+    "reserved_slots": 0,
+    "mechanism_slots": 2,
+    "bases": [
+      31337
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/task.defs",
+    "page": "task.md",
+    "slots": 66,
+    "routine_slots": 65,
+    "reserved_slots": 1,
+    "mechanism_slots": 65,
+    "bases": [
+      3400
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/task_access.defs",
+    "page": "task_access.md",
+    "slots": 3,
+    "routine_slots": 3,
+    "reserved_slots": 0,
+    "mechanism_slots": 3,
+    "bases": [
+      27000
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/telemetry_notification.defs",
+    "page": "telemetry_notification.md",
+    "slots": 1,
+    "routine_slots": 1,
+    "reserved_slots": 0,
+    "mechanism_slots": 1,
+    "bases": [
+      5100
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/thread_act.defs",
+    "page": "thread_act.md",
+    "slots": 34,
+    "routine_slots": 34,
+    "reserved_slots": 0,
+    "mechanism_slots": 34,
+    "bases": [
+      3600
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/upl.defs",
+    "page": "upl.md",
+    "slots": 4,
+    "routine_slots": 4,
+    "reserved_slots": 0,
+    "mechanism_slots": 4,
+    "bases": [
+      2050
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  },
+  {
+    "file": "osfmk/mach/vfs_nspace.defs",
+    "page": "vfs_nspace.md",
+    "slots": 8,
+    "routine_slots": 8,
+    "reserved_slots": 0,
+    "mechanism_slots": 8,
+    "bases": [
+      867800
+    ],
+    "route": "Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration."
+  },
+  {
+    "file": "osfmk/mach/vm32_map.defs",
+    "page": "vm32_map.md",
+    "slots": 34,
+    "routine_slots": 29,
+    "reserved_slots": 5,
+    "mechanism_slots": 29,
+    "bases": [
+      3800
+    ],
+    "route": "Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission."
+  },
+  {
+    "file": "osfmk/mach/vm_map.defs",
+    "page": "vm_map.md",
+    "slots": 34,
+    "routine_slots": 30,
+    "reserved_slots": 4,
+    "mechanism_slots": 30,
+    "bases": [
+      3800
+    ],
+    "route": "Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint."
+  }
+]

@@ -1,0 +1,319 @@
+# Port names, namespace entries, and references
+
+[IPC overview](README.md) · [Port and right lifecycle](ports-and-rights-lifecycle.md) · [Message transport](message-path.md)
+
+A Mach port name identifies an entry in one IPC space. That entry records rights to a kernel object; the integer is neither the object pointer nor an identifier shared by all processes. To follow a right across a message, track three things separately: the sender's entry, the owned right in the kernel message, and the receiver's entry after copyout. The endpoint can remain the same while its names, owners, and reference counts change. [`ipc_object_copyin`](../../../xnu/osfmk/ipc/ipc_object.c#L526), [`ipc_object_copyout`](../../../xnu/osfmk/ipc/ipc_object.c#L853).
+
+```mermaid
+flowchart LR
+    S[Server ipc_space] --> SE[Entry 0x403: receive and send]
+    C[Client ipc_space] --> CE[Entry 0x903: send]
+    SE --> P[One ipc_port P]
+    CE --> P
+    K[In-flight message with a right] --> P
+    P --> Q[ip_messages: message payload queue]
+    P --> W[ip_waitq: lock and waiting threads]
+    P -. receive owner .-> S
+```
+
+The names in this diagram are illustrative valid encodings, not promised allocator output. A task can also have several distinct send-once entries referring to the same port. Ordinary send and receive rights coalesce into one name per space through the reverse-lookup rules. [`ipc_right_reverse`](../../../xnu/osfmk/ipc/ipc_right.c#L362), [`copyout entry selection`](../../../xnu/osfmk/ipc/ipc_object.c#L932).
+
+## 1. Read the current structures before reading old Mach descriptions
+
+| Structure | Fields and interpretation | Protection and ownership |
+| --- | --- | --- |
+| `ipc_space` | `is_table` is an SMR-published typed entry table; `is_task` connects the namespace to its task; `is_policy` and `is_label` hold policy; free/hash counts and `is_grower` support allocation. | `is_lock` is a ticket lock. A null published table marks an inactive space. The space itself has a separate reference count in `is_bits`. |
+| `ipc_entry` | Object pointer union; rights/generation/user-reference bits; request/free-list union; reverse-hash metadata; retirement overlay. | The space lock stabilizes mutation. Removal/identity-changing paths also lock the object; some copyout accounting finishes after unlocking it while the entry still holds a reference. The entry has no independent reference count. |
+| `ipc_object` | Shared initial header of ports and port sets: immutable `io_type`, mutable `io_state`, `io_references`, and label storage. | Type can be inspected without the object lock; state/label access has a lock and accessor protocol. References keep storage alive. |
+| `ipc_port` | Object header, wait queue, message queue, state-dependent receiver/destination/timestamp, rights counters, notifications, turnstile, context. | Its lock is the wait-queue lock. Receive ownership and object lifetime are different properties. |
+| `ipc_pset` | Object header, `ips_wqset`, and `ips_klist`. | A wait-set object with its own lock, reference count, and namespace entry; member ports retain their own payload queues. |
+
+Source definitions: [`ipc_space`](../../../xnu/osfmk/ipc/ipc_space.h#L141), [`ipc_entry`](../../../xnu/osfmk/ipc/ipc_entry.h#L109), [`ipc_object`](../../../xnu/osfmk/ipc/ipc_object.h#L225), [`ipc_port`](../../../xnu/osfmk/ipc/ipc_port.h#L119), [`ipc_pset`](../../../xnu/osfmk/ipc/ipc_pset.h#L77).
+
+### The space and entry table
+
+The task's usual namespace is `task->itk_space`. Special spaces also exist for kernel-owned rights. An active space's table can grow while readers are running; `is_grower`, modified-index bounds, and SMR retirement coordinate publication and cleanup. Obtain the table size using the typed-table helpers. In particular, the historical comment in `ipc_space.h` mentioning `is_table[0].ie_size` does not describe the current `ipc_entry` fields. [`ipc_space_create`](../../../xnu/osfmk/ipc/ipc_space.c#L275), [`ipc_entry_grow_table`](../../../xnu/osfmk/ipc/ipc_entry.c), [`table retirement`](../../../xnu/osfmk/ipc/ipc_space.c#L132).
+
+[ipc_space namespace and growth state — source lines 141–154](../../../xnu/osfmk/ipc/ipc_space.h#L141):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_space.h#L141-L154 -->
+```c
+struct ipc_space {
+	lck_ticket_t    is_lock;
+	os_ref_atomic_t is_bits;        /* holds refs, active, growing */
+	ipc_entry_num_t is_table_hashed;/* count of hashed elements */
+	ipc_entry_num_t is_table_free;  /* count of free elements */
+	unsigned int    is_entropy[IS_ENTROPY_CNT]; /* pool of entropy taken from RNG */
+	struct bool_gen is_prng;
+	SMR_POINTER(ipc_entry_table_t XNU_PTRAUTH_SIGNED_PTR("ipc_space.is_table")) is_table; /* an array of entries */
+	task_t XNU_PTRAUTH_SIGNED_PTR("ipc_space.is_task") is_task; /* associated task */
+	unsigned long   is_policy;      /* manually dPACed, ipc_space_policy_t */
+	thread_t        is_grower;      /* thread growing the space */
+	ipc_label_t     is_label;       /* [private] mandatory access label */
+	ipc_entry_num_t is_low_mod;     /* lowest modified entry during growth */
+	ipc_entry_num_t is_high_mod;    /* highest modified entry during growth */
+```
+
+The entry has **two separate unions**. Its first union provides typed aliases for an object pointer, a volatile lookup alias, and `ie_self` used when retiring the whole table. Its second union overlays all normal bits/request/hash fields with `ie_smr_node`. `ie_request` is a notification-request index, not a pointer to the object or the receiver. For a free entry, the same word is `ie_next`, linking free slots. `ie_dist` and `ie_index` belong to the object-to-name reverse hash; they are not the generation or the current entry's object pointer. [`entry layout and hash description`](../../../xnu/osfmk/ipc/ipc_entry.h#L85).
+
+[ipc_entry unions — source lines 109–131](../../../xnu/osfmk/ipc/ipc_entry.h#L109):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_entry.h#L109-L131 -->
+```c
+struct ipc_entry {
+	union {
+		struct ipc_object *XNU_PTRAUTH_SIGNED_PTR("ipc_entry.ie_object") ie_object;
+		struct ipc_port   *XNU_PTRAUTH_SIGNED_PTR("ipc_entry.ie_object") ie_port;
+		struct ipc_pset   *XNU_PTRAUTH_SIGNED_PTR("ipc_entry.ie_object") ie_pset;
+		struct ipc_object *XNU_PTRAUTH_SIGNED_PTR("ipc_entry.ie_object") volatile ie_volatile_object;
+		struct ipc_entry_table *XNU_PTRAUTH_SIGNED_PTR("ipc_entry.ie_self") ie_self;
+	};
+	union {
+		struct {
+			ipc_entry_bits_t    ie_bits;
+			union {
+				mach_port_index_t ie_next;         /* next in freelist, or...  */
+				ipc_table_index_t ie_request;      /* dead name request notify */
+			};
+
+			/* hash fields */
+			uint32_t            ie_dist;
+			mach_port_index_t   ie_index;
+		};
+		struct smr_node             ie_smr_node;
+	};
+};
+```
+
+Index zero is reserved and holds the free-list head during normal operation. On retirement, `ipc_space_retire_table` stores the table pointer in that base entry's `ie_self` and uses its `ie_smr_node` for the deferred free callback. The union is a reuse of storage at different lifetime stages; it does not mean that every active entry simultaneously contains an SMR callback. [`ipc_space_retire_table`](../../../xnu/osfmk/ipc/ipc_space.c#L132).
+
+### Common header, port, and message queue
+
+`io_type` identifies the kernel object kind, such as a regular port, service port, kobject port, or port set. It is different from the entry's `MACH_PORT_TYPE_SEND`/`RECEIVE` rights. `io_state` describes whether an object is active and where a receive right resides. `io_references` controls storage lifetime. The label union can identify service, bootstrap, connection, kobject, or timer state; use `io_label_get`/`ip_label_put` and related helpers rather than assuming its pointer is stable. The source requires the object lock while a resolved label value is live. [`ipc_object` field contracts](../../../xnu/osfmk/ipc/ipc_object.h#L190), [`label lifetime`](../../../xnu/osfmk/ipc/ipc_object.h#L257).
+
+[ipc_object reference count and label union — source lines 243–253](../../../xnu/osfmk/ipc/ipc_object.h#L243):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_object.h#L243-L253 -->
+```c
+	os_ref_atomic_t                         io_references;
+	union {
+		/* these are dPACed when on a port header */
+		const void                      *iol_pointer;
+		unsigned long                    iol_value;
+		struct ipc_service_port_label   *iol_service;
+		struct ipc_bootstrap_port_label *iol_bootstrap;
+		struct ipc_conn_port_label      *iol_connection;
+		struct ipc_kobject_label        *iol_kobject;
+		struct mk_timer                 *iol_mktimer;
+	};
+```
+
+The current `ipc_port` embeds `ip_waitq` and `ip_messages` as separate members. `ipc_mqueue` contains the message list, receive sequence number/name, counts, limit, and a union used for event/scheduling integration. It does **not** contain its own wait queue. `ip_receiver_name` is a macro alias for `ip_messages.imq_receiver_name`. [`ipc_port` wait queue](../../../xnu/osfmk/ipc/ipc_port.h#L119), [`receiver-name alias`](../../../xnu/osfmk/ipc/ipc_port.h#L216).
+
+[ipc_mqueue payload state — source lines 83–93](../../../xnu/osfmk/ipc/ipc_mqueue.h#L83):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_mqueue.h#L83-L93 -->
+```c
+typedef struct ipc_mqueue {
+	circle_queue_head_t     imq_messages;
+	mach_port_seqno_t       imq_seqno;
+	mach_port_name_t        imq_receiver_name;
+	uint16_t                imq_msgcount;
+	uint16_t                imq_qlimit;
+	/*
+	 * The imq_context structure member fills in a 32-bit padding gap
+	 * in ipc_mqueue.
+	 */
+	uint32_t                imq_context;
+```
+
+The receiver union must be decoded from object state: `ip_receiver` is valid in a space, `ip_destination` is the referenced port carrying a receive right in transit, and `ip_timestamp` records death. A nonzero union value is not by itself evidence of a valid receiving task. Further unions distinguish ordinary no-senders requests from kobject state and distinguish special-reply/watchport/port-destroyed state. [`port union contracts`](../../../xnu/osfmk/ipc/ipc_object.h#L122).
+
+[ipc_port queue and receiver union — source lines 152–162](../../../xnu/osfmk/ipc/ipc_port.h#L152):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.h#L152-L162 -->
+```c
+	struct ipc_mqueue               ip_messages;
+
+	/*
+	 * IMPORTANT: Direct access of unionized fields are highly discouraged.
+	 * Use accessor functions below and see header doc for possible states.
+	 */
+	union {
+		struct ipc_space       *XNU_PTRAUTH_SIGNED_PTR("ipc_port.ip_receiver") ip_receiver;
+		struct ipc_port        *XNU_PTRAUTH_SIGNED_PTR_AUTH_NULL("ipc_port.ip_destination") ip_destination;
+		ipc_port_timestamp_t    ip_timestamp;
+	};
+```
+
+A port set has no shared message payload queue into which its members' messages are copied. Membership links port wait queues to `ips_wqset`; a receive waits for a ready member. This checkout supports insertion into a set without removing membership in other sets; `mach_port_move_member` has the separate behavior of unlinking all except the chosen set. [`mach_port_insert_member`](../../../xnu/osfmk/ipc/mach_port.c#L2153), [`mach_port_move_member`](../../../xnu/osfmk/ipc/mach_port.c#L1403), [transport and waiting](message-path.md).
+
+[ipc_pset layout — source lines 77–84](../../../xnu/osfmk/ipc/ipc_pset.h#L77):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_pset.h#L77-L84 -->
+```c
+struct ipc_pset {
+	/*
+	 * Initial sub-structure in common with all ipc_objects.
+	 */
+	struct ipc_object       ips_object;
+	struct waitq_set        ips_wqset;
+	struct klist            ips_klist;
+};
+```
+
+## 2. A name combines a slot index with a finite generation
+
+The public encoding reserves the low byte for generation information and shifts the index by eight bits:
+
+[Mach port name encoding — source lines 278–280](../../../xnu/osfmk/mach/port.h#L278):
+
+<!-- source-excerpt: ../../../xnu/osfmk/mach/port.h#L278-L280 -->
+```c
+#define MACH_PORT_INDEX(name)           ((name) >> 8)
+#define MACH_PORT_GEN(name)             (((name) & 0xff) << 24)
+#define MACH_PORT_MAKE(index, gen)      (((index) << 8) | ((gen) >> 24))
+```
+
+For example, `0x403` selects index `4` and compares against generation bits `0x03000000`. `ipc_entry_lookup` rejects index zero, an out-of-range slot, a mismatching generation, or a slot with no right. `MACH_PORT_NULL` and `MACH_PORT_DEAD` are distinguished sentinels, not entries to dereference. A dead-name **entry** with a valid ordinary name is different from the `MACH_PORT_DEAD` sentinel. [`ipc_entry_lookup`](../../../xnu/osfmk/ipc/ipc_entry.c#L160), [`sentinel definitions`](../../../xnu/osfmk/mach/port.h#L244).
+
+Inside `ie_bits`, user references occupy 16 bits, rights occupy five bits, extended flags occupy three, and generation/rollover state occupies eight. Six bits store the generation count. `IE_BITS_GEN` presents the two low generation bits as set regardless of the internal rollover selector; externally selected names are checked with `ipc_entry_name_mask`. Do not describe the scheme as a simple monotonically increasing eight-bit counter. [`bit definitions`](../../../xnu/osfmk/ipc/ipc_entry.h#L141), [`ipc_entry_name_mask`](../../../xnu/osfmk/ipc/ipc_entry.c#L112).
+
+[ipc_entry_next_gen — source lines 137–148](../../../xnu/osfmk/ipc/ipc_entry.c#L137):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_entry.c#L137-L148 -->
+```c
+static ipc_entry_bits_t
+ipc_entry_next_gen(ipc_entry_bits_t oldgen, ipc_space_t space)
+{
+	ipc_entry_bits_t roll = oldgen & IE_BITS_ROLL_MASK;
+	ipc_entry_bits_t delta = IE_BITS_GEN_ONE + (roll << IE_BITS_ROLL_BITS);
+	ipc_entry_bits_t newgen;
+
+	if (os_add_overflow(oldgen, delta, &newgen)) {
+		newgen = ipc_entry_make_gen(0, space);
+	}
+	return newgen;
+}
+```
+
+The rollover selector changes the increment and is randomized when the generation wraps. The comment above `ipc_entry_make_gen` lists possible periods of 64, 32, 22, or 16 reuses. `ipc_entry_claim` removes a free slot, advances generation, clears the request field, stores the object, and constructs the name. `ipc_entry_dealloc` returns the slot to the free list while preserving generation/rollover bits. This catches many stale-name errors but does not create a permanently unique identifier. [`generation initialization`](../../../xnu/osfmk/ipc/ipc_entry.c#L118), [`claim`](../../../xnu/osfmk/ipc/ipc_entry.c#L251), [`deallocation`](../../../xnu/osfmk/ipc/ipc_entry.c#L499).
+
+## 3. Rights, user references, and object references count different things
+
+| Quantity | What it counts | What it does not count |
+| --- | --- | --- |
+| Entry `MACH_PORT_TYPE_*` bits | Rights represented by this name | Port class, outstanding messages, or allocated references |
+| `IE_BITS_UREFS` | User references to the entry's send/send-once/dead-name right | Total senders in all tasks |
+| `ip_srights` | Kernel send-right instances, including one per space entry that has send rights and standalone rights held by messages/kernel code | The sum of all send user references |
+| `ip_sorights` | Send-once right instances | The make-send count or ordinary send rights |
+| `ip_mscount` | Make-send events since initialization/reset | Copy-send events, uref additions, or a lifetime-global sequence number |
+| `io_references` | References keeping the port allocation alive, including entries and standalone right holders | Whether the endpoint is active or still has a receiver |
+
+The representation deliberately shares one object reference for a combined send/receive entry. A receive-only or port-set entry stores zero in the uref field even though `mach_port_get_refs` reports its implicit single user reference. A send-once entry stores one and never coalesces with another send-once right. A combined send/receive entry stores its **send** urefs; its receive right remains unique. [`mach_port_get_refs`](../../../xnu/osfmk/ipc/mach_port.c#L804), [`allocation initialization`](../../../xnu/osfmk/ipc/ipc_port.c#L905), [`copyout`](../../../xnu/osfmk/ipc/ipc_right.c#L2587).
+
+The distinction between making and copying a standalone send right is visible in these small functions. Both add a send-right instance and an object reference; only making one increments `ip_mscount`:
+
+[ipc_port_make_send_any_locked — source lines 2841–2850](../../../xnu/osfmk/ipc/ipc_port.c#L2841):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.c#L2841-L2850 -->
+```c
+ipc_port_t
+ipc_port_make_send_any_locked(
+	ipc_port_t      port)
+{
+	require_ip_active(port);
+	port->ip_mscount++;
+	ip_srights_inc(port);
+	ip_reference(port);
+	return port;
+}
+```
+
+[ipc_port_copy_send_any_locked — source lines 2892–2899](../../../xnu/osfmk/ipc/ipc_port.c#L2892):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.c#L2892-L2899 -->
+```c
+void
+ipc_port_copy_send_any_locked(
+	ipc_port_t      port)
+{
+	assert(port->ip_srights > 0);
+	ip_srights_inc(port);
+	ip_reference(port);
+}
+```
+
+When a standalone send right is copied into a space that already has one, `ipc_right_copyout_any_send` consumes the redundant send-right instance and object reference, then increments that entry's urefs. If the space only has a receive entry, it adds the send capability but releases the extra object reference because the entry already owns one. A fresh send-only entry acquires both. [`send copyout cases`](../../../xnu/osfmk/ipc/ipc_right.c#L2639).
+
+### A concrete server/client accounting trace
+
+Assume an ordinary movable port `P`, no extra kernel references, no pending notification requests, unsaturated urefs, and no concurrency. The server `S` gets name `0x403`; client `C` will get `0x903`. `R` denotes receive and `S(n)` denotes send with `n` urefs. The object-reference column counts only references to `P`, not transport destination ports.
+
+| Step | Server entry | Client entry | `P.ip_srights` | `P.io_references` | `P.ip_mscount` |
+| --- | --- | --- | ---: | ---: | ---: |
+| Allocate receive in server | `R` | — | 0 | 1 | 0 |
+| Insert `MAKE_SEND` at server's same name | `R + S(1)` | — | 1 | 1 | 1 |
+| `mod_refs(SEND, +2)` in server | `R + S(3)` | — | 1 | 1 | 1 |
+| Copy one send right into a message to client, before delivery | `R + S(3)` | — | 2 | 2 | 1 |
+| Client receives the right | `R + S(3)` | `S(1)` | 2 | 2 | 1 |
+| Another `COPY_SEND` is delivered to the same client | `R + S(3)` | `S(2)` under the **same** name | 2 | 2 | 1 |
+| Client deallocates one uref | `R + S(3)` | `S(1)` | 2 | 2 | 1 |
+| Client moves its last send right into a message back to server | `R + S(3)` | — | 2 | 2 | 1 |
+| Server receives and merges that right | `R + S(4)` | — | 1 | 1 | 1 |
+| Server removes all four send urefs | `R` | — | 0 | 1 | 1 |
+
+At the second delivery there is briefly an extra in-flight send right/reference; coalescing removes it. When the client moves its final send uref, its entry's reference becomes the message's reference, so the total need not change. The final row leaves a live receive endpoint; it is not port death. The implementation steps are [`same-name insertion`](../../../xnu/osfmk/ipc/ipc_object.c#L763), [`ipc_right_delta`](../../../xnu/osfmk/ipc/ipc_right.c#L1204), [`MOVE_SEND`](../../../xnu/osfmk/ipc/ipc_right.c#L2359), [`copyout`](../../../xnu/osfmk/ipc/ipc_right.c#L2587), and [`ipc_right_dealloc`](../../../xnu/osfmk/ipc/ipc_right.c#L990).
+
+The “one message carries one reference” rule is a useful local observation for these standalone rights, not a universal formula for every port reference in the kernel. Turnstiles, kobject owners, lookups, notifications, and in-transit destination chains can introduce additional lifetime holders.
+
+### Saturation is deliberate
+
+Send and dead-name urefs saturate at `MACH_PORT_UREFS_MAX`. Copyout succeeds while leaving a saturated entry pegged; ordinary deallocation and move operations leave the saturated count pegged too. In `ipc_right_delta`, only a delta removing the whole saturated count changes it; underflow or an out-of-range delta is rejected. Some legacy function comments still list uref-overflow errors, so read the active implementation. [`copyout saturation`](../../../xnu/osfmk/ipc/ipc_right.c#L2676), [`delta saturation`](../../../xnu/osfmk/ipc/ipc_right.c#L1528).
+
+## 4. Lookup stabilizes a relationship; it does not always acquire ownership
+
+| Operation | Successful return contract |
+| --- | --- |
+| `ipc_right_lookup_write` | Space is locked; entry is usable while that protection remains. |
+| `ipc_right_lookup_read` | Object is locked and candidate entry identity was revalidated; SMR has been exited. The caller receives bits and object, not an entry pointer to keep. |
+| `ipc_object_translate` / `ipc_port_translate_receive` | Appropriate active object is locked; **no object reference is donated**. |
+| `ipc_object_copyin` | Transfers or creates an owned right and performs deferred cleanup after unlocking the space. |
+| `ipc_object_copyout` | Consumes the supplied right on both success and its cleanup-on-failure path. |
+| `ipc_object_copyout_name` | Consumes the supplied reference on success; callers handle failure ownership explicitly. |
+
+Sources: [`write lookup`](../../../xnu/osfmk/ipc/ipc_right.c#L273), [`read lookup`](../../../xnu/osfmk/ipc/ipc_right.c#L109), [`translate contract`](../../../xnu/osfmk/ipc/ipc_object.c#L245), [`copyin`](../../../xnu/osfmk/ipc/ipc_object.c#L526), [`copyout`](../../../xnu/osfmk/ipc/ipc_object.c#L853), [`named copyout`](../../../xnu/osfmk/ipc/ipc_object.c#L981).
+
+Read lookup enters the IPC SMR domain, obtains the table and a candidate object, and attempts to lock that object. It reloads the table **after** taking the object lock, then verifies the slot still refers to that object and has the requested generation/right state. Table growth may retire an old table; object locking alone does not keep that table allocation alive. Conversely, SMR alone does not establish that a candidate object is the one now named by the entry. [`ipc_right_lookup_read` ordering argument](../../../xnu/osfmk/ipc/ipc_right.c#L109).
+
+[Read lookup final identity checks — source lines 237–254](../../../xnu/osfmk/ipc/ipc_right.c#L237):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_right.c#L237-L254 -->
+```c
+	if (__improbable(entry->ie_object != object)) {
+		kr = KERN_INVALID_NAME;
+		goto out_put_unlock;
+	}
+
+	ipc_entry_bits_t bits = entry->ie_bits;
+	if (__improbable(IE_BITS_GEN(bits) != MACH_PORT_GEN(name) ||
+	    IE_BITS_TYPE(bits) == MACH_PORT_TYPE_NONE)) {
+		kr = KERN_INVALID_NAME;
+		goto out_put_unlock;
+	}
+
+	/* Done with hazardous accesses to the table */
+	smr_ipc_leave();
+
+	*bitsp = bits;
+	*objectp = object;
+	return KERN_SUCCESS;
+```
+
+The lookup design also depends on the port/port-set zones' sequestering and cleared-memory properties, which make locking and validating a possibly stale candidate address possible. Final object-reference release calls type-specific free; safe-release variants can defer work when preemption context requires it. A reference protects storage, while the object lock and state check establish whether an operation may proceed. [`zone and lookup rationale`](../../../xnu/osfmk/ipc/ipc_object.c#L104), [`object release`](../../../xnu/osfmk/ipc/ipc_object.c#L198).
+
+`ipc_port_lock` locks `ip_waitq`; port-set locking uses `ips_wqset`. Entry mutations ordinarily take the space lock before the port lock. Operations involving several ports or a destination chain have specialized ordering and restart rules; do not invent a general arbitrary two-port locking order from the single-port path. [`ipc_port_lock`](../../../xnu/osfmk/ipc/ipc_port.c#L163), [`port/set translation`](../../../xnu/osfmk/ipc/ipc_object.c), [`destination-chain locking`](../../../xnu/osfmk/ipc/ipc_port.c#L1321).
+
+## Sources inspected and boundaries
+
+This page follows current structure definitions, generation allocation/reuse, reverse lookup, send accounting, copyout, and lookup lifetime in `ipc_entry`, `ipc_space`, `ipc_object`, `ipc_port`, `ipc_pset`, and `ipc_right`. It does not reproduce every policy-specific label or every transport optimization. Continue with [port and right lifecycle](ports-and-rights-lifecycle.md) for the API paths, receive movement, destruction, and notifications, then [message transport](message-path.md) for message construction and error cleanup.

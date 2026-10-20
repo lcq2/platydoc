@@ -1,0 +1,252 @@
+netname_check_in	Register a name and port with the historical name server, using a signature port for ownership.
+netname_look_up	Request the port registered for a name on the indicated host.
+netname_check_out	Remove a name-server registration using its signature capability.
+netname_version	Request the name server's version string.
+UNDAlertCompletedWithResult_rpc	Deliver an alert's completion result and response dictionary back to the kernel notification object.
+UNDNotificationCreated_rpc	Associate the notification daemon's newly created notification identifier with the kernel request.
+UNDDisplayAlertFromBundle_rpc	Ask the notification daemon to display an alert using resources in the specified bundle.
+UNDDisplayCustomFromBundle_rpc	Ask the notification daemon to display the bundle's custom notification content.
+io_object_get_class	Copy the object's runtime metaclass name into the bounded output string.
+io_object_conforms_to	Test whether the object can be cast to the named runtime class.
+io_iterator_next	Return the next retained object from an exported IOKit iterator.
+io_iterator_reset	Reset an exported iterator's traversal position.
+io_service_get_matching_services	Request an iterator over services matching a serialized property dictionary.
+io_registry_entry_get_property	Request a serialized value for one registry property, subject to property-access policy.
+io_registry_create_iterator	Create a registry traversal iterator for the requested plane and options.
+io_registry_iterator_enter_entry	Descend into the current entry while holding the iterator's serialization lock.
+io_registry_iterator_exit_entry	Leave the current nested iterator traversal level.
+io_registry_entry_from_path	Resolve a registry path to an exported entry, including the local compatibility lookup rules.
+io_registry_entry_get_name	Copy the registry entry's name into the bounded output.
+io_registry_entry_get_properties	Request a serialized property dictionary for a registry entry.
+io_registry_entry_get_property_bytes	Copy the bytes of an OSData property after property-access checks.
+io_registry_entry_get_child_iterator	Create an iterator over the entry's children in the requested registry plane.
+io_registry_entry_get_parent_iterator	Create an iterator over the entry's parents in the requested registry plane.
+io_service_close	Close a user-client connection through its IPC admission and clientClose protocol.
+io_connect_get_service	Obtain a retained service object associated with a user-client connection.
+io_connect_set_notification_port	Register a notification port and reference value with a user client.
+io_connect_map_memory	Map a user client's selected memory type into a task and return address and size using this ABI's widths.
+io_connect_add_client	Ask one user client to connect another client object.
+io_connect_set_properties	Apply serialized properties to a connection through the registry-property setter.
+io_connect_method_scalarI_scalarO	Adapt legacy scalar input/scalar output arrays to the common synchronous user-client method path.
+io_connect_method_scalarI_structureO	Adapt legacy scalar inputs and structure output to the common synchronous method path.
+io_connect_method_scalarI_structureI	Adapt legacy scalar and structure inputs to the common synchronous method path.
+io_connect_method_structureI_structureO	Adapt legacy structure input/output to the common synchronous method path.
+io_registry_entry_get_path	Copy an entry's path in a specified registry plane into the bounded output buffer.
+io_registry_get_root_entry	Return a retained registry root object.
+io_registry_entry_set_properties	Copy in and deserialize the supplied property representation, apply policy, and invoke the entry's property setter.
+io_registry_entry_in_plane	Test whether the entry belongs to the named registry plane.
+io_object_get_retain_count	Report the object's reference count at the point of inspection; this value does not confer ownership.
+io_service_get_busy_state	Read the service's current busy count/state.
+io_service_wait_quiet	Wait for a service to become quiet, using the supplied timeout.
+io_registry_entry_create_iterator	Create a traversal iterator rooted at this entry in the requested plane.
+io_iterator_is_valid	Test whether registry mutation has invalidated the iterator.
+io_catalog_terminate	Request termination of matching drivers or a module after privilege checks.
+io_catalog_get_data	Serialize selected driver-catalogue data and return it through VM-backed output memory.
+io_catalog_get_gen_count	Return the matching catalogue's generation counter.
+io_catalog_module_loaded	Notify the catalogue that a named module has loaded.
+io_catalog_reset	Reset or restart catalogue matching according to the supplied flag.
+io_service_request_probe	Invoke the service's probe request operation with the supplied options.
+io_registry_entry_get_name_in_plane	Copy the entry's name as represented in a selected registry plane.
+io_service_match_property_table	Test a service against a serialized matching dictionary.
+io_async_method_scalarI_scalarO	Adapt legacy scalar arguments and asynchronous reference values to the common asynchronous user-client method path.
+io_async_method_scalarI_structureO	Adapt legacy scalar inputs and structure output to asynchronous user-client dispatch.
+io_async_method_scalarI_structureI	Adapt legacy scalar and structure inputs to asynchronous user-client dispatch.
+io_async_method_structureI_structureO	Adapt legacy structure inputs/output and notification references to asynchronous user-client dispatch.
+io_service_add_notification	Register a matching notification and return its exported notification/iterator object.
+io_service_add_interest_notification	Register a service-interest callback using a notification port and asynchronous references.
+io_service_acknowledge_notification	Acknowledge a notification through the target service's callback.
+io_connect_get_notification_semaphore	Obtain a user-client notification semaphore for the selected notification type.
+io_connect_unmap_memory	Unmap a selected user-client memory mapping from a task using the legacy-width adapter.
+io_registry_entry_get_location_in_plane	Copy the entry's location string in the specified plane.
+io_registry_entry_get_property_recursively	Search/copy a property through the selected plane according to recursive-search options.
+io_service_get_state	Return service state, busy count and accumulated busy time.
+io_object_get_superclass	Resolve a named runtime class and return its superclass name.
+io_object_get_bundle_identifier	Return the owning module/bundle identifier associated with a named metaclass.
+io_service_open_extended	Create a user client for a service/task/type, applying open policy, property decoding and client initialization.
+io_connect_unmap_memory_from_task	Find and remove a user-client mapping in the specified task using the wide address ABI.
+io_connect_method	Validate scalar/structure buffers, construct IOExternalMethodArguments, apply connection filtering and invoke the user's selected external method.
+io_connect_async_method	Construct asynchronous external-method arguments, retain notification references as required, and dispatch the selected user-client method.
+io_connect_method_var_output	Invoke an external method whose structure output is returned through a variable-size memory representation.
+io_service_get_matching_service	Request a single retained service matching a serialized property dictionary.
+io_service_get_authorization_id	Read the service authorization identifier after the applicable privilege checks.
+io_service_set_authorization_id	Set the service authorization identifier through the local setter.
+io_server_version	Query the IOKit IPC server version.
+io_device_tree_entry_exists_with_name	Search the device tree for an entry/property matching the supplied name.
+io_service_wait_quiet_with_options	Wait for quiet with the additional options and entitlement checks implemented by this entry.
+mach_gss_init_sec_context	Request a GSS initiator security-context step from the external GSS daemon.
+mach_gss_accept_sec_context	Request a GSS acceptor security-context step from the external GSS daemon.
+mach_gss_log_error	Forward a GSS error and descriptive context for daemon-side logging.
+mach_gss_init_sec_context_v2	Request the version-2 initiator exchange with the extra identity/context fields in this declaration.
+mach_gss_accept_sec_context_v2	Request the version-2 acceptor exchange with its declared identity and credential fields.
+mach_gss_init_sec_context_v3	Request the version-3 initiator exchange, including its additional credential/identity representation.
+mach_gss_hold_cred	Ask the GSS daemon to retain the identified credential.
+mach_gss_unhold_cred	Release the daemon-side hold on the identified credential.
+mach_gss_lookup	Resolve a credential/principal description through the GSS daemon.
+lockd_request	Forward an NFS record-lock operation and its file/owner/range parameters to the lock daemon.
+lockd_shutdown	Request lock-daemon shutdown/cleanup for the supplied peer state.
+arcade_register_new_upcall	Register or replace the protected-feature upcall port after the local entitlement and ownership checks.
+arcade_upcall	Issue the registered protected-feature request to its external service.
+audit_triggers	Send an audit-control trigger to the registered audit daemon.
+audit_analytics	Send the declared audit analytics data to its registered receiver.
+clock_set_attributes	Request a privileged update of the selected clock attribute flavor.
+doubleagent_lookup_xattr	Request lookup of a mediated extended attribute from the external service.
+doubleagent_allocate_xattr	Request allocation/storage for a mediated extended attribute.
+doubleagent_list_xattrs	Request the names of mediated extended attributes.
+doubleagent_remove_xattr	Request removal of a mediated extended attribute.
+exception_raise	Deliver a traditional Mach exception with thread/task rights and 32-bit exception-code elements; the receiver chooses its policy.
+exception_raise_state	Deliver a traditional exception with thread-state flavor/data and accept replacement state in the reply.
+exception_raise_state_identity	Deliver a traditional exception with both thread/task identity rights and state; accept replacement state in the reply.
+host_calendar_changed	Notify a registered receiver that calendar time changed.
+host_calendar_set	Notify a registered receiver of a calendar-time set operation.
+vm_allocate_cpm	Request physically contiguous memory through the historical privileged-host interface.
+host_get_clock_control	Request a control capability for the selected clock.
+kmod_create	Historical module-creation interface; inspect the local implementation status before assuming modern kext loading uses it.
+kmod_destroy	Historical module-destruction interface.
+kmod_control	Historical module-control interface.
+host_security_set_task_token	Request assignment of security/audit identity tokens to a task through the historical host-security capability.
+iocompressionstats_notification	Send the declared I/O compression statistics to an external notification receiver.
+ktrace_background_available	Notify a registered tracing client that background tracing is available.
+mach_eventlink_create	Create an eventlink pair for count-based synchronization and return endpoint capabilities.
+mach_eventlink_destroy	Destroy an eventlink endpoint/pair according to its active-state protocol.
+mach_eventlink_associate	Associate a thread with an eventlink endpoint, retaining the thread and validating endpoint state under the eventlink lock.
+mach_eventlink_disassociate	Remove an endpoint's thread association and wake/adjust wait state as required.
+mach_exception_raise	Deliver a Mach exception with wide exception-code elements and thread/task rights.
+mach_exception_raise_state	Deliver wide exception codes and thread-state data, accepting replacement state in the reply.
+mach_exception_raise_state_identity	Deliver wide exception codes, thread/task rights and state, accepting replacement state in the reply.
+mach_exception_raise_identity_protected	Deliver an exception using a task identity token and thread identifier instead of exposing ordinary control rights.
+mach_memory_object_memory_entry_64	Create a named memory-entry capability for the supplied memory object/size/permissions.
+host_request_notification	Register a notification request on the host, retaining its reply capability according to the host-notification lifetime.
+host_lockgroup_info	Snapshot lock-group statistics into an allocated output array.
+host_create_mach_voucher	Create a voucher by interpreting the supplied recipes through the registered voucher managers.
+mach_memory_info	Collect memory/zone accounting information after converting the supplied host capability to the permitted flavor.
+processor_set_create	Request creation of a processor set through the historical host interface.
+host_register_well_known_mach_voucher_attr_manager	Register a well-known voucher attribute manager and return its control capability; distinguish kernel registration from public message availability.
+host_get_atm_diagnostic_flag	Read the ATM diagnostic flag through the libsyscall/commpage interface declaration.
+host_get_multiuser_config_flags	Read the multiuser configuration flags through the libsyscall/commpage interface declaration.
+host_check_multiuser_mode	Test multiuser mode using the shared configuration flags.
+mach_port_assert_attributes	Check the receive port's asserted attributes and invoke guard-exception handling when the assertion fails.
+mach_port_rename	Rename a right within an IPC namespace through the historical public interface.
+mach_test_sync_upcall	Send a test synchronous upcall to the supplied receiver.
+mach_test_async_upcall	Send a test one-way upcall to the supplied receiver.
+mach_vm_msync	Request synchronization of the specified mapped range through vm_map_msync.
+mach_vm_region_recurse	Walk nested VM submaps and return the next region plus depth/flavor information.
+mach_vm_page_info	Query page-state information for a virtual address through the VM map.
+mach_vm_page_range_query	Validate the range and output capacity, collect per-page dispositions and copy the resulting array out.
+mach_vm_deferred_reclamation_buffer_flush	Ask the current task's deferred-reclamation machinery to process its buffer.
+mach_vm_range_create	Validate a versioned range-recipe array and establish the requested map-range configuration.
+mach_vm_deferred_reclamation_buffer_resize	Resize the current task's deferred-reclamation buffer through the configured implementation.
+mach_vm_update_pointers_with_remote_tags	Read remote allocation tags and update the supplied pointers under the map/debugging checks and MTE-specific path.
+mach_memory_entry_purgable_control	Query or change purgeable state through a named memory entry.
+mach_memory_entry_access_tracking	Query/change the entry's access-tracking state and return accumulated reads/writes.
+mach_memory_entry_ownership	Assign memory-entry ownership and ledger charging after converting the supplied task capability or identity token.
+mach_memory_entry_get_page_counts	Return resident, dirty and swapped-page counts for an eligible named memory entry.
+memory_error_notification	Send the declared generic memory-error record to the registered external receiver.
+mcc_memory_error_notification	Send memory-controller error information to the registered receiver.
+llc_memory_error_notification	Send last-level-cache memory-error information to the registered receiver.
+processor_start	Start the selected processor through the serialized user-request CPU-start path.
+processor_exit	Request processor shutdown/offline through the corresponding machine/scheduler path.
+processor_set_destroy	Historical processor-set destruction request; the local body determines whether this implementation supports it.
+processor_set_max_priority	Historical processor-set maximum-priority update.
+processor_set_policy_enable	Historical processor-set policy-enablement request.
+processor_set_policy_disable	Historical processor-set policy-disablement request.
+processor_set_threads	Request the threads assigned to a processor set, with the capability flavor and local implementation limits.
+processor_set_policy_control	Historical processor-set scheduling-policy control.
+processor_set_stack_usage	Request processor-set stack-use statistics through the declared debugging interface.
+samples	Deliver a batch of program-counter profiling samples to the external profiling receiver.
+notices	Deliver profiling notices to the external profiling receiver.
+cpu_usage_violation	Notify an external resource-policy receiver of CPU-time usage exceeding a threshold.
+cpu_wakes_violation	Notify an external resource-policy receiver of excessive wakeups during the observed interval.
+disk_writes_violation	Report excessive dirty-byte/disk-write activity and its observation window.
+port_space_violation	Report excessive Mach port-space consumption, including the declared fatal-action capability.
+file_descriptors_violation	Report excessive file-descriptor consumption and the declared fatal-action capability.
+kqworkloops_violation	Report excessive kqueue workloop consumption to the resource-policy receiver.
+task_restartable_ranges_register	Validate and register restartable instruction ranges for the current eligible task.
+task_restartable_ranges_synchronize	Request synchronization across the task's threads, using reset-PC AST/IPI acknowledgement where needed.
+semaphore_signal_all	Wake all eligible semaphore waiters through the semaphore signal primitive.
+semaphore_wait	Consume a semaphore count or register/block as a waiter.
+semaphore_signal_thread	Signal the specified thread waiting on a semaphore.
+semaphore_timedwait	Validate the relative timeout, calculate a deadline and wait for the semaphore until completion or timeout.
+semaphore_wait_signal	Combine signaling one semaphore with waiting on another through the semaphore wait implementation.
+semaphore_timedwait_signal	Combine signal and timed wait after validating and converting the timeout.
+sysdiagnose_notification	Request diagnostics through the registered external notification service.
+sysdiagnose_notification_with_audit_token	Request diagnostics with the explicit audit-token form of the interface.
+_kernelrpc_mach_ports_register3	Store the three inherited task ports used by this kernel interface.
+_kernelrpc_mach_ports_lookup3	Return the three inherited task ports stored by the kernel interface.
+semaphore_destroy	Destroy a task-owned semaphore under task/semaphore lifetime rules.
+task_policy_get	Query the selected task-policy flavor and indicate whether default values were requested/returned.
+task_suspend2	Suspend a task using a resumable task-suspension token/capability.
+task_resume2	Consume/use the task-suspension token to release its corresponding suspension.
+task_purgable_info	Snapshot the target task's purgeable-object statistics while retaining the task.
+task_get_mach_voucher	The local placeholder validates the task and returns a null voucher; it does not retrieve a task-wide adopted voucher.
+task_set_mach_voucher	The local placeholder validates the task and succeeds without establishing a task-wide adopted voucher.
+task_swap_mach_voucher	The local placeholder consumes the supplied voucher reference as coded; do not infer a functional task-wide voucher swap.
+task_generate_corpse	Create a corpse task and preserve inspection data through the task/corpse implementation.
+task_map_corpse_info	Map corpse diagnostic data into the requesting task using the compatibility-width output.
+task_register_dyld_image_infos	Record a batch of image-load information through the dyld tracing path.
+task_unregister_dyld_image_infos	Record a batch of image-unload information through the dyld tracing path.
+task_get_dyld_image_infos	Request dyld image information; check the local implementation's supported/unsupported result.
+task_register_dyld_shared_cache_image_info	Record the current task's shared-cache image information for dyld tracing.
+task_register_dyld_set_dyld_state	The local compatibility entry returns KERN_NOT_SUPPORTED rather than recording a dyld state.
+task_register_dyld_get_process_state	The local compatibility entry returns KERN_NOT_SUPPORTED rather than returning a dyld process state.
+task_map_corpse_info_64	Map the corpse's kcdata diagnostic buffer into the requesting task using wide output addresses.
+task_inspect	Return the selected task-inspection information, including configured accounting/performance data.
+task_get_exc_guard_behavior	Read the task's exception-guard behavior flags.
+task_set_exc_guard_behavior	Update the task's exception-guard behavior with the local atomic policy checks.
+mach_task_is_self	Test whether the converted target task is the current task.
+task_dyld_process_info_notify_register	Register a dyld process-info notification destination with task/port policy and ownership checks.
+task_create_identity_token	Create a task-identity token that can later be converted under flavor/policy constraints.
+task_identity_token_get_task_port	Resolve a task-identity token and return a permitted task-port flavor after conversion and policy checks.
+task_dyld_process_info_notify_deregister	Remove a dyld process-info notification registration with receive-right and task policy validation.
+task_get_exception_ports_info	Return exception-action metadata using the permitted task-read conversion.
+task_test_sync_upcall	Invoke the supplied synchronous test upcall port from the configured kernel test path.
+task_set_corpse_forking_behavior	Set the configured corpse-forking behavior under the task lock.
+task_test_async_upcall_propagation	Issue a test asynchronous upcall with thread-attribute/importance propagation.
+task_map_kcdata_object_64	Map the selected kcdata object into the requesting task using wide addresses.
+task_create	Historical task-creation message declaration; the kernel-server profile reserves this slot instead of exposing it.
+lock_set_create	Historical task-owned lock-set creation declaration.
+lock_set_destroy	Historical lock-set destruction declaration.
+task_sample	Historical sampling registration for a task.
+task_policy	Historical scheduling-policy assignment for a task.
+task_set_emulation	Historical syscall-emulation dispatch entry assignment.
+task_get_emulation_vector	Historical retrieval of a task's syscall-emulation vector.
+task_set_emulation_vector	Historical installation of a task's syscall-emulation vector.
+task_set_ras_pc	Historical restartable-atomic-sequence program-counter registration.
+task_zone_info	Historical per-task zone-information query.
+task_assign	Historical assignment of a task to a processor set.
+task_assign_default	Historical assignment of a task to the default processor set.
+task_get_assignment	Historical query of a task's processor-set assignment.
+task_set_policy	Historical task scheduling-policy parameter update.
+check_task_access_with_flavor	Ask the external task-access policy service whether a caller may obtain the requested task-port flavor.
+telemetry_notification	Send telemetry notification data to the registered external receiver.
+thread_depress_abort	Cancel priority depression for a thread under thread control serialization.
+thread_policy	Query/change the historical thread scheduling-policy representation according to this declaration.
+thread_policy_get	Return the selected thread-policy flavor under thread/scheduler locking.
+thread_set_policy	Apply the legacy thread scheduling mode and priority parameters through the current policy implementation.
+thread_get_mach_voucher	Return a referenced voucher associated with the thread.
+thread_set_mach_voucher	Adopt a voucher on a thread and update bank-ledger/thread-group/persona attribution as required.
+thread_swap_mach_voucher	Replace the thread voucher while following the input/output voucher reference-transfer contract.
+thread_convert_thread_state	Translate state between thread/self representations, validating direction, flavor and architecture-specific conversion.
+thread_get_exception_ports_info	Return exception-action metadata after converting the supplied thread-read capability.
+etap_trace_thread	Historical event-tracing control for a thread.
+thread_assign	Historical thread-to-processor-set assignment.
+thread_assign_default	Historical assignment to the default processor set.
+thread_get_assignment	Historical query of a thread's processor-set assignment.
+upl_abort	Abort the full UPL and delegate page-state cleanup to the range operation.
+upl_abort_range	Abort a UPL subrange, applying abort/error options to its VM pages and completion state.
+upl_commit	Commit the full UPL through the range completion implementation.
+upl_commit_range	Commit a UPL subrange, update page state and release the applicable busy/wire/activity ownership.
+nspace_handle	Send a namespace/filesystem mediation request to the registered external service.
+nspace_resolve_cancel	Cancel a pending namespace-resolution request in the external service.
+vfs_resolve_file_with_audit_token	Request mediated file resolution with explicit audit identity.
+vfs_resolve_dir_with_audit_token	Request mediated directory resolution with explicit audit identity.
+vfs_resolve_reparent_with_audit_token	Request mediated reparent resolution with explicit audit identity.
+vm_mapped_pages_info	Historical query of mapped physical-page information.
+mach_vm_region_info	Historical VM region/object debugging-information query.
+mach_vm_region_info_64	Historical wide VM region/object debugging-information query.
+vm_region_64	Query VM region information using the compatibility VM address/flavor interface.
+mach_make_memory_entry_64	Create a memory-entry capability for a map range with a wide offset/size representation.
+vm_map_64	Map a memory-entry/object range using a wide object offset through the compatibility VM interface.
+vm_map_exec_lockdown	Establish the map's executable-mapping lockdown policy under its interlock.
+vm_remap_new	Remap a source range using the newer remap semantics and return the resulting protections/address.
+vm_machine_attribute	Request an architecture-specific mapping/cache attribute operation, subject to the local supported-result behavior.
+task_wire	Historical task-wide wiring control.

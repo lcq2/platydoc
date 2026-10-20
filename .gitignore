@@ -1,0 +1,6 @@
+/.docs-cache/
+/docs-ai-html/
+/docs-ai-html.building/
+/docs-ai-html.previous/
+__pycache__/
+*.py[cod]

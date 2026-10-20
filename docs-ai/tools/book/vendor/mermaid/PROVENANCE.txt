@@ -1,0 +1,11 @@
+Mermaid 11.17.0, vendored from the installed open-source Mermaid ESM bundle in VS Code 1.141.0.
+
+The 106 JavaScript files are copied unchanged. manifest.json pins each file by SHA-256 and records the entry module and aggregate fingerprint. Static and dynamic relative JavaScript imports are included transitively. VS Code is not a runtime requirement for this documentation build.
+
+LICENSE.txt contains the Mermaid license. THIRD_PARTY_NOTICES.txt preserves the distributor's complete notices, including dependencies; it includes notices for other VS Code components not used here. Existing notices embedded in the JavaScript files are retained.
+
+Bootstrap: Python 3, Node.js >= 20, and Chromium or Graphviz are the executable dependencies. No npm install, browser download or CDN request is needed. Set CHROMIUM_PATH to override /usr/bin/chromium. Runtime JavaScript and these notices are build inputs; only generated SVGs are copied into the book.
+
+Rendering backends: auto first attempts Chromium and falls back explicitly if the browser cannot launch. DOCS_DIAGRAM_RENDERER=browser requires the browser; DOCS_DIAGRAM_RENDERER=parsed-svg selects the fallback directly. The fallback uses this same Mermaid parser, feeds graph/state data to Graphviz, and draws sequence events as native SVG. It supports the graph shapes, arrows, notes and alt/opt/loop frames used by the current book; unsupported types or styles are errors. All label strings are quoted/XML-escaped, never inserted as HTML. Mermaid's Node-only parser adapter replaces DOM sanitation with text preservation for that reason; the vendor modules are not modified. Output metadata identifies the actual backend.
+
+Rendering is bounded: 30 seconds per browser diagram, 15 seconds per Graphviz invocation, and 180 seconds per 25-diagram batch. SVG cache identity includes original source/label, the runtime manifest, renderer code, configuration and requested backend. Invalid source fails the default strict build. No foreignObject labels, scripts, external DTD or runtime browser dependencies are included in generated SVG.
