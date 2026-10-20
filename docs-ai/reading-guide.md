@@ -58,11 +58,15 @@ For the protected-domain side of VM, follow [SPTM/TXM/Exclaves boundaries](subsy
 
 Use [pmap translation walkthroughs](subsystems/vm/pmap-translation-walkthroughs.md) to decompose concrete 4 KiB and 16 KiB addresses. Distinguish the physical location of a PTE from the physical page it names, then follow a mapping change through TLB completion and safe reuse.
 
+Continue with [MTE tag-storage lifetime](subsystems/vm/mte-tag-storage-and-page-lifecycle.md) to distinguish data-page tags, allocator cells and physical tag backing. [Bootstrap memory and lockdown](subsystems/platform/bootstrap-memory-and-lockdown.md) connects the first translation roots and stolen pages to ordinary VM descriptors and final protection. Track when an address becomes usable separately from when its storage becomes reusable.
+
 ## Pass 5: follow a file descriptor into VFS or networking
 
 Read [`fileproc` and `fileglob`](../xnu/bsd/sys/file_internal.h) and the generic read/write code in [sys_generic.c](../xnu/bsd/kern/sys_generic.c). Then choose a vnode-backed file or a socket. For a file, continue into [VFS](subsystems/vfs/README.md): path lookup, authorization, vnode lifetime, operation dispatch, and cache/pager integration. For a socket, continue into [networking](subsystems/networking/README.md): socket buffers, protocol callbacks, packet representation, and interface input/output.
 
 Follow [namespace mutations](subsystems/vfs/namespace-mutations.md) through a rename retry, then compare [device nodes and FIFOs](subsystems/vfs/device-nodes-and-fifos.md), [stacked filesystem aliases](subsystems/vfs/stacked-filesystems.md), and [an NFS request](subsystems/vfs/nfs-server-requests.md). Track exactly which layer owns the pathname, vnode identity, persistent reference, per-operation iocount and completion result.
+
+Trace the decision itself through [permissions and ACL evaluation](subsystems/vfs/permissions-and-acl-evaluation.md): requested actions, ordered ACEs, unresolved rights, POSIX fallback, deletion checks and inheritance are distinct steps. For Skywalk, follow [namespace reservation and lookup](subsystems/networking/skywalk-namespaces-and-flow-lookup.md) → [classification and delivery](subsystems/networking/skywalk-flowswitch-classification-routes-and-datapaths.md) → [netif queues](subsystems/networking/skywalk-netif-links-queues-and-scheduling.md) → [FQ-CoDel scheduling](subsystems/networking/interface-packet-scheduling-and-fq-codel.md). Explain who owns a packet after each conversion, enqueue, pending-neighbor result and drop.
 
 For caching, compare [vnode identity and authorization caches](subsystems/vfs/vnode-cache-identity-and-reuse.md), [UBC resident/missing-page reads](subsystems/vfs/file-data-cache-and-read-path.md), and [buffer-cache ownership](subsystems/vfs/buffer-cache-and-block-io.md). Follow one read hit, one read miss, one truncate and one final close. Identify which of those operations changes file bytes, which releases an active owner, and which actually evicts cached state.
 
@@ -77,6 +81,8 @@ Then use [drivers](subsystems/drivers/README.md) to follow a request from a user
 The driver index now provides a full reading route from [bootstrap](subsystems/drivers/bootstrap-and-bsd-integration.md) and [object runtime](subsystems/drivers/object-runtime-and-collections.md) through registry/matching, notifications, execution, user interfaces, memory and power. Compare a [shared queue notification](subsystems/drivers/shared-data-queues-and-notifications.md) with a [DriverKit action](subsystems/drivers/driverkit-dispatch-and-actions.md), and follow one buffer through [CPU mapping](subsystems/drivers/memory-descriptors-and-cpu-mappings.md) before [DMA preparation](subsystems/drivers/dma-preparation-and-mapping.md). Continue into [segment generation](subsystems/drivers/dma-segment-walkthrough.md) and explain which returned address is physical or IOVA, where a padded mapping introduces a gap, and how a second capacity-limited call resumes.
 
 **Checkpoint:** explain why a port name is local to an IPC space, why sending a right changes ownership/accounting, and why possession of a connection does not mean every external driver method is authorized.
+
+For receive multiplexing, follow [port-set membership and persistent readiness](subsystems/ipc/port-sets-and-waitq-readiness.md) and explain how a stale prepost differs from a queued message. Then follow [live namespace growth](subsystems/ipc/names-and-rights.md#5-growing-a-live-namespace): private copies can be inconsistent until changed entries are rescanned and the locked publication check succeeds.
 
 ## Pass 7: connect policy and hardware
 
@@ -132,6 +138,8 @@ rg --files osfmk libsyscall iokit | rg '\.(defs|iig)$'
 Search output is a starting point. Read enough surrounding code to see the preprocessor branch, error labels, and the success/cleanup contracts. For a function pointer, locate both the table definition and its registration; for a macro, read its expansion; for a generated name, inspect the declarative interface and build rule.
 
 ## Use diagnostics and tests to check your model
+
+[Kernel logging](development/kernel-logging-and-firehose.md) follows one record through encoding, live streaming and Firehose retry, then compares those results with msgbuf text. Use its loss/publication examples before treating an absent log as evidence that an operation never ran.
 
 The [observability guide](development/observability.md) maps questions to traces, samples, counters, snapshots, and debugger macros. A macro that displays the fields you are studying can be a useful second explanation of their relationship. A subsystem test can provide a small scenario and expected result; see [build and tests](development/build-and-tests.md) for the different harnesses and their requirements.
 

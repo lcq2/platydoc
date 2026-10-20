@@ -72,6 +72,8 @@ The operation is not over immediately after a successful VNOP. VFS can apply uns
 
 `mkdir1at` uses `CREATE`, `WILLBEDIR`, and `NAMEI_COMPOUNDMKDIR`. An existing target is `EEXIST`. The actual body calls `vn_authorize_mkdir` before `vn_create`, including when compound mkdir is available; the nearby broad comment about bypassing authorization must not replace reading this call. On an `EACCES` or `EPERM` authorization result, it repeats an ordinary lookup to determine whether `EEXIST` is the more appropriate result. It also handles compound continuation and repairs missing name/parent identity after creation. [`mkdir1at`](../../../xnu/bsd/vfs/vfs_syscalls.c#L10386), [`vn_authorize_mkdir`](../../../xnu/bsd/vfs/vfs_subr.c#L8792)
 
+The [permissions and ACL companion](permissions-and-acl-evaluation.md#8-creation-composes-a-new-acl-with-explicit-ownership) follows attribute preparation: direct versus inherited ACE order, propagation flags, defaulted UID/GID/mode, composed-ACL ownership and restoration of the caller's attributes. [Delete authorization](permissions-and-acl-evaluation.md#7-delete-permission-is-a-two-object-decision) explains why a victim ACL, parent `DELETE_CHILD` permission and sticky bit are evaluated separately during unlink and rename.
+
 ## 4. Hard links and unlink: names and object lifetime separate
 
 The hard-link syscall first resolves the source according to its follow flags, then looks up the new name using creation semantics. Directories are normally rejected, with a specific `MNTK_DIR_HARDLINKS` exception that also requires ownership for a non-root caller. It takes `vnode_link_lock` on the source, runs the MAC link check and `KAUTH_VNODE_LINKTARGET`, rejects an existing destination, verifies the mounts agree, and authorizes `KAUTH_VNODE_ADD_FILE` on the destination directory. Only then does it break the relevant directory lease and invoke `VNOP_LINK`. [`linkat_internal`](../../../xnu/bsd/vfs/vfs_syscalls.c#L5966)
@@ -138,7 +140,7 @@ Sources inspected and limits:
 | Source | Inspection |
 |---|---|
 | `vfs_syscalls.c` link, unlink, mkdir, rename bodies | Deep reads of lookup, authorization, lock/retry, identity and cleanup paths; selected event details. |
-| `vfs_subr.c` create and mutation authorizers | Deep reads of dispatch, policy calls, fallback cleanup; attribute inheritance internals only surveyed. |
+| `vfs_subr.c` create and mutation authorizers | Deep reads of dispatch, policy calls and fallback cleanup; the [ACL companion](permissions-and-acl-evaluation.md) now develops attribute inheritance, permission decisions and ownership. |
 | `kpi_vfs.c`, `vfs_lookup.c` | Compound argument construction, post-hook, result ownership, final-component early return. |
 | External filesystem bodies | Not present for APFS. No claim about journal transactions, crash recovery, or all filesystem locking implementations. |
 | Optional branches | Resource forks, AppleDouble, MAC and dataless interfaces identified; not every branch independently traced. |

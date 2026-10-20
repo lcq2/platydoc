@@ -2,11 +2,13 @@
 
 The [first-release expansion record](audits/first-release-expansion.md) tracks the initial 30 companions across nine requested areas and the [audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up): Skywalk control/readiness, VM copy/remap, clocks/accounting, descriptor lifetime, task/thread capabilities and suspension. It preserves this audit's historical baseline and remaining backlog. New work excludes x86 and KDP.
 
+The [netif, flow lookup, authorization and ARM64 memory batch](audits/first-release-expansion.md#11-netif-flow-lookup-authorization-and-arm64-memory) adds seven companions with separate state/lifetime explanations. The [packet transformations, filtering, IPC and logging batch](audits/first-release-expansion.md#12-packet-transformations-filtering-ipc-internals-and-logging) follows those gaps with six companions and an in-place namespace expansion. Remaining priorities include full NECP/content-filter policy, transport algorithms, Skywalk diagnostics/test matrices, personas/audit sessions, trace consumers and remaining lock/SMR and power-policy paths. Historical findings below are retained rather than relabeled as current gaps.
+
 [Guide index](README.md) · [Contents](table-of-contents.md) · [Verification record](coverage.md) · [Earlier expansion history](expansion-audit.md)
 
 The highest-value next work is to explain missing mechanisms and complete concrete operations across subsystem boundaries. Adding more detail uniformly would repeat substantial material in IPC, allocation, file caching, signing, scheduling and IOKit while leaving larger gaps elsewhere.
 
-The requested **whole Skywalk surface** has a separate expansion program. Four companion chapters implement the additional requests for deeper **pmap**, **DMA/segment generation**, **ARM64 exception assembly**, and **thread switching/entry/exit**. Their reading routes appear below. Skywalk now has deeper memory, packet-pool, controller/provider and readiness companions; its full program remains a backlog, including additional netif/flowswitch algorithms and provider combinations.
+The requested **whole Skywalk surface** has a separate expansion program. Four companion chapters implement the additional requests for deeper **pmap**, **DMA/segment generation**, **ARM64 exception assembly**, and **thread switching/entry/exit**. Their reading routes appear below. Skywalk now has memory, packet-pool, controller/provider, readiness, namespace/lookup, default datapath, netif and scheduling companions. Packet-transformation, filter/reinjection and agent/rule companions extend that coverage. Its full program remains partial, especially policy engines, diagnostics/test matrices and remaining provider/configuration combinations.
 
 ## Scope and method
 

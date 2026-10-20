@@ -180,6 +180,8 @@ Delayed trim batches freed extents. It is coordinated with READY/RECLAIM selecti
 
 ## Configuration and evidence limits
 
+The [MTE tag-storage companion](mte-tag-storage-and-page-lifecycle.md#8-compressing-tags-differs-from-borrowing-backing-for-the-compressor) distinguishes compressor-pool borrowing of tag-storage frames from compression of a data page's tag values, including replacement-page locking and tag-stream restoration.
+
 Compressor presence, normal swap and freezer swap have separate [configuration predicates](../../../xnu/osfmk/vm/vm_pageout.h#L227). MTE metadata, unmodified-anonymous backing, encryption, donation and hibernation-pinned swap add branches; a single queue diagram cannot represent every product. This chapter explains selected allocation, movement, worker and file-lifetime paths, not codec algorithms, all encryption internals or filesystem/device persistence. It does not infer that every ARM64 product uses swap, nor that all exhausted allocation conditions are disk-full errors. [Refault-history policy](phantom-cache-and-refaults.md) describes another conditional input to eviction.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->

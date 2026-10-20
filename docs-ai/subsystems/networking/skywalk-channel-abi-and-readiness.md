@@ -4,6 +4,8 @@
 
 A channel fd is a control and notification endpoint for mapped rings. Userspace constructs descriptors in the mapping and asks the kernel to synchronize them; ordinary `read()`/`write()` are not the packet-transfer interface. Readiness itself can run ring synchronization. This chapter follows admission, the shared ABI, low-water decisions, kqueue hints and event-packet ownership in `xnu-12377.121.6`. The [memory](skywalk-memory-arenas-and-mapping.md) and [packet](skywalk-packets-buflets-and-pools.md) companions explain the storage and metadata beneath that interface.
 
+For filter channels, see [netif filtering and reinjection](skywalk-netif-filters-and-reinjection.md): RX/TX ring numbers distinguish interface ingress/egress, and accepted packet handles resume an ordered filter chain. [Agent-created port assignments](skywalk-netif-agents-and-traffic-rules.md#3-binding-a-flow-does-not-activate-a-packet-receiver) precede the key-bound channel open; they do not themselves publish a packet receiver.
+
 ## What crosses the syscall boundary
 
 | Representation | Important contents | Role |

@@ -2,6 +2,8 @@
 
 The latest [first-release expansion](audits/first-release-expansion.md) records the initial nine requested areas and the [audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up) through Skywalk control/readiness, VM copy/remap, clocks/accounting, descriptors, capabilities and suspension. Scope remains ARM64/common code, with no new x86 or KDP coverage. The earlier passes below remain historical records.
 
+The [netif, flow lookup, authorization and ARM64 memory batch](audits/first-release-expansion.md#11-netif-flow-lookup-authorization-and-arm64-memory) adds seven companions with separate state/lifetime explanations. The [packet transformations, filtering, IPC and logging batch](audits/first-release-expansion.md#12-packet-transformations-filtering-ipc-internals-and-logging) follows those gaps with six companions and an in-place namespace expansion. Remaining priorities include full NECP/content-filter policy, transport algorithms, Skywalk diagnostics/test matrices, personas/audit sessions, trace consumers and remaining lock/SMR and power-policy paths. Historical findings below are retained rather than relabeled as current gaps.
+
 [Guide index](README.md) · [Complete contents](table-of-contents.md) · [Coverage and verification](coverage.md)
 
 This audit records the Markdown expansion requested before building an HTML handbook. The existing chapters are the starting explanation, not a fixed limit on topics or depth. The unit of review is a mechanism and its execution paths: its state, inputs, decisions, synchronization, ownership, completion, and failure handling.

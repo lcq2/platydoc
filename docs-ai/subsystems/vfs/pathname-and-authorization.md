@@ -53,6 +53,8 @@ The multi-component fast path has additional authorization and mount-root cachin
 
 [`vnode_authorize`](../../../xnu/bsd/vfs/vfs_subr.c#L8997) calls the vnode kauth scope using the operation context. The internal authorization callback gathers attributes and evaluates the applicable rights, ownership/group, ACL, immutable and mount restrictions. Parent-directory information matters for operations such as deletion. Authorization is therefore not just comparing the current process UID with a file owner.
 
+Continue with [vnode permissions and ACL evaluation](permissions-and-acl-evaluation.md) for the action mask, attribute ownership, ordered permit/deny decisions, group-resolution errors, residual POSIX checks, delete-child/sticky rules and creation inheritance. The target ACL, parent directory permissions and cached authorization each answer different parts of a mutation request.
+
 Opaque-authorization filesystems can make the final decision themselves. [`vnode_authorize_opaque`](../../../xnu/bsd/vfs/vfs_subr.c#L9967) tries `VNOP_ACCESS`; if unsupported, many operations rely on the filesystem's inline authorization. It treats advisory access checks and execute specially. Do not assume that a generic permission-cache hit overrides server-side authorization on a remote filesystem, or that every kernel caller of `VNOP_READ` automatically passes through the same authorization as a userspace `open`.
 
 ## Compound operations and cleanup

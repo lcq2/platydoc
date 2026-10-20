@@ -1,6 +1,6 @@
 # Coverage audit: processes, VFS, networking, and the full Skywalk surface
 
-**Current follow-up status.** The [first-release record](first-release-expansion.md) links the new network, local-IPC/TTY and VFS metadata explanations. Its [follow-up](first-release-expansion.md#10-audit-priority-follow-up) expands descriptors in place and adds Skywalk controller/provider and channel-readiness companions alongside memory and packet-pool coverage. The two-chapter Skywalk count and other dispositions below are historical; the full 13-track program remains partial, especially netif scheduling, deeper flowswitch algorithms and remaining provider combinations.
+**Current follow-up status.** The [first-release record](first-release-expansion.md) links the network, local-IPC/TTY and VFS explanations. Subsequent batches add Skywalk control/readiness, memory/packets, namespace/lookup, routes/datapaths, netif/FQ-CoDel and ACL mechanisms. The [packet/filter batch](first-release-expansion.md#12-packet-transformations-filtering-ipc-internals-and-logging) now explains selected reassembly/tracking, aggregation/segmentation, offload rollback, filters/reinjection and agents/traffic rules. The dispositions below are historical; full NECP/content-filter policy, transport algorithms, diagnostics/test matrices and remaining provider combinations still need expansion.
 
 [Coverage audit](../coverage-audit.md) · [Coverage and verification](../coverage.md) · [Earlier expansion record](../expansion-audit.md)
 
@@ -190,6 +190,20 @@ The audit checked chapter content and stated limits, then read selected bodies t
 **Benefit/dependencies/limits:** specialized but important packet-policy depth; depends on mbuf/IP ownership and A8. PF and [IPsec/ESP options](../../xnu/config/MASTER#L164) must be distinguished from a particular running configuration. Local C establishes kernel control/data contracts; external key-management daemons and cryptographic primitive internals require their own sources. [IPsec tests](../../xnu/tests/ipsec.m) and the [SA-count overflow regression](../../xnu/tests/net/ipsec_sav_count_overflow.c) are useful bounded routes. No claim of a complete PF/IPsec test audit is made.
 
 ## A12 — P1: complete Skywalk expansion program
+
+The following proposal is the historical whole-surface plan. Current implementation routes are:
+
+| Planned mechanism | Current explanation and limits |
+| --- | --- |
+| Architecture/controller/provider/port ownership | [Controller, provider and port lifetime](../subsystems/networking/skywalk-controller-provider-and-port-lifetime.md); selected built-in/external registration and teardown, not every provider combination. |
+| Channel ABI/readiness and ring synchronization | [ABI/readiness](../subsystems/networking/skywalk-channel-abi-and-readiness.md) and [lifecycles](../subsystems/networking/skywalk-lifecycles.md); partial-progress and defunct behavior stay with synchronization. |
+| Memory and packet ownership | [Arenas/mapping](../subsystems/networking/skywalk-memory-arenas-and-mapping.md) and [packets/buflets/pools](../subsystems/networking/skywalk-packets-buflets-and-pools.md). |
+| Namespace, flow IDs, key/table lookup | [Namespaces and flow lookup](../subsystems/networking/skywalk-namespaces-and-flow-lookup.md), linked to existing flow-install/delete lifetime. |
+| Classifier, route cache and ordinary RX/TX | [Classification, routes and delivery](../subsystems/networking/skywalk-flowswitch-classification-routes-and-datapaths.md); fragment, aggregation and segmentation algorithms remain bounded. |
+| Netif queues and scheduling | [Links/qsets and servicing](../subsystems/networking/skywalk-netif-links-queues-and-scheduling.md) plus [FQ-CoDel](../subsystems/networking/interface-packet-scheduling-and-fq-codel.md); physical device/provider internals remain external. |
+| Fragments, aggregation, tracking, offloads and policy | [Reassembly/tracking](../subsystems/networking/skywalk-fragments-reassembly-and-flow-tracking.md) and [aggregation/segmentation/offloads](../subsystems/networking/skywalk-tcp-aggregation-segmentation-and-offloads.md) now trace selected local algorithms and rollback; full NECP policy and provider-specific offload remain bounded. |
+| Netif filters, agents and events | [Filters/reinjection](../subsystems/networking/skywalk-netif-filters-and-reinjection.md) and [agents/traffic rules](../subsystems/networking/skywalk-netif-agents-and-traffic-rules.md) now explain the local mechanisms; channel-event transport remains in ABI/readiness. |
+| Diagnostics, tests and failure matrix | Named tests and selected failure paths appear in companions; no comprehensive interface/configuration/test matrix or runtime test claim. |
 
 ### Existing strengths and why the program is larger
 

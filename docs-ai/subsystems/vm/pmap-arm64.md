@@ -183,6 +183,8 @@ ASIDs instead distinguish cached translations for activated address spaces. Lega
 
 ## Reading route and limits
 
+[Bootstrap memory and lockdown](../platform/bootstrap-memory-and-lockdown.md) traces how the kernel root/aperture and initial page-table storage are established before ordinary VM allocation. [MTE tag storage](mte-tag-storage-and-page-lifecycle.md) separates physical tagging/cache-attribute operations from ownership of the frames holding the tags.
+
 Read `pmap.h` for object layout, `pmap_pt_geometry.h` and `proc_reg.h` for interpretation, then one forward walk in `pmap_vtophys()`. Follow one managed-page enter before reading the PV-based physical operations; otherwise the pointer packing obscures the purpose of the metadata. After that, table removal explains why epochs and wired-count pins both exist.
 
 | Sources inspected | Depth and limits |

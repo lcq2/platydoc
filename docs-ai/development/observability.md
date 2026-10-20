@@ -6,6 +6,8 @@ These mechanisms answer different questions. An event trace records selected tra
 
 For detailed artifact lifetimes, continue with [stackshot capture and kcdata](stackshot-and-kcdata.md), [corpses and process core files](corpses-and-process-core-dumps.md), and [ARM64 panic coordination and records](panic-coordination-and-records.md). These trace admission, storage, collection, publication, partial failure and cleanup; KDP protocol and kernel-core transport are outside this expansion.
 
+For log production and delivery, read [kernel logging and Firehose](kernel-logging-and-firehose.md): format encoding, small allocation arenas, per-CPU retry queues, chunk publication, live-stream reservations/cache, read-only mappings and msgbuf replay have distinct completion and loss rules.
+
 ## Map the question to the mechanism
 
 | Question | Mechanism | Source entry |
@@ -17,6 +19,7 @@ For detailed artifact lifetimes, continue with [stackshot capture and kcdata](st
 | Which submitted device work is associated with a thread group? | IOPerfControl client tokens and contexts | [Performance-control ownership and completion](../subsystems/drivers/reporting-and-performance-control.md#5-performance-control-registers-callbacks-and-preserves-submitter-identity) |
 | What were tasks and threads doing together? | Stackshot | [BSD entry](../../xnu/bsd/kern/stackshot.c), [collector](../../xnu/osfmk/kern/kern_stackshot.c) |
 | What objects and references exist in a stopped kernel? | LLDB macros and kernel debug data | [tools/lldbmacros](../../xnu/tools/lldbmacros/) |
+| Where did a log record go, and why is it missing from one consumer? | OSLog, Firehose handoff, live stream and msgbuf | [Producer, buffering and readout mechanisms](kernel-logging-and-firehose.md) |
 | Where did memory misuse or undefined behavior occur? | Configured sanitizer instrumentation | [san/memory](../../xnu/san/memory/) |
 | Which instrumented paths ran? | Coverage instrumentation | [san/coverage](../../xnu/san/coverage/) |
 
@@ -111,13 +114,13 @@ Sysctl exposes many subsystem counters and controls through a tree of named/numb
 
 DTrace lives under [bsd/dev/dtrace](../../xnu/bsd/dev/dtrace/), with central `dtrace_probe()`, ioctl control, and initialization in [dtrace.c](../../xnu/bsd/dev/dtrace/dtrace.c), provider code, and Darwin adaptation in [dtrace_glue.c](../../xnu/bsd/dev/dtrace/dtrace_glue.c). Its compilation is selected by `config_dtrace` in [bsd/conf/files](../../xnu/bsd/conf/files). This guide locates that framework but does not audit its bytecode interpreter or every provider.
 
-Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehose support](../../xnu/libkern/firehose/), and BSD's [message buffer/log implementation](../../xnu/bsd/kern/subr_log.c). Those are distinct paths from kdebug's numeric event records. Panic/debug entry and core-dump infrastructure are under [debug.c](../../xnu/osfmk/kern/debug.c) and [osfmk/kdp](../../xnu/osfmk/kdp/); extensible panic records are described in [extensible_paniclog.md](../../xnu/doc/debugging/extensible_paniclog.md).
+Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehose support](../../xnu/libkern/firehose/), and BSD's [message buffer/log implementation](../../xnu/bsd/kern/subr_log.c). Those are distinct paths from kdebug's numeric event records. The [logging companion](kernel-logging-and-firehose.md) follows the locally implemented producer, encoding, retry, streaming and readout paths and identifies the missing central Firehose implementation. Panic/debug entry and core-dump infrastructure are under [debug.c](../../xnu/osfmk/kern/debug.c) and [osfmk/kdp](../../xnu/osfmk/kdp/); extensible panic records are described in [extensible_paniclog.md](../../xnu/doc/debugging/extensible_paniclog.md).
 
 [san/conf/files](../../xnu/san/conf/files) shows which instrumentation components require configuration options. KASAN's common code in [kasan.c](../../xnu/san/memory/kasan.c) connects poison/unpoison operations to configured backends; classic and tag-based implementations have separate files. UBSAN and coverage have separate runtimes. The presence of these files says nothing about whether an ordinary release image contains the instrumentation.
 
 ## Sources inspected and limits
 
-The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. The companion chapters now expand selected stackshot, corpse, process-core and ARM64 panic mechanisms. DTrace, general logging and sanitizer backends remain chiefly navigation boundaries. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
+The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. The companion chapters now expand selected stackshot, corpse, process-core and ARM64 panic mechanisms. The logging companion adds local producer/encoder/allocator/queue, chunk-inline, live-stream and msgbuf mechanisms; the central Firehose manager and userspace consumers remain external. DTrace and sanitizer backends remain chiefly navigation boundaries. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

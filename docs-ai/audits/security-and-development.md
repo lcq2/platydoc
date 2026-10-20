@@ -1,6 +1,6 @@
 # Coverage audit: security, diagnostics, shared paths and orientation
 
-**Current follow-up status.** The capability proposal below now has a [task/thread capabilities](../subsystems/security/task-and-thread-capabilities.md) companion and a linked [suspension/abort](../subsystems/runtime/suspension-stop-and-abort.md) explanation. [Stackshot](../development/stackshot-and-kcdata.md), [corpses/core files](../development/corpses-and-process-core-dumps.md), and [ARM64 panic records](../development/panic-coordination-and-records.md) also have mechanism chapters. This report retains its historical starting gaps; ACL algorithms and remaining logging/instrumentation paths still offer separate expansion work. KDP and x86 are outside current scope.
+**Current follow-up status.** Task/thread capabilities, suspension/abort, stackshot, corpses/core files, ARM64 panic and VFS ACL decisions now have mechanism chapters. The [kernel logging companion](../development/kernel-logging-and-firehose.md) expands local encoding, allocation, retry, publication, streaming and text readout; its imported Firehose manager and userspace consumers remain external. Historical findings below are preserved. Remaining subjects include personas/audit sessions, trace consumers, DTrace/sanitizers, SMR-hash and policy-provider paths. KDP and x86 remain excluded.
 
 [Consolidated audit](../coverage-audit.md) · [Existing coverage record](../coverage.md) · [Inventory](inventory.json)
 

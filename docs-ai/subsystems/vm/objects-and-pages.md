@@ -4,7 +4,7 @@
 
 A map entry describes a virtual range. A `vm_object` describes the contents available at offsets within that range. A `vm_page` describes one resident page of those contents. A `pmap` describes hardware translations from virtual addresses to physical pages. These structures have different lifetimes: an object can exist without resident pages, a page can exist without a userspace mapping, and several mappings can refer to the same object or physical page.
 
-This chapter follows object allocation, resident lookup, shadow relationships and reclamation in this checkout. [Fault resolution](fault-resolution.md) covers choosing a page for a particular access; [wiring and memory entries](wiring-and-memory-entries.md) covers holding and exporting contents.
+This chapter follows object allocation, resident lookup, shadow relationships and reclamation in this checkout. [Fault resolution](fault-resolution.md) covers choosing a page for a particular access; [wiring and memory entries](wiring-and-memory-entries.md) covers holding and exporting contents. [MTE tag storage](mte-tag-storage-and-page-lifecycle.md) follows the additional backing/cell state that makes a free data page eligible for tagging, including ordinary reuse and relocation.
 
 ## The object is an offset namespace with backing policy
 

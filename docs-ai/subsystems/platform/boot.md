@@ -2,6 +2,8 @@
 
 [Platform overview](README.md) · [CPU execution](execution.md) · [CPU power lifecycle](cpu-power-lifecycle.md)
 
+For the memory-ownership path beneath this sequence, read [ARM64 bootstrap memory and lockdown](bootstrap-memory-and-lockdown.md): early physical/virtual cursors, temporary tables/stacks, VM-page creation and delayed publication of released boot storage.
+
 ## Choose the compiled entry path first
 
 `osfmk/conf/files.arm64` selects `arm64/start.s`, `arm/arm_init.c`, and `arm64/arm_vm_init.c` for `config_pmap_ppl`; `config_sptm` selects `arm64/sptm/start_sptm.s` and `arm_init_sptm.c`. Both define architecture startup symbols and converge on `machine_startup()` and then `kernel_bootstrap()`. Read one branch end to end before comparing them. [`files.arm64`](../../../xnu/osfmk/conf/files.arm64#L10), [`machine_startup()`](../../../xnu/osfmk/arm64/machine_routines.c#L515).

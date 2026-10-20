@@ -41,7 +41,7 @@ The action argument controls security-token updates and `P_SUGID` marking. Calle
 
 ## Kauth scopes and MAC hooks answer different questions
 
-[`kauth_authorize_action()`](../../../xnu/bsd/kern/kern_authorization.c#L372) calls a scope's primary callback, then registered listeners. Results are `ALLOW`, `DENY`, or `DEFER`; a denial wins over an allowance and a fully deferred decision fails because explicit allowance is required. Scopes organize operations such as process, generic, and file-operation authorization. Vnode access also has its substantial filesystem/ACL implementation; follow the [VFS chapter](../vfs/pathname-and-authorization.md).
+[`kauth_authorize_action()`](../../../xnu/bsd/kern/kern_authorization.c#L372) calls a scope's primary callback, then registered listeners. Results are `ALLOW`, `DENY`, or `DEFER`; a denial wins over an allowance and a fully deferred decision fails because explicit allowance is required. Scopes organize operations such as process, generic, and file-operation authorization. Vnode access has its own [permission and ACL evaluator](../vfs/permissions-and-acl-evaluation.md), including principal matching, incomplete group information, POSIX fallback and parent-directory decisions.
 
 The kauth listener implementation has a specific lifetime caveat: authorization deliberately avoids the scope mutex and the source assigns callback/data quiescence responsibility to listeners being removed. [`kern_authorization.c`'s synchronization commentary](../../../xnu/bsd/kern/kern_authorization.c#L78) and the authorization loop document this constraint. It is different from the MAC framework's dynamic-policy busy protocol and should not be described as if both use the same locking.
 

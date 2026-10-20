@@ -1,6 +1,6 @@
 # Coverage audit: VM and driver runtime
 
-**Current follow-up status.** Later work implements the selected copy/remap expansion in [copy-overwrite and mixed page sizes](../subsystems/vm/copy-overwrite-and-remap.md), and the [first-release record](first-release-expansion.md) links the compressor, shared-region, deferred/purgeable/phantom, loading, serialization and NVRAM companions. The dispositions below preserve the historical baseline. Remaining candidates need reconciliation against these explanations before another chapter is added.
+**Current follow-up status.** Later work implements [copy-overwrite and mixed page sizes](../subsystems/vm/copy-overwrite-and-remap.md), [MTE tag-storage lifetime](../subsystems/vm/mte-tag-storage-and-page-lifecycle.md), and [ARM64 bootstrap memory/lockdown](../subsystems/platform/bootstrap-memory-and-lockdown.md). The [first-release record](first-release-expansion.md) links the compressor, shared-region, deferred/purgeable/phantom, loading, serialization and NVRAM companions. The dispositions below preserve the historical baseline; remaining candidates must be reconciled against these explanations before adding chapters.
 
 [Complete audit](../coverage-audit.md) · [Guide index](../README.md)
 

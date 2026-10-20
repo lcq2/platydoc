@@ -237,6 +237,8 @@ With no message ready, zero-timeout receive returns immediately. Otherwise the c
 
 The userspace trap uses a continuation when blocking: `thread_block(ipc_mqueue_receive_continue)`. That continuation translates the wait result into `ith_state` and proceeds to `mach_msg_receive_continue()` and result copyout. A thread awakened for delivery does not reselect an arbitrary message; the posting side has already supplied its kmsg or its too-large indication. [`blocking/continuation`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L845), [`wake-result conversion`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L792).
 
+The [port-set companion](port-sets-and-waitq-readiness.md) expands membership installation, already-ready ports, stale preposts, wait registration, lock-order retries and teardown beneath this receive path.
+
 ## 6. Convert the selected message into the receiver's namespace
 
 Queued selection computes the user-layout size for the receiver's map, includes its requested trailer, and checks auxiliary space. With `MACH_RCV_LARGE`, an oversized message remains queued and only size/receiver-name information is recorded. Without it, selection removes the message even though the result is `MACH_RCV_TOO_LARGE`; the later error path consumes its resources. Successful selection removes the kmsg, releases/reserves capacity for another sender, and captures the port sequence number. [`queued selection`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L1090).

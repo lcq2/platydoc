@@ -28,7 +28,8 @@ GROUPS = [
     ]),
     ("Virtual memory, hardware mappings and allocators", "subsystems/vm", [
         "README", "mapping-walkthroughs", "maps-and-faults", "virtual-address-maps",
-        "objects-and-pages", "fault-resolution", "pmap-arm64",
+        "objects-and-pages", "mte-tag-storage-and-page-lifecycle",
+        "fault-resolution", "pmap-arm64",
         "pmap-translation-walkthroughs",
         "pmap-mapping-lifecycle", "pmap-tlb-and-cache", "pmap-x86",
         "wiring-and-memory-entries", "copy-overwrite-and-remap", "pagers-and-upl",
@@ -47,7 +48,8 @@ GROUPS = [
         "kqueue-and-workloops", "pthread-workqueue-lifecycle", "async-io",
     ]),
     ("Mach IPC and exception delivery", "subsystems/ipc", [
-        "README", "names-and-rights", "ports-and-rights-lifecycle", "message-path",
+        "README", "names-and-rights", "ports-and-rights-lifecycle",
+        "port-sets-and-waitq-readiness", "message-path",
         "message-send-receive", "synchronous-dependencies-and-special-replies",
         "kernel-rpc-and-exceptions", "exception-delivery",
         "policies-and-attribution", "guards-and-policy-enforcement",
@@ -72,6 +74,7 @@ GROUPS = [
     ]),
     ("VFS, filesystem objects and storage I/O", "subsystems/vfs", [
         "README", "vnodes-mounts-and-dispatch", "pathname-and-authorization",
+        "permissions-and-acl-evaluation",
         "name-cache-and-vnode-reclaim", "vnode-cache-identity-and-reuse",
         "namespace-mutations", "metadata-and-extended-attributes",
         "advisory-locks-and-leases", "filesystem-event-queues",
@@ -91,6 +94,14 @@ GROUPS = [
         "skywalk-controller-provider-and-port-lifetime",
         "skywalk-channel-abi-and-readiness",
         "skywalk-memory-arenas-and-mapping", "skywalk-packets-buflets-and-pools",
+        "skywalk-namespaces-and-flow-lookup",
+        "skywalk-flowswitch-classification-routes-and-datapaths",
+        "skywalk-fragments-reassembly-and-flow-tracking",
+        "skywalk-tcp-aggregation-segmentation-and-offloads",
+        "skywalk-netif-links-queues-and-scheduling",
+        "interface-packet-scheduling-and-fq-codel",
+        "skywalk-netif-filters-and-reinjection",
+        "skywalk-netif-agents-and-traffic-rules",
     ]),
     ("IOKit, drivers and kernel libraries", "subsystems/drivers", [
         "README", "bootstrap-and-bsd-integration", "libkern-and-kext-runtime",
@@ -118,7 +129,8 @@ GROUPS = [
         "exclaves-resources-and-memory", "exclaves-services",
     ]),
     ("Boot, exception levels, CPU lifecycle and platform services", "subsystems/platform", [
-        "README", "boot", "execution", "arm64-exception-entry",
+        "README", "boot", "bootstrap-memory-and-lockdown",
+        "execution", "arm64-exception-entry",
         "arm64-exception-return", "arm64-assembly-walkthroughs", "arm64-user-memory-copy",
         "arm64-context-switching", "exception-levels-and-monitors",
         "hardware-mappings", "platform-services", "cpu-power-lifecycle",
@@ -129,7 +141,8 @@ GROUPS = [
         "smr-and-publication", "completion-and-failure",
     ]),
     ("Build, tests and observation", "development", [
-        "build-and-tests", "observability", "stackshot-and-kcdata",
+        "build-and-tests", "observability", "kernel-logging-and-firehose",
+        "stackshot-and-kcdata",
         "corpses-and-process-core-dumps", "panic-coordination-and-records",
     ]),
     ("Coverage audits and expansion plans", "audits", [

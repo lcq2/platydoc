@@ -314,9 +314,125 @@ The lookup design also depends on the port/port-set zones' sequestering and clea
 
 `ipc_port_lock` locks `ip_waitq`; port-set locking uses `ips_wqset`. Entry mutations ordinarily take the space lock before the port lock. Operations involving several ports or a destination chain have specialized ordering and restart rules; do not invent a general arbitrary two-port locking order from the single-port path. [`ipc_port_lock`](../../../xnu/osfmk/ipc/ipc_port.c#L163), [`port/set translation`](../../../xnu/osfmk/ipc/ipc_object.c), [`destination-chain locking`](../../../xnu/osfmk/ipc/ipc_port.c#L1321).
 
+## 5. Growing a live namespace
+
+An IPC table is not a process-wide array that can be resized by stopping all lookups. Writers serialize with the space lock, SMR readers can observe a published table concurrently, and allocating a larger table may block. `ipc_entry_grow_table` therefore builds a private replacement while the old table remains live, revisits entries changed during the copy, and publishes only after a final locked consistency check. The old table remains allocated until the IPC SMR domain permits retirement. [Growth protocol](../../../xnu/osfmk/ipc/ipc_entry.c#L624-L844), [SMR retirement](../../../xnu/osfmk/ipc/ipc_space.c#L122-L142).
+
+### Capacity, free slots and reverse hashing are different constraints
+
+`ipc_entries_hold(space, entries_needed)` checks capacity while the active space is write-locked; it does not allocate or remove entries. It first assumes all requested entries may need reverse hashing and rejects a projected hash population above `table_count * 7 / 8`. Then it follows the free list to ensure enough slots exist. Thus `KERN_NO_SPACE` from this helper can mean excessive projected hash occupancy even with free names remaining. Keeping the space locked between hold and claim makes that availability usable; there is no separately reference-counted reservation object. [Capacity predicate](../../../xnu/osfmk/ipc/ipc_entry.c#L185-L237).
+
+`ipc_entry_claim` removes the free-list head, decrements `is_table_free`, advances the slot generation, clears the request field and installs the supplied object pointer. The object must be null, locked or not yet initialized. The caller must finish initialization and mark the claimed entry modified before releasing the space lock, so a concurrent grower cannot overlook it. Deallocation performs the inverse free-list insertion, preserves generation/rollover state, clears the object and calls `ipc_entry_modified`. [Claim contract and body](../../../xnu/osfmk/ipc/ipc_entry.c#L240-L302), [deallocation](../../../xnu/osfmk/ipc/ipc_entry.c#L499-L536).
+
+The reverse hash shares storage with the name table but has a different indexing meaning. `table[h].ie_index` names the slot holding the actual object/right; the object pointer is read from `table[ie_index]`. The bucket's own name entry can be unrelated. Hashing uses `os_hash_kernel_pointer(object) % table_count`; `ie_dist` records bounded probe displacement. Insertions use Robin Hood displacement and deletions close holes in the probe cluster. Only **pure send** entries participate, not receive-plus-send, send-once, port-set or dead-name entries. `is_table_hashed` tracks that population. [Reverse-hash representation](../../../xnu/osfmk/ipc/ipc_hash.c#L147-L185), [lookup](../../../xnu/osfmk/ipc/ipc_hash.c#L198-L258), [insert/delete](../../../xnu/osfmk/ipc/ipc_hash.c#L271-L415).
+
+For an illustrative 32-slot table, index zero is reserved, so at most 31 ordinary name entries are available. The hold check allows a projected hash count of 28 (`32 * 7 / 8`) and rejects 29. This does not assert that every real allocation requests that exact capacity: typed-array allocation and the growth-size helper determine actual table capacity, and receive-heavy namespaces need not have one hash entry per used slot. `IPC_ENTRY_TABLE_MIN` is 32 and `IPC_ENTRY_TABLE_PERIOD` is 16; these feed the typed-array sizing helpers rather than describing a linked-list bucket count. [Typed table declaration](../../../xnu/osfmk/ipc/ipc_entry.h#L135-L137), [initial allocation](../../../xnu/osfmk/ipc/ipc_space.c#L275-L306), [growth sizing](../../../xnu/osfmk/ipc/ipc_entry.c#L648-L671).
+
+### Elect one grower, then release the lock
+
+`is_grower` records the current growing thread. A second caller enters `is_write_sleep`, which sleeps on the space address with the first grower as inheritor; the ticket-lock sleep releases and later reacquires the space lock. On waking, `ipc_entry_grow_table` returns `KERN_SUCCESS` to its caller, which must recheck whether the space is alive and whether enough entries are now available. This is not a guarantee that the other allocation succeeded or that its capacity suits the waiting caller. [Concurrent-grower branch](../../../xnu/osfmk/ipc/ipc_entry.c#L640-L647), [sleep helper](../../../xnu/osfmk/ipc/ipc_space.c#L174-L180), [allocation retry loop](../../../xnu/osfmk/ipc/ipc_entry.c#L318-L344).
+
+With no existing grower, the routine computes a size from either `ITS_SIZE_NONE` (ordinary growth) or an explicit target count (named allocation). It caps the byte size at `CONFIG_IPC_TABLE_ENTRIES_SIZE_MAX`; a target beyond the supported count or inability to enlarge at the cap returns `KERN_NO_SPACE`. The configuration lists 3 MiB and 7 MiB table-size ceilings for different memory classes; use `ipc_entry_table_size_to_count` for the selected build rather than treating those byte limits as port counts. [Configured caps](../../../xnu/config/MASTER#L291-L292), [maximum conversion](../../../xnu/osfmk/ipc/ipc_entry.c#L84-L95), [size decisions](../../../xnu/osfmk/ipc/ipc_entry.c#L648-L671).
+
+Before unlocking, the grower installs itself and initializes the modification interval to empty: `is_low_mod = old_count`, `is_high_mod = 0`. It allocates a zeroed private table with `Z_WAITOK | Z_ZERO` and initializes the added slots' randomized free list. If allocation returns null, it reacquires the lock, clears `is_grower`, unlocks, wakes competing growers, and returns `KERN_RESOURCE_SHORTAGE`. It does not replace or retire the original table on that failure. [Grower setup and allocation](../../../xnu/osfmk/ipc/ipc_entry.c#L674-L703), [completion/wakeup helper](../../../xnu/osfmk/ipc/ipc_entry.c#L589-L603).
+
+```mermaid
+sequenceDiagram
+    participant G as Growing thread
+    participant S as IPC space and old table
+    participant W as Concurrent writer
+    participant R as SMR reader
+    G->>S: Lock, record grower, reset modification bounds
+    G->>S: Unlock and keep old table published
+    G->>G: Allocate replacement and copy entries
+    W->>S: Lock, change entry, extend bounds, unlock
+    R->>S: Read currently published table in SMR
+    G->>S: Lock and inspect active state and bounds
+    alt entries changed
+        G->>S: Capture bounds, reset them, unlock
+        G->>G: Rescan changed interval and repair hash
+    else stable and active
+        G->>S: Publish replacement and clear grower
+        G->>S: Unlock and wake waiting growers
+        G->>G: Retire old table through SMR
+    end
+```
+
+The rescan branch repeats until the locked check finds no new modifications. The diagram omits allocation failure and termination, covered below; it does not impose a fixed retry bound on the kernel algorithm.
+
+### Copy only a provisional snapshot and rebuild its hash
+
+The first scan covers slots 1 through `old_count - 1`. For each, the grower reads `ie_object`, `ie_bits` and `ie_request` (which can instead be `ie_next`) into locals and places a compiler barrier after the reads. Those fields can be mutually inconsistent because the old table is being changed without the grower's lock. The copy is therefore provisional: it must not be used as a published right lookup result or dereferenced as a validated live object relationship. The hash helpers use the sampled object as an identity/hash value, not as authority to access the object body. [Snapshot and caution](../../../xnu/osfmk/ipc/ipc_entry.c#L706-L727), [pointer hash](../../../xnu/osfmk/ipc/ipc_hash.c#L182-L183).
+
+If the copied object's identity or rights type changed relative to the private table, the grower deletes any old private pure-send hash entry, copies the new normal fields, then inserts a new pure-send hash entry when required. If identity/type did not change, it still refreshes bits and request/free-list state. It never copies old `ie_index`/`ie_dist` bucket placement verbatim: the modulus changed with table capacity, and hash-only modifications do not contribute to the entry rescan interval. [Copy and private rehash](../../../xnu/osfmk/ipc/ipc_entry.c#L724-L745).
+
+`ipc_entry_modified` extends the smallest/largest modified indexes under the space's writer serialization. After each scan the grower locks the space. If the bounds are nonempty, it captures them, resets the shared interval, unlocks and scans that inclusive range again. Modifications during the next pass form another interval. The interval may include unchanged slots between two changed indexes; this deliberately avoids storing one dirty bit per entry. [Modification recorder](../../../xnu/osfmk/ipc/ipc_entry.c#L549-L580), [rescan decision](../../../xnu/osfmk/ipc/ipc_entry.c#L791-L817).
+
+For example, while G copies the old table, W removes index 4 and changes the urefs at index 19. W extends the interval to `[4, 19]`. G's first private copy can contain old, new or mixed fields for those entries; it cannot publish yet. G captures that range under lock and recopies it. If W changes index 7 during the second pass, another pass covers the new recorded interval. Only a final check holding the space lock with no recorded changes permits publication. This is a worked schedule of the code, not an assertion that growth has bounded latency under arbitrarily sustained mutation.
+
+### Rebase the free list and publish one replacement
+
+Each pass recopies the old slot-zero free-list head separately, then follows the provisional free chain to find its tail. Traversal is bounded by the old entry count, checks that entries still look free, and stops on zero or out-of-range indexes. Concurrent list changes can cause it to stop early; the subsequent modification check forces another pass. Named allocation also marks the previous free-list entry modified when it removes a slot from the middle; slot zero is special because the grower recopies it explicitly. [Free-list reconstruction](../../../xnu/osfmk/ipc/ipc_entry.c#L746-L762), [named allocation splice](../../../xnu/osfmk/ipc/ipc_entry.c#L430-L467).
+
+At the final stable locked check, the grower joins the added free slots onto that tail, increments `is_table_free` by the capacity difference and publishes `ntable`. It does not add references for every copied port or replay right-creation operations: the replacement represents the same namespace entries. Old storage is being retired, not interpreted as a second set of rights to destroy. [Exact publication and retirement](../../../xnu/osfmk/ipc/ipc_entry.c#L820-L838):
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_entry.c#L820-L838 -->
+```c
+	/* link new free entries onto the rest of the freelist */
+	assert(nbase[free_index].ie_next == 0 &&
+	    nbase[free_index].ie_object == IPC_OBJECT_NULL);
+	nbase[free_index].ie_next = ocount;
+
+	assert(smr_serialized_load(&space->is_table) == otable);
+
+	space->is_table_free += ncount - ocount;
+	smr_serialized_store(&space->is_table, ntable);
+
+	ipc_space_done_growing_and_unlock(space);
+
+	/*
+	 *	Now we need to free the old table.
+	 */
+	ipc_space_retire_table(otable);
+	is_write_lock(space);
+
+	return KERN_SUCCESS;
+```
+
+After publication, `ipc_space_retire_table` reuses reserved entry zero for `ie_self` and `ie_smr_node`, then queues `ipc_space_free_table` in the IPC SMR domain. That callback frees only the old table allocation. Readers that entered before publication can still be holding the previous table pointer, which is why immediate freeing would be unsafe. The [lookup protocol](#4-lookup-stabilizes-a-relationship-it-does-not-always-acquire-ownership) additionally reloads the published table after locking the candidate object; publication and an SMR grace period solve different parts of the problem. [Retirement implementation](../../../xnu/osfmk/ipc/ipc_space.c#L122-L142).
+
+## 6. Exhaustion, termination and the caller's lock state
+
+| Routine/result | Lock and retry contract |
+| --- | --- |
+| `ipc_entries_hold`: success or `KERN_NO_SPACE` | Space remains locked and active. No allocation occurred; an object may also be locked. |
+| `ipc_entry_claim`: success | Space remains locked; caller finishes the entry and records modification before unlocking. |
+| `ipc_entry_grow_table`: `KERN_SUCCESS` | Space is locked again, but callers must recheck liveness/capacity and redo any lookup invalidated by the unlock. This can mean this grower succeeded, another grower finished, the target already fitted, or the space died. |
+| `ipc_entry_grow_table`: `KERN_RESOURCE_SHORTAGE` / `KERN_NO_SPACE` | Space is unlocked. Do not unconditionally unlock it again on the caller's error path. |
+| `ipc_entry_alloc`: success / failure | Starts unlocked; returns a claimed entry with space locked on success, otherwise leaves it unlocked. |
+| `ipc_entry_alloc_name` | Can return an existing occupied slot with matching generation, not necessarily a newly claimed right. An out-of-range target causes growth and restart; generation collision and invalid name encoding have separate errors. |
+
+Sources: [hold and claim contracts](../../../xnu/osfmk/ipc/ipc_entry.c#L185-L254), [grow result contract](../../../xnu/osfmk/ipc/ipc_entry.c#L607-L621), [allocation loop](../../../xnu/osfmk/ipc/ipc_entry.c#L318-L344), [named allocation](../../../xnu/osfmk/ipc/ipc_entry.c#L364-L486).
+
+A concrete caller is `ipc_object_copyout`: it checks liveness and holds an entry before locking the target port. If hold fails, it grows and restarts before rechecking the port state, label policy and reverse lookup. It does not carry an entry pointer or object lock across growth. Header copyout can hold capacity for both reply and voucher entries; a dead space or growth error becomes `MACH_RCV_HEADER_ERROR | MACH_MSG_IPC_SPACE`. These receive errors occur after earlier message phases have already made progress; they are not a rollback of the original send. [Object copyout loop](../../../xnu/osfmk/ipc/ipc_object.c#L875-L910), [header capacity and errors](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3287-L3327), [phase-specific ownership](message-send-receive.md#7-errors-tell-you-which-resources-moved).
+
+### Termination wins publication, then destroys rights
+
+`ipc_space_terminate` takes the space lock, saves its table and clears the published `is_table` pointer. That marks the namespace inactive immediately. If there is a grower, termination sleeps until it completes. The grower sees the inactive space at its locked final check, clears its grower state, discards the private replacement and returns success with the space relocked; the normal allocation caller then detects death. The old published table remains alive for the copying grower until that handoff finishes. [Termination handshake](../../../xnu/osfmk/ipc/ipc_space.c#L400-L425), [grower's dead-space branch](../../../xnu/osfmk/ipc/ipc_entry.c#L780-L789).
+
+With no writer/grower still mutating the inactive namespace, termination processes receive rights first, then other nonempty entries, reducing notifications aimed at receive rights that are themselves about to disappear. It retires the old table through SMR, zeroes the free count and releases the space's active reference; the caller's space reference remains. This is distinct from growth retirement, which frees table storage without terminating its represented rights. [Two-pass cleanup](../../../xnu/osfmk/ipc/ipc_space.c#L428-L477), [rights teardown](ports-and-rights-lifecycle.md#9-space-teardown-and-concurrency-boundaries).
+
+### Resource limits are deferred policy as well as immediate errors
+
+Reaching the configured table ceiling sets the at-maximum notification flag and `AST_PROC_RESOURCE`, then returns `KERN_NO_SPACE`. Separately, under `CONFIG_PROC_RESOURCE_LIMITS`, successful capacity checks compare `table_count - is_table_free` with configured soft/hard thresholds and arm the same AST path. This is a used-entry measure, not the number of distinct `ipc_port` objects or send urefs; it also includes reserved slot zero because only normal free entries are subtracted. The soft/hard precheck uses `>` and an `if/else if`; the later AST rechecks current usage with `>=` and suppresses duplicate reports. They are not synchronous allocation caps implemented by `ipc_entries_hold`. [Threshold detection](../../../xnu/osfmk/ipc/ipc_space.c#L519-L533), [report selection](../../../xnu/osfmk/ipc/ipc_space.c#L550-L617), [maximum AST](../../../xnu/osfmk/ipc/ipc_space.c#L625-L631).
+
+`task_port_space_ast` queries the space and calls `SENDING_NOTIFICATION__THIS_PROCESS_HAS_TOO_MANY_MACH_PORTS` when reporting is due. For the system table limit, both returned threshold values are zero; the handler constructs `EXC_RESOURCE` / `RESOURCE_TYPE_PORTS` / `FLAVOR_PORT_SPACE_FULL` and invokes fatal-exception exit logic. PID 0 and PID 1 are exempt in this handler. A configured hard-limit report instead creates an `IKOT_TASK_FATAL` token port for the notification; its no-senders callback tries to terminate the identified task, while token-port allocation failure takes an immediate self-kill path. Soft-limit reports carry the soft flag without that fatal port. [AST dispatch](../../../xnu/osfmk/kern/task.c#L8600-L8609), [fatal token lifecycle](../../../xnu/osfmk/kern/task.c#L8612-L8647), [report/exit handling](../../../xnu/osfmk/kern/task.c#L8650-L8708).
+
+The local code therefore supports both an immediate failed operation and later process-level resource handling. The external resource-notification consumer's collection/timing behavior is not implemented here. This chapter does not claim that a configured hard-limit violation kills at the exact allocation that crossed the threshold.
+
 ## Sources inspected and boundaries
 
-This page follows current structure definitions, generation allocation/reuse, reverse lookup, send accounting, copyout, and lookup lifetime in `ipc_entry`, `ipc_space`, `ipc_object`, `ipc_port`, `ipc_pset`, and `ipc_right`. It does not reproduce every policy-specific label or every transport optimization. Continue with [port and right lifecycle](ports-and-rights-lifecycle.md) for the API paths, receive movement, destruction, and notifications, then [message transport](message-path.md) for message construction and error cleanup.
+This page follows current structure definitions, generation allocation/reuse, reverse lookup, send accounting, copyout, lookup lifetime, live-table replacement, reverse hashing, capacity errors and termination in `ipc_entry`, `ipc_space`, `ipc_object`, `ipc_port`, `ipc_pset`, and `ipc_right`. It does not reproduce every policy-specific label or every transport optimization. The growth discussion is a source trace, not a stress-test result or a proof of progress under unlimited concurrent mutation. [Port sets and persistent readiness](port-sets-and-waitq-readiness.md) explains the independent membership/link lifetime beneath receive multiplexing. Continue with [port and right lifecycle](ports-and-rights-lifecycle.md) for the API paths, receive movement, destruction, and notifications, then [message transport](message-path.md) for message construction and error cleanup.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

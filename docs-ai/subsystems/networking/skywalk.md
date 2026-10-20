@@ -6,6 +6,8 @@ For creation and teardown, allocation/free rings, detached RX packets, flow inst
 
 For the control interface, read [controllers, providers and port lifetime](skywalk-controller-provider-and-port-lifetime.md), then [channel ABI, readiness and event delivery](skywalk-channel-abi-and-readiness.md). They explain how a client is admitted, when a descriptor is published, and why a wakeup and a packet-ownership transfer are separate operations.
 
+For packet transformations, continue with [fragment reassembly and passive flow tracking](skywalk-fragments-reassembly-and-flow-tracking.md) and [TCP aggregation, segmentation and offload handoffs](skywalk-tcp-aggregation-segmentation-and-offloads.md). [Netif filtering and reinjection](skywalk-netif-filters-and-reinjection.md) follows retained original packets through read-only filter views; [agents and traffic rules](skywalk-netif-agents-and-traffic-rules.md) explains local rule publication and selection.
+
 ## Objects and the userspace boundary
 
 For the storage below these objects, read [packets, buflets and pools](skywalk-packets-buflets-and-pools.md) and [memory arenas and task mappings](skywalk-memory-arenas-and-mapping.md). They explain separate user/kernel metadata, allocator backing, validation, mapping permissions and revocation.
@@ -66,7 +68,11 @@ The normal non-GSO branch enters [`dp_tx_pktq()`](../../../xnu/bsd/skywalk/nexus
 
 [`dp_flow_tx_process()`](../../../xnu/bsd/skywalk/nexus/flowswitch/fsw_dp.c#L3350) checks route viability, performs flow tracking, sets flow/policy/traffic-class metadata, finalizes packets, and enqueues into an interface class queue or queue set. `netif_transmit()` then selects starter-thread or doorbell servicing. The exact queue implementation and pacing/GSO branches are separate reading routes; sync completion does not certify physical transmission.
 
+Continue with [namespaces and flow lookup](skywalk-namespaces-and-flow-lookup.md) for reservation/key ownership, and [classification, routes and datapaths](skywalk-flowswitch-classification-routes-and-datapaths.md) for packet parsing, route invalidation and RX/TX decisions.
+
 ## Netif and receive-side integration
+
+The [netif queue companion](skywalk-netif-links-queues-and-scheduling.md) follows logical links, qsets, provider initialization, native/compat/host transfer, polling and completion. The shared [interface scheduler chapter](interface-packet-scheduling-and-fq-codel.md) explains AQM admission, FQ-CoDel, pacing, ECN and flow-control feedback.
 
 [`nx_netif_na_txsync()`](../../../xnu/bsd/skywalk/nexus/netif/nx_netif.c#L1755) checks interface attachment/flow control, performs provider sync/reclaim where appropriate, and arranges a doorbell or interface start. [`nx_sync_tx()`](../../../xnu/bsd/skywalk/nexus/nexus_var.h#L606) invokes the external provider's `nxpi_sync_tx`; `nx_tx_doorbell()` similarly delegates. Hardware queue management beyond these callbacks requires the actual provider/driver. Compatibility netif code in [`nx_netif_compat.c`](../../../xnu/bsd/skywalk/nexus/netif/nx_netif_compat.c) and the packet's optional mbuf backing show that mbuf and Skywalk representations coexist.
 
