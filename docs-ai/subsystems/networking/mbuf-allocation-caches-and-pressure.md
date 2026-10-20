@@ -87,9 +87,9 @@ At the rudimentary layer, [`mbuf_slab_alloc()`](../../../xnu/bsd/kern/uipc_mbuf_
 
 [`mbuf_cslab_alloc()`](../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L2021) first consumes already-constructed composites. To construct more, it obtains plain mbufs, the chosen payload-cluster class and `ext_ref` objects from their respective caches. The final constructed count is bounded by the smallest available component count; leftovers are returned. Allocation flags include composite-origin information and, for a sleep-capable request, `MCR_FAILOK` on component allocation so it need not wait indefinitely for one component while reusable composites may exist elsewhere.
 
-[`bsd/kern/uipc_mbuf_mcache.c:2083–2105`](../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L2083-L2105):
+[`bsd/kern/uipc_mbuf_mcache.c:2083–2106`](../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L2083-L2106):
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L2083-L2105 -->
+<!-- source-excerpt: ../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L2083-L2106 -->
 ```c
 	if (class == MC_MBUF_CL) {
 		cl_class = MC_CL;
@@ -114,6 +114,7 @@ At the rudimentary layer, [`mbuf_slab_alloc()`](../../../xnu/bsd/kern/uipc_mbuf_
 	/*
 	 * By this time "needed" is MIN(mbuf, cluster, ref).  Any left
 	 * overs will get freed accordingly before we return to caller.
+	 */
 ```
 
 The resulting composite keeps cluster/reference association through cache reuse. A composite-cache free usually preserves this construction. A purge can dismantle it, reset external-reference state and return components to rudimentary storage. See [`cslab_free()`](../../../xnu/bsd/kern/uipc_mbuf_mcache.c#L1879-L1970). Thus “free packet,” “cache composite,” “return cluster to slab” and “return pages to VM” are separate events.

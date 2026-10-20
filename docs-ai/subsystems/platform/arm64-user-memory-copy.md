@@ -83,7 +83,7 @@ The zero-length shortcut precedes validation. Nonzero copies use [`copy_ensure_a
 
 ## 3. PAN and tagged access surround the copy, including its error return
 
-The privileged path temporarily clears PAN, performs the assembly operation, then restores PAN. The wrapper receives the assembly operation's error code before restoring access state, so an ordinary recovered fault still passes through the disabling step. [`access helpers and WRAP_COPYIO_PAN`](../../../xnu/osfmk/arm64/copyio.c#L120-L169):
+When `__ARM_PAN_AVAILABLE__` is enabled, the privileged path asserts that PAN is initially set, clears it for the assembly operation, then sets it again. It does not save and restore an arbitrary prior PAN value; the helpers have no PAN instruction in builds without that configuration. The wrapper receives the assembly operation's error code before disabling user access, so an ordinary recovered fault still passes through that step. [`access helpers and WRAP_COPYIO_PAN`](../../../xnu/osfmk/arm64/copyio.c#L120-L169):
 
 <!-- source-excerpt: ../../../xnu/osfmk/arm64/copyio.c#L162-L169 -->
 ```c
@@ -97,9 +97,11 @@ The privileged path temporarily clears PAN, performs the assembly operation, the
 	})
 ```
 
-Under `HAS_MTE`, [`WRAP_COPYIO`](../../../xnu/osfmk/arm64/copyio.c#L186-L208) selects a privileged operation or its `_unprivileged...` counterpart. The latter uses unprivileged memory instructions whose treatment of user access/tag state differs from an ordinary EL1 load/store. If the privileged operation returns `EAGAIN` after the exception handler enables MTE soft mode, the wrapper retries using the unprivileged operation. This is a specific tag-policy transition, not the general rule for every translation fault.
+Under `HAS_MTE`, [`WRAP_COPYIO`](../../../xnu/osfmk/arm64/copyio.c#L186-L208) selects a privileged operation or its `_unprivileged...` counterpart. The latter uses unprivileged memory instructions whose treatment of user access/tag state differs from an ordinary EL1 load/store. If the privileged operation returns `EAGAIN`, the wrapper calls the unprivileged operation with the original copy arguments. The macro comment says that the handler “enabled MTE soft mode”; the handler body actually tests whether the owning task **already has** soft mode, disables user tag checking and selects `EAGAIN`. This retry can repeat an already partially completed copy. It is a specific tag-policy transition, not the general rule for every translation fault. [`soft-mode decision`](../../../xnu/osfmk/arm64/sleh.c#L2432-L2446).
 
 `userspace_access_is_tagged()` considers task settings and a thread override; `unprivileged_user_access_disable()` clears the thread's `in_unprivileged_access` state. Inspect these guards when describing a particular build. The presence of the MTE branch in source does not establish that it executes on all ARM64 machines. [`selection and state`](../../../xnu/osfmk/arm64/copyio.c#L105-L159), [`tag-fault recovery`](../../../xnu/osfmk/arm64/sleh.c#L2280-L2455).
+
+A tag-check fault takes `handle_kernel_tag_check_fault` before the ordinary VM-fault branch. A recoverable user-address access can arrange a deferred fatal exception, a soft-mode exception or map-associated asynchronous reporting, then return through the copy recovery epilogue. An `EFAULT` return therefore need not be the only consequence. Kernel-address tag faults require explicit read/write recovery permissions in the table entry; otherwise the handler panics. These decisions are separate from faulting in a missing page. [`tag dispatch`](../../../xnu/osfmk/arm64/sleh.c#L2571-L2586), [`tag-check handling`](../../../xnu/osfmk/arm64/sleh.c#L2401-L2501).
 
 ## 4. The assembly exports both a copy routine and its recovery contract
 
@@ -152,7 +154,7 @@ copyio_error:
 For eligible VM faults:
 
 1. A nontranslation fault first tries `arm_fast_fault`, which can resolve reference/modify or permission state without the full VM fault path.
-2. If necessary and the interrupted context permits VM fault handling, `vm_fault` resolves the address. The code avoids unsafe VM locking when interrupts were disabled, apart from stated early-boot/hibernation exceptions.
+2. If necessary and the interrupted context permits VM fault handling, `vm_fault` attempts to resolve the address, unless `arm_fast_fault` already returned `KERN_PROTECTION_FAILURE`. The code avoids unsafe VM locking when interrupts were disabled, apart from stated early-boot/hibernation exceptions.
 3. Around `vm_fault`, it temporarily marks `thread->recover` and restores its previous value afterward. Recoverable copy faults request `THREAD_UNINT` so VM does not abort early in a way this copy path cannot restart.
 4. Successful resolution returns from the handler without changing the saved PC. Exception return retries the interrupted memory instruction.
 5. If resolution fails and recovery is permitted, guard-object reporting can occur, then the handler selects the registered error epilogue. A kernel fault without a valid recovery path can panic instead.

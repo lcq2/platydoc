@@ -8,7 +8,11 @@ The [Platydoc project layout](../README.md#project-layout) separates the handboo
 
 Build the local HTML book with `python3 make_docs.py` from the Platydoc project root (the parent of `xnu/`), then open `docs-ai-html/index.html`. The [build guide](development/building-html.md) covers offline search, the alphabetical index, SVG diagrams, highlighted source previews and regeneration after Markdown or source changes.
 
-The latest expansion explains the [AST mechanism](subsystems/runtime/ast-mechanism.md) and [every AST flavor](subsystems/runtime/ast-flavors.md), then maps the [system-call and Mach interfaces](interfaces/README.md): BSD syscall numbers and handlers, Mach trap slots, architecture-specific selectors, and the message interfaces declared in MIG files. Earlier expansions cover file caches and signatures, pmap, DMA, exception assembly, thread switching, scheduler policy, hibernation/resume and IOKit internals.
+The [first-release expansion](audits/first-release-expansion.md) adds detailed routes through networking below TCP, Skywalk memory and packets, synchronous Mach IPC, compressor/shared-region/reclamation internals, diagnostics, process-local IPC and TTY, VFS metadata, ARM64 user-memory access, and kernel loading/serialization/NVRAM. This pass focuses on ARM64 and common code; x86 and KDP are outside its scope.
+
+Its [audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up) adds Skywalk controller/provider and readiness mechanisms, VM copy-overwrite/remap, clocks/commpage, Recount, ledger settlement, bank charging, task/thread capabilities and suspension. Descriptor reservation, publication, replacement and close are expanded in the existing [descriptor chapter](subsystems/processes/descriptors-ipc.md).
+
+Earlier expansions explain the [AST mechanism](subsystems/runtime/ast-mechanism.md) and [every AST flavor](subsystems/runtime/ast-flavors.md), map the [system-call and Mach interfaces](interfaces/README.md), and cover file caches/signatures, pmap, DMA, exception assembly, thread switching, scheduler policy, hibernation/resume and IOKit internals.
 
 ## Start here
 
@@ -44,6 +48,7 @@ Each subsystem index links to focused implementation guides, names the principal
 
 - [Build, configuration, and tests](development/build-and-tests.md) explains how files and interfaces are selected or generated, and which test environments exist.
 - [Tracing, accounting, debugging, and diagnostics](development/observability.md) connects kdebug, kperf, Recount, stackshot, kcdata, LLDB, and sanitizers to the objects they inspect.
+- [Stackshot and kcdata](development/stackshot-and-kcdata.md), [corpses and process core dumps](development/corpses-and-process-core-dumps.md), and [ARM64 panic records](development/panic-coordination-and-records.md) explain diagnostic artifact creation, ownership and publication.
 - [Vocabulary and object index](glossary.md) gives short definitions of the terms used throughout the code.
 - [Source-reference index](source-index.md) maps each cited source file back to the guides that use it.
 - [Coverage and verification](coverage.md) records the scope and how the documentation was checked.

@@ -1,5 +1,7 @@
 # Coverage audit: security, diagnostics, shared paths and orientation
 
+**Current follow-up status.** The capability proposal below now has a [task/thread capabilities](../subsystems/security/task-and-thread-capabilities.md) companion and a linked [suspension/abort](../subsystems/runtime/suspension-stop-and-abort.md) explanation. [Stackshot](../development/stackshot-and-kcdata.md), [corpses/core files](../development/corpses-and-process-core-dumps.md), and [ARM64 panic records](../development/panic-coordination-and-records.md) also have mechanism chapters. This report retains its historical starting gaps; ACL algorithms and remaining logging/instrumentation paths still offer separate expansion work. KDP and x86 are outside current scope.
+
 [Consolidated audit](../coverage-audit.md) · [Existing coverage record](../coverage.md) · [Inventory](inventory.json)
 
 This is an audit of the existing explanations, with selected source-body checks to establish that a proposed expansion has useful local implementation to explain. It is not a new audit of every kernel branch. The starting scope is 29 explanatory pages: 17 security, five cross-cutting, two development, and five orientation pages. Historical coverage records and generated indexes are assessed in the consolidated audit.

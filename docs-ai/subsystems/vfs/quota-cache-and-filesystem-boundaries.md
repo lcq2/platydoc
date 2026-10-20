@@ -6,7 +6,7 @@ The generic quota implementation caches per-identity records and reads/writes qu
 
 ## Control dispatch and the stored objects
 
-`quotactl` resolves the target mount, handles operation-specific user data and permission/MAC checks, and calls `VFS_QUOTACTL`. The filesystem's registered operation is the boundary for enable/disable, retrieval and accounting policy. [Syscall dispatch](../../../xnu/bsd/vfs/vfs_syscalls.c#L3609-L3709).
+`quotactl` resolves the target mount, handles operation-specific user data and the configured MAC check, and calls `VFS_QUOTACTL`. The filesystem's registered operation is the boundary for enable/disable, retrieval, additional permission checks and accounting policy. [Syscall dispatch](../../../xnu/bsd/vfs/vfs_syscalls.c#L3609-L3709).
 
 A `quotafile` holds the backing vnode, stored credentials, quota-file lock, opening/closing/reference state, table dimensions and grace intervals. A `dquot` holds identity/type, reference count, flags, quota record, on-disk index and links into the hash and reusable/dirty lists. `dqblk` carries current bytes/inodes, hard/soft limits and grace deadlines. The hash key includes quota-file vnode plus ID, so user 501 on two mounts does not share one record. [Definitions](../../../xnu/bsd/sys/quota.h#L260-L319), [hash and lists](../../../xnu/bsd/vfs/vfs_quota.c#L99-L126).
 

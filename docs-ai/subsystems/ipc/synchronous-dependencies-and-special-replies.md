@@ -24,10 +24,12 @@ The receive-side helper checks that the supplied receive port is this thread's `
 
 `ipc_port_link_special_reply_port()` prepares the destination's send turnstile before acquiring the special reply port lock. It then requires a still-special port in `PORT_SYNC_LINK_ANY` without an existing destination. Successful publication takes an independent destination reference; rejected publication completes the unused prepared turnstile association. These are two lifetimes, not one reference count. [Complete operation](../../../xnu/osfmk/ipc/ipc_port.c#L1867-L1913).
 
-[Source: `osfmk/ipc/ipc_port.c`, lines 1890–1902](../../../xnu/osfmk/ipc/ipc_port.c#L1890-L1902).
+[Source: `osfmk/ipc/ipc_port.c`, lines 1888–1899](../../../xnu/osfmk/ipc/ipc_port.c#L1888-L1899).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.c#L1890-L1902 -->
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.c#L1888-L1899 -->
 ```c
+	if (!special_reply ||
+	    special_reply_port->ip_sync_link_state != PORT_SYNC_LINK_ANY ||
 	    special_reply_port->ip_sync_inheritor_port != IPC_PORT_NULL) {
 		drop_turnstile_ref = TRUE;
 	} else {
@@ -38,9 +40,6 @@ The receive-side helper checks that the supplied receive port is this thread's `
 	}
 
 	ip_mq_unlock(special_reply_port);
-
-	if (special_reply) {
-		/*
 ```
 
 ```mermaid

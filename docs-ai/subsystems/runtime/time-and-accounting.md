@@ -4,6 +4,15 @@
 
 For callback ownership and shutdown, continue with [timers and thread-call lifetime](timer-and-thread-call-lifetime.md), including the different ordinary-call and `ONCE` cancel-wait branches.
 
+## Reading the time and accounting paths
+
+1. [ARM64 clocks and time domains](clocks-and-time-domains.md): hardware/absolute/continuous ticks, calendar scaling, sleep adjustment, commpage publication and the local userspace read paths.
+2. [Recount and resource attribution](recount-and-resource-attribution.md): execution snapshots, track topology/sequence reads, live and exited task/coalition totals, and work-interval ownership.
+3. [Ledgers, limits and settlement](ledgers-limits-and-settlement.md): entry representation, per-CPU tabs, remote flushes, refill, callback publication and blocking at `AST_LEDGER`.
+4. [Bank accounts and charging](../ipc/bank-accounts-and-charging.md): voucher-derived account roles, deduplication/references, adoption, quantum splitting, bill reporting and teardown.
+
+A Recount snapshot measures execution; a ledger stores resource balances; a bank account attributes selected work to another holder. Their fields and aggregation rules should not be added together without following the relevant reporting contract.
+
 ## Timer calls and thread calls
 
 | Mechanism | Structure and execution path | Main distinction |
@@ -33,7 +42,7 @@ An `ipc_voucher` is an immutable-after-creation set of indices into resource-man
 
 The connecting operation is concrete: `thread_set_voucher_name()` converts the port name to a voucher reference, asks `bank_get_bank_ledger_thread_group_and_persona()` for bank attributes, replaces `ith_voucher` under the thread mutex, swaps the bank ledger, updates bank-derived thread-group state, and releases the previous voucher. Follow [IPC](../ipc/README.md) for transport and redemption, and the bank functions for attribution rules. [`thread.c`](../../../xnu/osfmk/kern/thread.c#L3364), [`bank.c`](../../../xnu/osfmk/bank/bank.c#L1823).
 
-These are navigation-level treatments of work intervals, ledgers, coalitions, and vouchers. The creation/teardown links were inspected, but their full policy combinations, external runtime behavior, and accounting accuracy were not audited. The source's [Recount guide](../../../xnu/doc/observability/recount.md) and [coalition guide](../../../xnu/doc/observability/coalitions.md) provide the next reading steps.
+The companion chapters above trace the measurement, balance, attribution and ownership paths behind this overview. Full workload-policy combinations, external runtime behavior and empirical accounting accuracy remain separate questions. The source's [Recount guide](../../../xnu/doc/observability/recount.md) and [coalition guide](../../../xnu/doc/observability/coalitions.md) provide additional design context.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

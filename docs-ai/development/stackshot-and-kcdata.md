@@ -15,6 +15,7 @@ The kernel entry checks request semantics independently. [`kern_stack_snapshot_i
 | User request for trylock, save-in-kernel or panic flags | Rejected as an internal-only operation |
 | Internal caller without save-in-kernel | Rejected on this interface |
 | Delta timestamp without delta-snapshot flag | Rejected |
+| User-requested compression in a non-development/non-debug kernel | Rejected on this entry point |
 | Compression with delta or page-table capture | Unsupported combination |
 | Exclave include and skip simultaneously | Invalid |
 | Unsupported CPU counters | Corresponding collection flag cleared |
@@ -59,7 +60,7 @@ The retry is a new capture attempt. It does not resume a half-written snapshot w
 
 ## 3. Preflight selects a collection mode
 
-[`kdp_snapshot_preflight_internal`](../../xnu/osfmk/kern/kern_stackshot.c#L2811-L2915) selects single-threaded collection for a configured override, process-scoped capture, panic capture, or page-table capture. Otherwise the parallel path can distribute work across available CPUs. Panic captures use a descriptor supplied by the panic path, rather than constructing an ordinary request's output buffer.
+[`kdp_snapshot_preflight_internal`](../../xnu/osfmk/kern/kern_stackshot.c#L2811-L2915) selects single-threaded collection for a configured override, process-scoped capture without `STACKSHOT_INCLUDE_DRIVER_THREADS_IN_KERNEL`, panic capture, or page-table capture. Otherwise the parallel path can distribute work across available CPUs. Panic captures use a descriptor supplied by the panic path, rather than constructing an ordinary request's output buffer.
 
 On ARM64 systems with heterogeneous clusters, the parallel allocator divides backing storage using the count of participating CPUs in each cluster. The main CPU sets up queues and common data; helpers process task work. Publishing `SS_RUNNING` with release ordering makes initialized shared state visible to participants. [`do_stackshot`](../../xnu/osfmk/kern/kern_stackshot.c#L5923-L6014).
 
@@ -69,7 +70,7 @@ The collector does not simply launch normal kernel worker threads into a running
 
 A worker can temporarily find no item while the main CPU is still populating the queue. It must check both item availability and `sswq_populated`; stopping on the first empty observation would lose tasks. Each work item gets its own linked kcdata chain, and a global status check lets workers stop after another CPU reports failure. [`stackshot_cpu_work_on_queue`](../../xnu/osfmk/kern/kern_stackshot.c#L6166-L6195):
 
-<!-- source-excerpt: ../../xnu/osfmk/kern/kern_stackshot.c#L6171-L6182 -->
+<!-- source-excerpt: ../../xnu/osfmk/kern/kern_stackshot.c#L6171-L6191 -->
 ```c
 	while (((cur_workitemp = stackshot_get_workitem(queue)) != NULL || !os_atomic_load(&queue->sswq_populated, acquire))) {
 		/* Check to make sure someone hasn't errored out or panicked. */
@@ -83,11 +84,22 @@ A worker can temporarily find no item while the main CPU is still populating the
 			kcd_exit_on_error(kdp_stackshot_record_task(cur_workitemp->sswi_task));
 			stackshot_finalize_linked_kcdata();
 		} else {
+#if STACKSHOT_COLLECTS_LATENCY_INFO
+			uint64_t time_begin = mach_absolute_time();
+#endif
+			loop_wait();
+#if STACKSHOT_COLLECTS_LATENCY_INFO
+			stackshot_cpu_latency.workqueue_latency_mt += mach_absolute_time() - time_begin;
+#endif
+		}
+	}
 ```
 
 On AMP builds, P-core workers traverse queues from more difficult to less difficult work; other workers use the opposite order. This changes work distribution, not the logical output schema. Participants decrement the working count when done; the coordinating path waits for that count to reach zero before accepting the capture. [`work ordering`](../../xnu/osfmk/kern/kern_stackshot.c#L6201-L6248), [`completion barrier`](../../xnu/osfmk/kern/kern_stackshot.c#L6016-L6036).
 
 After returning from the trap and restoring interrupts, `stackshot_collect_kcdata()` assembles pre-task, task and post-task fragments into the final buffer. Work-item indices preserve task output order despite parallel completion order. Allocation callbacks extend a task's linked chain inside the preallocated capture storage; they are not an unrestricted VM allocation path during stopped execution. [`chain extension`](../../xnu/osfmk/kern/kern_stackshot.c#L1040-L1070), [`collection`](../../xnu/osfmk/kern/kern_stackshot.c#L1776-L1845).
+
+The assembled artifact can contain phases outside the stopped-CPU interval. After interrupts are restored and ordinary parallel kcdata fragments are gathered, the configured Exclave path can call `collect_exclave_threads()` before finalization. A completed buffer therefore does not establish that every optional producer observed one globally atomic instant across XNU and external services. The main collection's CPU barrier and the final artifact's publication are different boundaries. [Post-trap ordering](../../xnu/osfmk/kern/kern_stackshot.c#L2634-L2678).
 
 ## 5. kcdata is a typed stream with explicit capacity and padding
 
@@ -116,11 +128,10 @@ If capture or finalization reports insufficient buffer space, the ordinary path 
 
 For user output, [`stackshot_remap_buffer`](../../xnu/osfmk/kern/kern_stackshot.c#L1943-L1981) maps the collected memory into `current_map()`, then copies out the new address and length. If either copyout fails, it removes the new user mapping. The first address copyout can already have succeeded when the length copyout fails: the caller must honor the operation's error result.
 
-The rollback is explicit. [`publication cleanup`](../../xnu/osfmk/kern/kern_stackshot.c#L1969-L1978):
+The rollback is explicit. [`publication cleanup`](../../xnu/osfmk/kern/kern_stackshot.c#L1970-L1979):
 
-<!-- source-excerpt: ../../xnu/osfmk/kern/kern_stackshot.c#L1969-L1978 -->
+<!-- source-excerpt: ../../xnu/osfmk/kern/kern_stackshot.c#L1970-L1979 -->
 ```c
-		 */
 		error = copyout(CAST_DOWN(void *, &stackshotbuf_user_addr), (user_addr_t)out_buffer_addr, sizeof(stackshotbuf_user_addr));
 		if (error != KERN_SUCCESS) {
 			mach_vm_deallocate_kernel(get_task_map(current_task()), stackshotbuf_user_addr, (mach_vm_size_t)bytes_traced);
@@ -130,6 +141,7 @@ The rollback is explicit. [`publication cleanup`](../../xnu/osfmk/kern/kern_stac
 		if (error != KERN_SUCCESS) {
 			mach_vm_deallocate_kernel(get_task_map(current_task()), stackshotbuf_user_addr, (mach_vm_size_t)bytes_traced);
 			return error;
+		}
 ```
 
 For internal retention, `kernel_stackshot_buf` takes ownership of the successful buffer and unused trailing pages can be freed. A later retrieve-existing request clears the saved pointer only after successful publication. A failed retrieval leaves the saved capture available. The final success guard rejects a nominally successful user operation if no publication occurred. [`retention and cleanup`](../../xnu/osfmk/kern/kern_stackshot.c#L2732-L2805).

@@ -91,6 +91,8 @@ The application later enters `soreceive()` to consume buffered bytes. Incoming A
 
 ## UDP and IPv6 reading branches
 
+Continue with [Internet PCBs, ports and lifetime](internet-pcbs-ports-and-lifetime.md), [UDP send/receive/errors](udp-send-receive-and-errors.md), and [IPv6 output and neighbor discovery](ipv6-output-and-neighbor-discovery.md) for the concrete paths behind these entry points.
+
 UDP uses Internet PCBs but not the TCP sequence/retransmission state machine. [`udp_send()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2688) selects normal output or flow diversion; `udp_output()` builds the datagram's network representation. On input, [`udp_append()`](../../../xnu/bsd/netinet/udp_usrreq.c#L962) assembles address/control information, strips headers, calls `sbappendaddr()`, and wakes readers on success. These are record-oriented receive semantics.
 
 IPv6 has [`ip6_proto_input()`/`ip6_input()`](../../../xnu/bsd/netinet6/ip6_input.c#L334), [`ip6_output_list()`](../../../xnu/bsd/netinet6/ip6_output.c#L272), and [`udp6_input()`](../../../xnu/bsd/netinet6/udp6_usrreq.c#L258), with scope IDs, extension-header and neighbor-discovery paths that should be read separately. The TCP PCB supports both address families. ICMP, multicast, raw sockets, ARP/ND, bridging, tunnels, and packet schedulers are substantial neighboring components; their complete implementations were not included in this trace.

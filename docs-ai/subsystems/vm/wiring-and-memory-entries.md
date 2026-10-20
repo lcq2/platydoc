@@ -298,7 +298,7 @@ The ownership parameter is consequential. Success may consume the copy; a failed
 
 [`vm_map_copy_discard`](../../../xnu/osfmk/vm/vm_map.c#L9135) is the common destructor. It validates the copy, removes/frees every retained entry for the entry-list form, or frees the byte allocation for the buffer form, then frees the copy header. Named-entry no-senders, IPC message destruction and failed transfers can all reach this boundary from different owners.
 
-Copy-overwrite is a separate route: [`vm_map_copy_overwrite`](../../../xnu/osfmk/vm/vm_map.c#L10092) operates on an already supplied destination range instead of allocating a new receive region. Its alignment, submap and protection handling should be read with its caller; the description above is specifically the allocation-style copyout path.
+Copy-overwrite is a separate route: [`vm_map_copy_overwrite`](../../../xnu/osfmk/vm/vm_map.c#L10092) operates on an already supplied destination range instead of allocating a new receive region. Continue with [copy-overwrite and remapping](copy-overwrite-and-remap.md) for streaming permission checks, object substitution versus physical copying, fault/COW revalidation, partial progress and mixed-granule transfer. The description above is specifically the allocation-style copyout path.
 
 ## Sources inspected and limits
 
@@ -306,7 +306,7 @@ Copy-overwrite is a separate route: [`vm_map_copy_overwrite`](../../../xnu/osfmk
 |---|---|---|
 | `vm_map.c` wiring and `vm_fault.c` wiring helpers | Entry-count aggregation, object stabilization, three stages, revalidation, resident translation setup, unwind | General fault resolution and all map range-lock internals are covered by sibling chapters. |
 | `vm_memory_entry.c` / `vm_map_xnu.h` | Named-create, copy/share dispatch, parent restriction, wrapped-object representation, port construction and no-senders teardown | Ledger/purgeable policy variants and all access-mode flag combinations are not exhaustively traced. |
-| `vm_map.c` copy routines | Selector, kernel buffer allocation, entry copyin, copyout ownership and discard | Copy-overwrite and mixed-page-size transformation internals are navigation-level coverage. |
+| `vm_map.c` copy routines | Selector, kernel buffer allocation, entry copyin, copyout ownership and discard | [Copy-overwrite and mixed-page-size transformation](copy-overwrite-and-remap.md) have a separate implementation guide; every flag and overlapping-alias combination is not exhaustively verified. |
 | Pmap and IPC interfaces | Concrete calls and ownership transitions at the boundary | Architecture-specific page tables and IPC name translation remain in their dedicated guides. |
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->

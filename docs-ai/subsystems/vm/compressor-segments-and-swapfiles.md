@@ -51,7 +51,7 @@ flowchart TD
     Q -->|mark busy and busy-swapping| I[Swap I/O queue]
     I -->|successful completion| D[On disk]
     D -->|fault or reclaim read| R[Resident swapped-in segment]
-    R -->|eligible later| Q
+    R -->|ordinary segment ages| A
     M -->|pack or coalesce| A
 ```
 

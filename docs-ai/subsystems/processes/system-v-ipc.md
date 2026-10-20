@@ -54,7 +54,9 @@ flowchart TD
     A -->|all satisfied| U[Record SEM_UNDO and publish completion]
 ```
 
-Illustrative vector: decrement semaphore 0 by one, then wait for semaphore 1 to become zero. If the second predicate blocks, the first decrement is undone before sleeping. Another process therefore does not observe an indefinitely half-completed vector. `SEM_UNDO` adds a second transaction: recording undo adjustments can fail, requiring undo/value rollback. Read the actual cleanup rather than interpreting atomicity as universal immunity from every invalid input or kernel error. [Undo registration and rollback](../../../xnu/bsd/kern/sysv_sem.c#L1212-L1315).
+Illustrative vector: decrement semaphore 0 by one, then wait for semaphore 1 to become zero. If the second predicate blocks, the first decrement is undone before sleeping. Another process therefore does not observe an indefinitely half-completed vector. `SEM_UNDO` adds a second transaction: recording undo adjustments can fail, requiring undo/value rollback. [Undo registration and rollback](../../../xnu/bsd/kern/sysv_sem.c#L1212-L1315).
+
+The invalid-index branch differs from that blocking rollback. This implementation checks each `sem_num` inside the apply loop; an out-of-range entry jumps directly to `semopout` with `EFBIG`. That exit only unlocks and returns. Earlier valid entries in such a malformed vector can therefore already have changed values. The comment's atomicity explanation describes the wait/retry path, not this error exit. [Index validation](../../../xnu/bsd/kern/sysv_sem.c#L1066-L1099), [direct exit](../../../xnu/bsd/kern/sysv_sem.c#L1309-L1313).
 
 `semexit` finds the exiting process's undo entries, applies adjustments to surviving semaphore sets, clamps selected negative adjustment outcomes at zero, wakes waiters and removes the process's undo bookkeeping. `semctl` value/reset/remove operations also reconcile undo entries, so stale adjustments must not be applied to a reused semaphore ID. [Exit undo](../../../xnu/bsd/kern/sysv_sem.c#L1321-L1438), [undo clearing](../../../xnu/bsd/kern/sysv_sem.c#L537).
 

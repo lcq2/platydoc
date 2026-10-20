@@ -6,6 +6,8 @@ Below the transport layer, three independent objects often travel together: an m
 
 ## Mbuf chains, packet lists, and external storage
 
+The [mbuf allocator companion](mbuf-allocation-caches-and-pressure.md) follows the allocation classes, CPU caches, slabs and pressure paths that supply this storage. [IPv6 output and ND](ipv6-output-and-neighbor-discovery.md) follows retained packet ownership while next-hop resolution is pending.
+
 An mbuf is not necessarily a whole packet or a separately owned payload allocation. `m_next` links fragments of one packet or socket record; `m_nextpkt` links distinct packets/records. `m_len` describes the current fragment. A leading `M_PKTHDR` mbuf additionally carries aggregate packet length, receive-interface information, checksum/offload metadata, classification, and tags. A packet-list operation must preserve the second linkage while working on the first. See [`mbuf` representations](../../../xnu/bsd/sys/mbuf.h#L642), [`packet-list free`](../../../xnu/bsd/kern/uipc_mbuf.c#L2628), and [socket records](socket-lifecycle-and-io.md#the-objects-and-independent-forms-of-protection).
 
 ```mermaid

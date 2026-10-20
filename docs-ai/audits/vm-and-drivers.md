@@ -1,5 +1,7 @@
 # Coverage audit: VM and driver runtime
 
+**Current follow-up status.** Later work implements the selected copy/remap expansion in [copy-overwrite and mixed page sizes](../subsystems/vm/copy-overwrite-and-remap.md), and the [first-release record](first-release-expansion.md) links the compressor, shared-region, deferred/purgeable/phantom, loading, serialization and NVRAM companions. The dispositions below preserve the historical baseline. Remaining candidates need reconciliation against these explanations before another chapter is added.
+
 [Complete audit](../coverage-audit.md) · [Guide index](../README.md)
 
 This audit covers the **42 Markdown files at the audit baseline** under `subsystems/vm` and `subsystems/drivers`: 21 in each directory, including their indexes. It evaluates the guides after the allocator, pmap, IOKit, sleep and signature expansions. It proposes work; it does not itself implement the proposed chapters or claim that the source has been exhaustively verified.

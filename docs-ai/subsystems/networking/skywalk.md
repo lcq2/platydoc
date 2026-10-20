@@ -4,7 +4,11 @@
 
 For creation and teardown, allocation/free rings, detached RX packets, flow installation, and linger, continue with [Skywalk lifecycles](skywalk-lifecycles.md).
 
+For the control interface, read [controllers, providers and port lifetime](skywalk-controller-provider-and-port-lifetime.md), then [channel ABI, readiness and event delivery](skywalk-channel-abi-and-readiness.md). They explain how a client is admitted, when a descriptor is published, and why a wakeup and a packet-ownership transfer are separate operations.
+
 ## Objects and the userspace boundary
+
+For the storage below these objects, read [packets, buflets and pools](skywalk-packets-buflets-and-pools.md) and [memory arenas and task mappings](skywalk-memory-arenas-and-mapping.md). They explain separate user/kernel metadata, allocator backing, validation, mapping permissions and revocation.
 
 Skywalk provides packet-oriented channels backed by rings and mapped memory, with nexus providers implementing different connections. It is not one replacement `tcp_output()` routine. Netif, flowswitch, user-pipe, and kernel-pipe nexus types have different operations and peers. `SKYWALK` and `CONFIG_NEXUS_*` options are declared in [`config/MASTER`](../../../xnu/config/MASTER#L85); provider registration and interface capabilities impose further runtime requirements.
 
@@ -70,7 +74,7 @@ On receive, device-ring/notification paths can reach `fsw_receive()` and [`_fsw_
 
 For a user-ring destination, [`fsw_ring_enqueue_pktq()`](../../../xnu/bsd/skywalk/nexus/flowswitch/fsw_dp.c#L1236) serializes the ring, attaches packets to available slots, publishes the updated tail after a memory fence, and invokes the notification callback. Channel select/knote hooks and low-water thresholds connect available slots/packets to readiness. RX sync subsequently reconciles the user's consumption with kernel state.
 
-This trace covers ring and pool handoff plus representative flowswitch processing. [Skywalk lifecycles](skywalk-lifecycles.md) expands binding, pool ownership, flow installation/rollback, deletion, and close. Neither guide establishes every metadata-validation rule, receive aggregation mode, memory mapping protection, or provider behavior. Follow [`skmem_arena.c`](../../../xnu/bsd/skywalk/mem/skmem_arena.c) for mapping implementation and the [`flow`](../../../xnu/bsd/skywalk/nexus/flowswitch/flow) directory for the remaining flow algorithms.
+This trace covers ring and pool handoff plus representative flowswitch processing. [Skywalk lifecycles](skywalk-lifecycles.md) expands pool ownership, partial sync, defunct, flow installation/rollback, deletion, and close. Continue with [controllers and ports](skywalk-controller-provider-and-port-lifetime.md) for registration and authority, [channel ABI and readiness](skywalk-channel-abi-and-readiness.md) for options, thresholds and event ownership, [packets, buflets and pools](skywalk-packets-buflets-and-pools.md) for metadata validation, and [memory arenas and mapping](skywalk-memory-arenas-and-mapping.md) for backing and task protections. Receive aggregation, the remaining [flow algorithms](../../../xnu/bsd/skywalk/nexus/flowswitch/flow), and device-specific provider behavior remain separate work.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

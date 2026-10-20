@@ -18,7 +18,7 @@
 | `_variableLock`, `_controllerLock` | Dictionary/update coordination versus serialization of controller operations |
 | `IONVRAMController` | `read`, `write`, bank selection/erase and synchronization boundary |
 
-[`service interface`](../../../xnu/iokit/IOKit/IONVRAM.h#L80), [`V3 structures`](../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L37-L92), [`CHRP state`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L41-L124), [`controller contract`](../../../xnu/iokit/IOKit/nvram/IONVRAMController.h#L36-L54).
+[`service interface`](../../../xnu/iokit/IOKit/IONVRAM.h#L80), [`V3 structures`](../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L37-L92), [`CHRP state`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L41-L124), [`controller contract`](../../../xnu/iokit/IOKit/nvram/IONVRAMController.h#L34-L48).
 
 ```mermaid
 flowchart TD
@@ -119,7 +119,7 @@ If space is insufficient, it releases the variable lock and calls `reclaim`. Rec
 
 `sync` serializes these operations with `_controllerLock`. It performs a required reload and attempts reclaim recovery if reload fails; for a raw controller it likewise attempts reclaim after `syncRaw` failure. [`sync decision`](../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L1288-L1318):
 
-<!-- source-excerpt: ../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L1304-L1312 -->
+<!-- source-excerpt: ../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L1304-L1313 -->
 ```cpp
 	if (_rawController == true) {
 		ret = syncRaw();
@@ -130,17 +130,20 @@ If space is insufficient, it releases the variable lock and calls `reclaim`. Rec
 		}
 	} else {
 		ret = syncBlock();
+	}
 ```
 
 Read the failure semantics carefully: routines update some in-memory record state before all controller calls complete, and some selection/erase errors are logged rather than immediately returning. The recovery path is part of the implementation; there is no general promise that an error leaves every in-memory field and device byte unchanged.
 
-For block controllers, `syncBlock` constructs a whole next-bank image, drops removal records, fills unused space with `0xFF`, writes the bank and calls controller sync. It then installs the retained entry set and clears `_newData`. This differs from raw append/invalidate operation. [`block path`](../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L1203-L1284).
+For block controllers, `syncBlock` constructs a whole next-bank image, drops removal records, fills unused space with `0xFF`, writes the bank and calls controller sync. It then installs the retained entry set and clears `_newData`. The write error is logged, but does not skip these final state changes; the function returns that write status afterward. This differs from raw append/invalidate operation and means a failed block write does not automatically leave the handler marked dirty for retry. [`block path`](../../../xnu/iokit/Kernel/IONVRAMV3Handler.cpp#L1203-L1284).
 
 ## 7. CHRP serializes common/system partitions into a replacement image
 
 CHRP uses a 16-byte partition header whose length is measured in 16-byte units, plus Apple header information including checksum/generation. Its handler tracks common/system partition offsets and sizes, a value dictionary and controller/variable locks. [`layout`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L41-L96).
 
-[`serializeVariables`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L617-L747) clones the current image, clears each applicable variable partition, walks the dictionary, selects entries belonging in that partition, converts object values to the storage representation and tracks remaining capacity. Failure to fit returns `kIOReturnNoSpace`. On success it updates the Apple header/generation, rotates banks and invokes select, erase, write and sync before installing the new image.
+[`serializeVariables`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L617-L747) clones the current image, clears each applicable variable partition, walks the dictionary, selects entries belonging in that partition, converts object values to the storage representation and tracks remaining capacity. Failure to fit returns `kIOReturnNoSpace`. Once serialization succeeds it updates the Apple header/generation, rotates banks and invokes select, erase, write and sync before installing the new image.
+
+Controller failures have separate semantics from serialization failure. Select/erase/write errors are logged while the sequence continues; the later operation overwrites `ret`. Even a failed write is followed by controller sync, installation of the new in-memory image and clearing `_newData`. The return then reports the write status, not a rollback of those changes. [`controller sequence and publication`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L723-L747).
 
 This conversion is not simply an `OSSerialize` stream written to flash. CHRP has its own name/value encoding and escaping for data. [`data escaping`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L966-L1052), [`object conversion`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L1142-L1262). `sync` holds the controller lock and processes reload before serialization. [`CHRP sync`](../../../xnu/iokit/Kernel/IONVRAMCHRPHandler.cpp#L914-L932).
 

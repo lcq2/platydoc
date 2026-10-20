@@ -31,6 +31,10 @@ Processor state is also a protocol, not just a status label. The documented tran
 
 The function explicitly returns **both the task lock and `tasks_threads_lock` held on success**. Its wrappers complete setup and release them. Reading it as an ordinary unlocked constructor would miss a major publication contract. [`thread.c`, `thread_create_internal()` and callers](../../../xnu/osfmk/kern/thread.c#L1260).
 
+## Suspension and execution control
+
+[Suspension, stopping and aborting threads](suspension-stop-and-abort.md) follows task/thread hold aggregation, the legacy and token interfaces, PID suspension, off-CPU waits and AST_APC parking. It distinguishes a reference keeping an object alive from a hold preventing user execution, and task send-once tokens from the ordinary-send tokens used by `thread_suspend2`.
+
 ## Termination is staged
 
 ```mermaid

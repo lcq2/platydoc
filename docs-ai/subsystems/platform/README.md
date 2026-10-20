@@ -38,6 +38,8 @@ For a selector-by-selector view of system calls, use the [machine entry-point ca
 
 For one complete fault path, read [EL0 exception entry](arm64-exception-entry.md), [Mach exception delivery](../ipc/exception-delivery.md), then [exception return](arm64-exception-return.md). The first establishes the interrupted CPU state, the second follows the handler's port/reply or Unix signal, and the third restores validated state and resumes execution.
 
+For kernel accesses to user pointers, read [ARM64 copyin, copyout and fault recovery](arm64-user-memory-copy.md). It connects range validation, PAN/MTE selection, assembly recovery tables, VM faults, saved-state changes and partial-copy errors.
+
 For instruction-level explanations, follow [ARM64 assembly walkthroughs](arm64-assembly-walkthroughs.md) through the exception vectors, register spills, stack changes, dispatch and return. Then read [thread switching, entry and exit](arm64-context-switching.md) for `cswitch.s`, manufactured first-dispatch state, saved kernel contexts, continuations, stack handoff and deferred destruction. These connect to the scheduler and pmap chapters without treating a thread switch as an exception-level transition.
 
 Use [runtime](../runtime/README.md) for scheduling decisions and wait/lock primitives, [VM](../vm/README.md) for address-space policy and page ownership, [IPC](../ipc/README.md) for message transport and exception RPCs, [processes](../processes/README.md) for BSD lifecycle/syscalls, [drivers](../drivers/README.md) for matching and power-management policy, and [security](../security/README.md) for monitor policy and Exclaves. Here, the focus is the machine transition connecting those layers.

@@ -1,10 +1,12 @@
 # Complete documentation coverage audit
 
+The [first-release expansion record](audits/first-release-expansion.md) tracks the initial 30 companions across nine requested areas and the [audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up): Skywalk control/readiness, VM copy/remap, clocks/accounting, descriptor lifetime, task/thread capabilities and suspension. It preserves this audit's historical baseline and remaining backlog. New work excludes x86 and KDP.
+
 [Guide index](README.md) · [Contents](table-of-contents.md) · [Verification record](coverage.md) · [Earlier expansion history](expansion-audit.md)
 
 The highest-value next work is to explain missing mechanisms and complete concrete operations across subsystem boundaries. Adding more detail uniformly would repeat substantial material in IPC, allocation, file caching, signing, scheduling and IOKit while leaving larger gaps elsewhere.
 
-The requested **whole Skywalk surface** has a separate expansion program. Four companion chapters implement the additional requests for deeper **pmap**, **DMA/segment generation**, **ARM64 exception assembly**, and **thread switching/entry/exit**. Their reading routes appear below. The Skywalk program remains a backlog; the existing two chapters do not cover its whole surface.
+The requested **whole Skywalk surface** has a separate expansion program. Four companion chapters implement the additional requests for deeper **pmap**, **DMA/segment generation**, **ARM64 exception assembly**, and **thread switching/entry/exit**. Their reading routes appear below. Skywalk now has deeper memory, packet-pool, controller/provider and readiness companions; its full program remains a backlog, including additional netif/flowswitch algorithms and provider combinations.
 
 ## Scope and method
 

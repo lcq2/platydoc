@@ -95,7 +95,7 @@ The binary stream begins with a four-byte signature. Subsequent words contain a 
 | Boolean | Zero/nonzero value |
 | Object reference | Identifier interpreted by the decoder's already-created-object table |
 
-[`format constants`](../../../xnu/libkern/libkern/OSSerializeBinary.h#L36-L56), [`decode switch`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L423-L522).
+[`format constants`](../../../xnu/libkern/libkern/OSSerializeBinary.h#L32-L48), [`decode switch`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L423-L522).
 
 The parser rejects a too-short header or unaligned buffer, bounds-checks record/payload consumption and verifies symbol termination. It keeps `objsArray` for object ownership/references and `stackArray` for nested collection parents. The growth macro uses bounded capacities and checks whether storage allocation succeeded. [`entry and arrays`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L329-L417).
 
@@ -154,11 +154,11 @@ This cleanup is reference-count based, not a universal graph garbage collector. 
 3. Parse the materialized bytes using the sized entry, then deallocate the temporary VM mapping.
 4. Reject parse failure; run the configured MAC check.
 5. Apply the entry's allowable-property key list when present.
-6. Acquire configured user-client locking or run the registry property action, then call the receiver's `setProperties`.
+6. Acquire configured user-client locking or execute the receiver's `setProperties` inside the registry property action; the direct path calls `setProperties` without that optional wrapper.
 7. Perform the userserver-specific forwarding when applicable, release the parsed object and return the operation result.
 
 ```mermaid
-flowchart LR
+flowchart TD
     U["Incoming VM-copy payload"] --> M["Kernel mapping"]
     M --> P["Parser owns new object graph"]
     P --> A["MAC and property-key policy"]
@@ -169,6 +169,8 @@ flowchart LR
 ```
 
 The RPC transport return and `*result` operation return are distinct after payload materialization. A parsed dictionary can still be unauthorized, have invalid receiver-specific values, or cause partial progress before a later receiver error. NVRAM's multi-property loop is a concrete example in [the persistence chapter](nvram-variables-and-persistence.md).
+
+The userserver branch also deserves a precise reading: after the local call, `UserSetProperties` runs when the target is a service with a userserver and the parsed object is a dictionary. The branch does not test the local call's return value before forwarding, and its return replaces `res`. A single final operation status therefore does not report both stages independently. [`local call, unlocking and forwarding`](../../../xnu/iokit/Kernel/IOUserClient.cpp#L4180-L4201).
 
 ## Inspection boundary
 

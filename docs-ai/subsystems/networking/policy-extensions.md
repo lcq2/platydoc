@@ -12,6 +12,8 @@ Networking policy is applied at several levels: process/socket identity, address
 
 ## Content filters retain and reinject data
 
+The [kernel control socket guide](kernel-control-sockets-and-network-statistics.md) explains the registered-controller transport, callback synchronization and receive enqueue contract used by control providers. Content filters add their own byte-offset and reinjection protocol on top of that transport.
+
 Socket filters (`sflt_*`) and the configured content-filter system (`cfil_*`) are separate interfaces. In [`sosend()`](../../../xnu/bsd/kern/uipc_socket.c#L2390), socket filters run before the content-filter call and protocol send. An `EJUSTRETURN` result is treated as consumed data rather than a normal caller-owned error buffer.
 
 [`cfil_sock_data_out()`](../../../xnu/bsd/net/content_filter.c#L5342) handles datagram flow tracking or a socket's `cfil_info`, validates policy/filter state, requires appropriate socket/buffer locking, and passes data to `cfil_data_common()`. Filter state can hold pending data instead of immediately transmitting it. [`cfil_service_inject_queue()`](../../../xnu/bsd/net/content_filter.c#L4447) removes permitted data from injection queues and calls `sosend_reinject()` on output; receive reinjection uses skip-filter markers and the appropriate receive-buffer machinery. This introduces queue lifetime, backpressure, and close coordination. Content-filter userspace/provider behavior is outside the inspected kernel path.

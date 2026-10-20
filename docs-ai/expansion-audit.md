@@ -1,5 +1,7 @@
 # Documentation expansion: topic audit and research record
 
+The latest [first-release expansion](audits/first-release-expansion.md) records the initial nine requested areas and the [audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up) through Skywalk control/readiness, VM copy/remap, clocks/accounting, descriptors, capabilities and suspension. Scope remains ARM64/common code, with no new x86 or KDP coverage. The earlier passes below remain historical records.
+
 [Guide index](README.md) · [Complete contents](table-of-contents.md) · [Coverage and verification](coverage.md)
 
 This audit records the Markdown expansion requested before building an HTML handbook. The existing chapters are the starting explanation, not a fixed limit on topics or depth. The unit of review is a mechanism and its execution paths: its state, inputs, decisions, synchronization, ownership, completion, and failure handling.

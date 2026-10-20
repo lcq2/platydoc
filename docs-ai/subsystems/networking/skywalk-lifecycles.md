@@ -1,10 +1,12 @@
 # Skywalk channel, packet-pool, and flow lifecycles
 
-[Networking](README.md) · [Skywalk packet-path overview](skywalk.md) · [Interface lifetime](packets-routes-and-interfaces.md) · [Policy integration](policy-extensions.md)
+[Networking](README.md) · [Skywalk packet-path overview](skywalk.md) · [Controllers and ports](skywalk-controller-provider-and-port-lifetime.md) · [Channel ABI and readiness](skywalk-channel-abi-and-readiness.md)
 
 Skywalk separates channel access, ring progress, packet ownership, and flow registration. A mapped slot is not itself a packet allocation. Returning a receive slot does not necessarily free its packet. Closing a channel and deleting its registered flows have coordinated but distinct paths. This chapter explains those contracts for the user-packet-pool and flowswitch implementations present in this checkout. The [existing Skywalk guide](skywalk.md) follows the transmit/receive data path and external-provider boundary.
 
 ## Four objects that must remain distinct
+
+The [packet/pool companion](skywalk-packets-buflets-and-pools.md) expands construction, metadata conversion, buflet sharing and destruction. The [memory companion](skywalk-memory-arenas-and-mapping.md) follows regions, caches, IOSK task mappings and redirect/defunct transitions. This chapter retains the channel/flow lifetime trace connecting those mechanisms.
 
 | Object | State to follow | Lifetime boundary |
 | --- | --- | --- |
@@ -27,7 +29,7 @@ The binding check is not merely a UUID lookup. `nx_port_alloc()` rejects a user 
 
 `ch_connect()` validates notification thresholds and provider support, allocates/locks the channel, invokes domain `nxdom_connect`, and then records list/caller references and a nexus reference. It notifies an external provider after the channel is fully formed. If that notification fails, it closes the constructed channel through the ordinary teardown path rather than attempting a partial ad hoc undo. See [`ch_connect()`](../../../xnu/bsd/skywalk/channel/channel.c#L2009).
 
-Below that, `na_bind_channel()` verifies ring selection and compatibility between requested user-pool mode and adapter mode, rejects a defunct arena, creates rings for the first channel, validates their use/exclusivity, creates the user schema, and establishes the mapping. Different channels can refer to one adapter subject to ring ownership restrictions; requesting all rings conflicts with narrower ownership already established on the same port. See [`adapter binding`](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L436) and [`port/ring conflict checks`](../../../xnu/bsd/skywalk/channel/channel.c#L1622).
+Below that, `na_bind_channel()` verifies ring selection and compatibility between requested user-pool mode and adapter mode, rejects a defunct arena, creates rings for the first channel, validates their use/exclusivity, and creates the user schema and pool participation. The domain's adapter-connect path then establishes the task mapping. Different channels can refer to one adapter subject to ring ownership restrictions; requesting all rings conflicts with narrower ownership already established on the same port. See [`adapter binding`](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L436) and [`port/ring conflict checks`](../../../xnu/bsd/skywalk/channel/channel.c#L1622). The [ABI companion](skywalk-channel-abi-and-readiness.md#admission-precedes-fd-publication) separates the map, channel-info copyout, guarded-fd publication and userspace wrappers.
 
 ## Sync is a validated ownership protocol
 
@@ -38,6 +40,29 @@ The user ring and kernel ring have separate indices. `ckr_khead/ckr_ktail` repre
 `kr_enter()` is an owner/busy protocol guarded by a spin lock. It allows recursive acquisition by the current owner, returns `EBUSY` for a nonwaiting acquisition against another owner, or sleeps until the owner exits. The spin lock is released during substantive ring work; `ckr_busy` and `ckr_owner` preserve exclusion. `kr_exit()` clears the owner only on the outermost release and wakes waiters. `kr_stop()` acquires and retains this exclusion while setting the stopped/locked state; `kr_start()` clears the state and releases it. See [`kr_enter()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L114), [`kr_exit()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L153), and [`stop/start`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L184).
 
 Consequently, channel locking, ring ownership, pool locking, and the flowswitch's locks solve different problems. A valid memory mapping alone grants none of the kernel-side exclusion required to mutate a packet queue or dismantle its backing arena.
+
+### A sync error does not undo earlier ring progress
+
+`__channel_sync()` keeps the first error but continues the applicable ring loops. Each ring has its own prologue, provider call and successful finalization. A TX prologue may already have removed user allocations from the pool hash and attached them to trusted kernel slots before the provider reports failure. Another selected ring can finish normally. Allocation/free synchronization follows the TX/RX loops when requested, even if an earlier ring recorded an error. The syscall is therefore a set of ordered ownership transitions, not one reversible transaction. See [`TX loop`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L439-L490), [`RX loop and pool dispatch`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L493-L563), and [`user-pool TX transfer`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L513-L610).
+
+For example, if a channel selects two TX rings and the first succeeds while the second provider callback returns an error, the syscall can return `EIO` while the first ring's tail already advertises reclaimed capacity. Userspace must reread published indices and respect packet ownership; resubmitting the entire pre-call batch would not reconstruct the original state. An invalid pool entry can additionally terminate the process through the guard-violation path. Error handling cannot assume every bad shared descriptor is recoverable by retrying sync.
+
+The user-pool-only mode forces pool work, with a distinct purge choice; packet, buflet and large-buffer allocation flags select different ring ranges. Consequently, a single “sync succeeded” statement says neither that all requested allocations were filled nor that transmitted packets reached the device. See [`pool mode and flags`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L377-L436), [`allocation/free dispatch`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L544-L650), and [partial allocation](#allocation-rings-packet-availability-can-be-partial).
+
+### Which protection prevents which race?
+
+| Protection or state | What it establishes | What remains outside it |
+| --- | --- | --- |
+| File I/O reference from typed descriptor lookup | Keeps the syscall's file/channel access alive until `fp_drop()` | Does not admit a new operation on a channel already marked defunct. |
+| `ch_lock` | Serializes channel syscalls, readiness processing and the initial defunct/close state changes | Does not stop userspace writing shared ring pages. |
+| Per-thread sync protection | Tracks the protected Skywalk synchronization context used by callbacks and packet operations | Does not replace ring exclusion or pool locking. |
+| `ckr_owner` / `ckr_busy` under the ring spin lock | Excludes another ring worker while allowing owner recursion | The spin lock is released during actual ring processing. A waiting contender may block uninterruptibly until ownership changes. |
+| Pool lock and outstanding-allocation hash | Serialize allocation ownership lookup/removal/publication | Do not validate all user metadata by themselves; the transfer prologue must inspect it. |
+| `CHANF_CLOSING`, `CHANF_DEFUNCT`, schema inactive state | Irreversible endpoint admission/deactivation decisions | Do not immediately release every reference, mapping or queued object. |
+
+The syscall's final path releases sync protection, `ch_lock`, and its file I/O reference. Ring stop uses the owner/busy protocol too: `kr_stop()` retains ownership until `kr_start()` releases it. It is not merely a flag a concurrent worker can ignore. See [`ring enter/exit/stop`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L114-L230) and [`sync completion`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L650-L667).
+
+Ring teardown enters that same ownership protocol before depopulating slots. Defunct teardown can retain kernel slot-descriptor backing while the arena's slot-descriptor use counter `arn_ksd_nodefunct` is nonzero; final teardown requires that counter to reach zero. This is a distinct counter, not a test that all user mappings disappeared. The TX/RX teardown walks only the channel's selected ring ranges and notifies waiters so they can observe termination. See [`ring teardown`](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L2053-L2148), [`descriptor-use counter`](../../../xnu/bsd/skywalk/mem/skmem_arena.c#L776-L798), and [`selected-ring teardown`](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L2151-L2215).
 
 ## Allocation rings: packet availability can be partial
 
@@ -125,6 +150,52 @@ flowchart TD
 
 Defunct state is observable before descriptor close. `ch_deactivate()` permanently clears shared `CSM_ACTIVE` and follows it with a sequentially consistent fence; later sync rejects a defunct channel. Teardown paths must still reclaim mappings/references. Pool close has its own lifetime: `pp_close()` sets `PPF_CLOSED` and releases its owner reference, whereas final release invokes `pp_free()`. Pool destruction destroys metadata caches before buffer caches because metadata destructors may free attached buffers. See [`channel deactivation`](../../../xnu/bsd/skywalk/channel/channel.c#L2215), [`pool close/references`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L275), and [`destruction order`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1355).
 
+## Defunct serializes kernel work and revokes mapped access
+
+`kern_channel_defunct()` is a kernel entry point for making an eligible channel inactive without immediately closing its fd. Eligibility includes the channel's defunct permission and applicable user-pipe adapter constraints. An ineligible channel takes a cache-drain/prune branch. Under opportunistic policy, a channel without a user pool, or with outstanding pool allocations, is skipped and marked `CHANF_DEFUNCT_SKIP`. The actual `pp_isempty_upp()` check is pool-wide; it does not take a PID and should not be described as checking only the current channel's allocations. Later channel activity clears the skip state. See [`eligibility and opportunistic decisions`](../../../xnu/bsd/skywalk/channel/channel_kern.c#L648-L718) and [`readiness activity`](../../../xnu/bsd/skywalk/channel/channel.c#L1153-L1216).
+
+For eligible work, the code takes `ch_lock`, atomically sets the one-way `CHANF_DEFUNCT` flag, and deactivates the shared schema. It then redirects this channel's arena mapping **before freeing packet/ring objects**. The reason is concrete: redirection derives page protections from the still-existing segments. Freeing them first can turn formerly valid spans into `VM_PROT_NONE`, producing unintended faults when a suspended process resumes. The [memory companion](skywalk-memory-arenas-and-mapping.md) explains the IOSK mapping/redirection implementation. See [`deactivation and redirect ordering`](../../../xnu/bsd/skywalk/channel/channel_kern.c#L722-L747).
+
+[Defunct admission is a one-way atomic flag followed by schema deactivation](../../../xnu/bsd/skywalk/channel/channel_kern.c#L722-L730):
+
+<!-- source-excerpt: ../../../xnu/bsd/skywalk/channel/channel_kern.c#L722-L730 -->
+```c
+		if (os_atomic_or_orig(&ch->ch_flags, CHANF_DEFUNCT, relaxed) &
+		    CHANF_DEFUNCT) {
+			/* already defunct; nothing to do */
+			lck_mtx_unlock(&ch->ch_lock);
+			return;
+		}
+
+		/* mark this channel as inactive */
+		ch_deactivate(ch);
+```
+
+After successful redirect, the provider's initial defunct callback runs under the channel lock. If this was the last active mapping and arena finalization is needed, the code releases the lock before the provider's finalize callback to preserve lock ordering. The caller's process file-table lock supplies the lifetime protection across this interval; the source explicitly documents that obligation. A redirect failure does not roll back the already-set defunct flag and schema deactivation. See [`two-phase provider defunct`](../../../xnu/bsd/skywalk/channel/channel_kern.c#L745-L782).
+
+```mermaid
+flowchart TD
+    E["Kernel requests defunct"] --> Q{"Channel eligible?"}
+    Q -->|no| D["Drain caches without revoking mapping"]
+    Q -->|yes| K["Take channel lock"]
+    K --> O{"Opportunistic policy permits defunct?"}
+    O -->|no| S["Record DEFUNCT_SKIP and unlock"]
+    O -->|yes| L["Set DEFUNCT"]
+    L --> I["Clear shared schema active state"]
+    I --> R["Redirect task mapping before freeing objects"]
+    R -->|success| P["Provider initial defunct under channel lock"]
+    P --> F{"Arena needs final defunct?"}
+    F -->|yes| U["Drop channel lock; provider finalizes"]
+    F -->|no| W["Other arena mappings still remain"]
+    U --> C["Later close releases remaining endpoint references"]
+    W --> C
+    R -.->|redirect error| X["Keep deactivated endpoint; no flag rollback"]
+```
+
+Consider a sync racing this operation. `ch_lock` orders their kernel-side work: either sync finishes its current protected operation first, or it observes defunct state on admission. Userspace accesses to already mapped pages do not take that mutex, so channel locking alone cannot make backing reuse safe. Redirection is the distinct VM step that removes the old user access before provider teardown releases objects. `na_defunct()` marks the adapter, tears down applicable resources, and defuncts its own arena; a loaned arena follows the owner's lifetime instead. [`Adapter defunct`](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L2723-L2757).
+
+Waiter notification and final fd destruction are later, separate effects. The [readiness companion](skywalk-channel-abi-and-readiness.md) follows EOF/hangup and event-filter behavior. A user can observe inactive schema or a failed sync while the file object, mapping record, adapter references, or pool allocations still await their final cleanup.
+
 ## Flow registration: process association, port binding, and rollback
 
 A flowswitch flow is not created merely by writing packet addresses into a TX ring. One control path enters `fsw_netagent_flow_add()`, translating NECP client parameters into `nx_flow_req`: endpoints, protocol, process/effective identity, policy IDs, traffic class, tracking/advisory flags, and optional parent/demultiplexing or offload settings. It then requests `fsw_flow_add()`. This establishes the kernel integration point without claiming all userspace NECP policy or external offload behavior is available here. See [`netagent request construction`](../../../xnu/bsd/skywalk/nexus/flowswitch/fsw_netagent.c#L90).
@@ -165,8 +236,8 @@ Channel teardown connects to this control lifetime through `fsw_port_dtor()` and
 
 | Area | Inspection performed and limits |
 | --- | --- |
-| Channel syscalls, `channel.c`, `channel_ring.c`, declarations | Read open/connect/close, selected mode checks, sync serialization, user-pool TX/RX and alloc/free validation/publication. Not every event-ring, select/knote, defunct mode, or metadata field validator was audited. |
-| `nexus.c`, `nexus_adapter.c`, `pbufpool.c` | Read binding identity, adapter bind/unbind/teardown, allocation/free callbacks and partial allocation, user-allocation hash/purge, references and cache-destruction order. Arena mapping permissions, cache/slab internals, and DMA mappings remain separate work. |
+| Channel syscalls, `channel.c`, `channel_ring.c`, `channel_kern.c`, declarations | Read open/connect/close, sync serialization and partial progress, user-pool TX/RX and alloc/free validation/publication, and selected opportunistic/two-phase defunct paths. [ABI/readiness](skywalk-channel-abi-and-readiness.md) now explains selection, thresholds, knotes, event packets and advisory subscriptions. This is not an exhaustive concurrency or metadata-validator audit. |
+| `nexus.c`, `nexus_adapter.c`, `pbufpool.c` | Read binding identity, adapter bind/unbind/teardown, allocation/free callbacks and partial allocation, user-allocation hash/purge, references and cache-destruction order. [Packet representation](skywalk-packets-buflets-and-pools.md) and [arena/cache mapping](skywalk-memory-arenas-and-mapping.md) now have companion explanations; device-specific DMA mappings remain a provider boundary. |
 | `fsw_flow.c`, `fsw_netagent.c`, flow manager/entry/owner and selected `fsw.c`/`fsw_dp.c` | Read process/port/flow installation, rollback, table membership, reference release, namespace withdrawal, port teardown and linger integration. Flow-key algorithms, every route/namespace preparation branch, reassembly/aggregation, pacing/GSO, and all reaper policies remain narrower coverage. |
 | Provider boundary | The in-tree netif/flowswitch callbacks expose the handoff. Hardware queues, firmware/AOP behavior, external provider implementations, and userspace transport policy are not inferred from those interfaces. |
 

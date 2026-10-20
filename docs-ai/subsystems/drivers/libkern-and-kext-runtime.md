@@ -44,6 +44,8 @@ Class registration is coordinated with executable initialization. `preModLoad` h
 
 At the inspected KXLD entry boundary, `kxld_link_file` initializes the context and dependency objects, allocates the linked image, relocates it using symbol and vtable dictionaries, and exports the linked object and `kmod_info` address. Lower-level object, symbol, section, relocation and vtable modules implement those transformations. This was an entry-path survey; architecture-specific relocation validity and every C++ compatibility rule were not audited. [`kxld_link_file`](../../../xnu/libkern/kxld/kxld.c#L363), [`kxld_object.c`](../../../xnu/libkern/kxld/kxld_object.c), [`kxld_reloc.c`](../../../xnu/libkern/kxld/kxld_reloc.c), [`kxld_vtable.c`](../../../xnu/libkern/kxld/kxld_vtable.c).
 
+For the ARM64/common load transaction, continue with [kernel collections and OSKext lifetime](kext-loading-and-unloading.md). For property bytes and firmware variables, use [serialization and property transport](serialization-and-property-transport.md) and [NVRAM persistence](nvram-variables-and-persistence.md).
+
 ## Useful supporting areas
 
 | Area | Why it appears in a driver trace | Reading boundary |

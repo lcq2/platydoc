@@ -180,7 +180,7 @@ mac_cred_label_seal(struct ucred *cred)
 
 ## Inspection scope
 
-Read bodies cover credential companion/ref APIs, SMR acquisition/retirement, uniquing construction and insertion-race cleanup, process update retries, thread cache refresh, setuid, kauth registration/dispatch/removal, MAC registry/busy/iteration/error aggregation, and label ownership/seal/access. External membership service and policy implementations, all identity-changing syscalls, every MAC hook, personas, and a formal proof of callback-unload races remain outside this guide. Task-port acquisition/conversion is retained in the [existing overview](credentials-and-policy.md#task-rights-require-acquisition-and-conversion-checks).
+Read bodies cover credential companion/ref APIs, SMR acquisition/retirement, uniquing construction and insertion-race cleanup, process update retries, thread cache refresh, setuid, kauth registration/dispatch/removal, MAC registry/busy/iteration/error aggregation, and label ownership/seal/access. External membership service and policy implementations, all identity-changing syscalls, every MAC hook, personas, and a formal proof of callback-unload races remain outside this guide. Continue with [task and thread capabilities](task-and-thread-capabilities.md) for PID acquisition, flavor conversion, port lifetime and identity tokens.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

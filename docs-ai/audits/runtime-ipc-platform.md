@@ -1,5 +1,7 @@
 # Runtime, IPC, and platform documentation coverage audit
 
+**Current follow-up status.** Later work now explains [synchronous reply dependencies](../subsystems/ipc/synchronous-dependencies-and-special-replies.md), [clocks/commpage](../subsystems/runtime/clocks-and-time-domains.md), [Recount and attribution](../subsystems/runtime/recount-and-resource-attribution.md), [ledger settlement](../subsystems/runtime/ledgers-limits-and-settlement.md), [bank charging](../subsystems/ipc/bank-accounts-and-charging.md), and [suspension/abort](../subsystems/runtime/suspension-stop-and-abort.md). The dispositions below retain the historical baseline; they are not claims that these mechanisms are still undocumented. Further work includes port-set waitq internals, namespace growth, remaining platform bootstrap/MTE and power-policy paths. x86 and KDP are excluded from current expansion scope.
+
 [Complete audit](../coverage-audit.md) · [Guide index](../README.md)
 
 This is a documentation-scope audit of **all 34 baseline Markdown chapters** in runtime (12), IPC (10), and platform (12), followed by bounded verification of the source paths that support the recommendations below. It identifies work to do; it does not itself expand the technical chapters, assert that every source file was audited, or report kernel execution. Chapter structure, explanatory depth, reading routes, and stated limits were considered together: a citation alone does not count as coverage.

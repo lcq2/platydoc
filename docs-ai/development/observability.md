@@ -4,6 +4,8 @@
 
 These mechanisms answer different questions. An event trace records selected transitions over time; a performance sample captures selected state at a trigger; an accounting counter accumulates usage; a stackshot captures structured task/thread state; a debugger inspects a live or saved kernel image. Confusing these roles leads to incorrect conclusions about missing events or apparently inconsistent totals.
 
+For detailed artifact lifetimes, continue with [stackshot capture and kcdata](stackshot-and-kcdata.md), [corpses and process core files](corpses-and-process-core-dumps.md), and [ARM64 panic coordination and records](panic-coordination-and-records.md). These trace admission, storage, collection, publication, partial failure and cleanup; KDP protocol and kernel-core transport are outside this expansion.
+
 ## Map the question to the mechanism
 
 | Question | Mechanism | Source entry |
@@ -115,7 +117,7 @@ Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehos
 
 ## Sources inspected and limits
 
-The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. DTrace, logging, panic/core dumps, and sanitizer backends were surveyed as navigation boundaries, not reviewed end to end. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
+The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. The companion chapters now expand selected stackshot, corpse, process-core and ARM64 panic mechanisms. DTrace, general logging and sanitizer backends remain chiefly navigation boundaries. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

@@ -82,18 +82,18 @@ The first attempt increments `ln_asked`, sets expiry from the interface retransm
 sequenceDiagram
     participant IP as IPv6 output
     participant ND as Neighbor record
-    participant Link as Interface and peer
+    participant Peer as Interface and peer
     participant T as ND timer service
     IP->>ND: Packet list with referenced route
     alt Link-layer address usable
-        ND->>Link: dlil_output transfers packets
+        ND->>Peer: dlil_output transfers packets
     else Address unresolved
         ND->>ND: Free old held list and retain new list
-        ND->>Link: Neighbor solicitation
+        ND->>Peer: Neighbor solicitation
         ND->>T: Schedule expiry and retry
-        Link->>ND: Valid neighbor advertisement
+        Peer->>ND: Valid neighbor advertisement
         ND->>ND: Detach held list and update state
-        ND->>Link: Resubmit held packets through nd6_output
+        ND->>Peer: Resubmit held packets through nd6_output
     end
 ```
 

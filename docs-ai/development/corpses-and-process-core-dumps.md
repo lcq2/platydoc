@@ -54,18 +54,20 @@ The admission-reference transfer prevents successful creation and failure cleanu
 ```
 
 ```mermaid
-flowchart LR
+flowchart TD
     S["Source task and referenced BSD proc"] --> D["Duplicate map and thread state"]
     G["Admission slot"] --> C["corpse_info kcdata descriptor"]
     D --> T["Corpse task"]
     C --> T
     T --> L["Corpse list"]
-    T --> P["Task inspection port with no-senders request"]
+    T --> P["Task control capability with no-senders handling"]
     P --> R["External crash inspection"]
-    R -->|rights released| N["No-senders cleanup and task release"]
+    R -->|last send right released| N["Generation-checked no-senders cleanup"]
 ```
 
-The no-senders conversion lives in [`convert_corpse_to_port_and_nsrequest`](../../xnu/osfmk/kern/ipc_tt.c#L3644). It is the connection between Mach-right lifetime and the task resource. The rights/notification framework is explained in [port lifetime](../subsystems/ipc/ports-and-rights-lifecycle.md).
+`convert_corpse_to_port_and_nsrequest()` uses the corpse's task **control** port, makes its send right under `itk_lock`, and consumes the caller's task reference. The type registers `task_port_no_senders` as its kobject callback; the helper's historical name does not mean its current body installs an ordinary userspace notification port. [Conversion](../../xnu/osfmk/kern/ipc_tt.c#L3644-L3657), [kobject operation registration](../../xnu/osfmk/kern/task.c#L244-L247).
+
+No-senders processing must revalidate the make-send generation. The callback first checks the port/object and retains the corpse task, then acquires `itk_lock` and the port lock for the decisive second check. A task-identity-token operation may have minted another send right meanwhile. Only if the generation is still current does it disable the kobject, remove the corpse from its list, clear corpse state/source-map bookkeeping and terminate the task. Releasing one observer's right is therefore insufficient when other rights remain, and a stale queued no-senders event must not destroy a revived capability generation. [Callback and race handling](../../xnu/osfmk/kern/task.c#L2618-L2683), [generation predicate](../../xnu/osfmk/kern/ipc_kobject.c#L984-L999), [port lifetime](../subsystems/ipc/ports-and-rights-lifecycle.md).
 
 On construction failure, the routine releases its process and label references, frees still-unadopted task storage, terminates/waits for any partially created threads, clears corpse state, terminates/releases the task, returns any still-owned admission slot, and frees the temporary user-data buffer. Merely jumping to the error label is not sufficient: cleanup depends on which ownership transfers already happened. [`failure unwind`](../../xnu/osfmk/corpses/corpse.c#L813-L855).
 
@@ -81,7 +83,7 @@ This distinction matters when interpreting a report: a backtrace notification is
 
 [`coredump`](../../xnu/bsd/kern/kern_core.c#L376-L428) explicitly obtains `vfs_context_current()`, `current_map()` and `current_task()`. Its `core_proc` argument must be understood with those assumptions; it is not a general API for dumping an arbitrary task solely by passing another `proc_t`.
 
-After the eligibility check, it chooses the data-model-dependent Mach-O sizes, selects the output naming policy, checks the map size against `RLIMIT_CORE` unless the internal ignore flag is set, and suspends the task. MTE-enabled capture has an explicit tag-checking adjustment before reading process memory. [`limits and suspension`](../../xnu/bsd/kern/kern_core.c#L461-L492).
+After the eligibility check, it chooses the data-model-dependent Mach-O sizes, selects the output naming policy, checks the map size against `RLIMIT_CORE` unless the internal ignore flag is set, and requests task suspension. This call explicitly discards `task_suspend_internal()`'s return value; the description should not turn that invocation into a separately checked successful barrier. MTE-enabled capture has an explicit tag-checking adjustment before reading process memory. [`limits and suspension`](../../xnu/bsd/kern/kern_core.c#L461-L492).
 
 It opens the destination with no-follow semantics and checks that it is a regular file with one link. It prepares file attributes, considers free-space reserve, calculates header/command sizes with overflow checks, and allocates a kernel header buffer. A driver task can use different naming and IOKit-memory inclusion rules. [`file creation and layout sizing`](../../xnu/bsd/kern/kern_core.c#L494-L606).
 
@@ -93,7 +95,7 @@ The writer recursively walks submaps with `mach_vm_region_recurse`. For each lea
 
 The transfer uses `vn_rdwr_64` with `UIO_USERSPACE64` for a 64-bit source process. The source address is still a process virtual address; `foffset` is a file byte offset. The VFS/uio path performs the actual read from user memory while writing file data. [`segment transfer`](../../xnu/bsd/kern/kern_core.c#L706-L733):
 
-<!-- source-excerpt: ../../xnu/bsd/kern/kern_core.c#L706-L722 -->
+<!-- source-excerpt: ../../xnu/bsd/kern/kern_core.c#L706-L734 -->
 ```c
 		if (fsize) {
 			int64_t resid = 0;
@@ -112,6 +114,18 @@ The transfer uses `vn_rdwr_64` with `UIO_USERSPACE64` for a 64-bit source proces
 				COREDUMPLOG("failed to write segment %llx->%llx: error %d", vmoffset, vmoffset + vmsize, error);
 			} else if (resid) {
 				/*
+				 * Partial write. Extend the file size so
+				 * that the segment command contains a valid
+				 * range of offsets, possibly creating a hole.
+				 */
+				VATTR_INIT(vap);
+				VATTR_SET(vap, va_data_size, foffset + fsize);
+				vnode_setattr(vp, vap, ctx);
+				COREDUMPLOG("partially wrote segment %llx->%llx, resid %lld", vmoffset, vmoffset + vmsize, resid);
+			}
+		} else {
+			COREDUMPLOG("skipping unreadable segment %llx->%llx", vmoffset, vmoffset + vmsize);
+		}
 ```
 
 On a write error, the segment's file size is marked zero. A residual byte count without an error can cause the file to be extended so the segment's declared range remains within the file, potentially with a hole. Later writes and the final header affect the returned error: do not infer that a successful final return proves every mapped byte was captured.

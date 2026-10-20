@@ -64,6 +64,8 @@ These wrappers are dispatch mechanisms. They do not contain the full sandbox, AM
 
 ## Task rights require acquisition and conversion checks
 
+The [task and thread capabilities](task-and-thread-capabilities.md) companion follows acquisition, flavor checks, MIG conversion, lazy port creation, reset/no-senders and identity tokens in detail. [Suspension and abort](../runtime/suspension-stop-and-abort.md) explains the separate stop counters and suspension tokens used after obtaining the required access.
+
 [`task_for_pid()`](../../../xnu/bsd/kern/kern_proc.c#L5865) rejects PID zero, resolves its supplied task port and target process, performs POSIX checks, references the task, and drops the process reference before possible upcalls. It requires active task IPC before asking MAC policy about the target. For selected non-root foreign-task requests it consults the task-access server. Only then does it convert the referenced task to a port and copy out a send right, with a corpse check and cleanup paths.
 
 The [`POSIX helper`](../../../xnu/bsd/kern/kern_proc.c#L5772) includes UID/group relationships, `P_SUGID`, self/root cases, and a specific debuggable-driver exception. Passing that helper is one stage, not a guarantee of a task-control right.

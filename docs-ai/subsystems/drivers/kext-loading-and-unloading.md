@@ -85,14 +85,10 @@ When the module is present, `load` checks exclusion policy, loadability, global 
 
 `resolveDependencies` reads `OSBundleLibraries`, locates module objects by bundle identifier and checks the requested version against each provider. It maintains a traversal stack so a dependency cycle is detected before recursive load. It also distinguishes kernel/KPI dependency categories and flushes prior unresolved dependency state before rebuilding it. [`resolution`](../../../xnu/libkern/c++/OSKext.cpp#L9487-L9660).
 
-The cycle test is concrete. [`loop detection`](../../../xnu/libkern/c++/OSKext.cpp#L9516-L9528):
+The cycle test is concrete. [`loop detection`](../../../xnu/libkern/c++/OSKext.cpp#L9520-L9527):
 
-<!-- source-excerpt: ../../../xnu/libkern/c++/OSKext.cpp#L9516-L9528 -->
+<!-- source-excerpt: ../../../xnu/libkern/c++/OSKext.cpp#L9520-L9527 -->
 ```cpp
-
-	/* Check for loops in the dependency graph.
-	 */
-	if (loopStack) {
 		if (loopStack->getNextIndexOfObject(this, 0) != (unsigned int)-1) {
 			OSKextLog(this,
 			    kOSKextLogErrorLevel |
@@ -101,7 +97,6 @@ The cycle test is concrete. [`loop detection`](../../../xnu/libkern/c++/OSKext.c
 			    getIdentifierCString());
 			goto finish;
 		}
-	} else {
 ```
 
 After resolution, `load` recursively loads dependencies, adjusting exclusion options for the requested module versus its dependencies. Failure to load one dependency invokes its removal path and returns dependency-load failure. Previously loaded shared dependencies can still exist; this is not one atomic graph transaction that rolls every module back to its original state. [`recursive loading`](../../../xnu/libkern/c++/OSKext.cpp#L6679-L6732).

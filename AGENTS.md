@@ -4,7 +4,7 @@ Platydoc owns the source-based technical handbook in `docs-ai/`, its tools and g
 
 The reader is technically capable but may be new to XNU. Explain how concrete operations work, which objects hold state, what decisions change execution, and how subsystems interact. Favor exact structures, fields, function bodies, small source excerpts and useful diagrams over terminology without explanation.
 
-The user's requested scope controls the work. For documentation tasks, treat kernel source as evidence; do not change kernel implementation to make an explanation or check pass. Preserve unrelated user edits. A Markdown-only request does not require an HTML rebuild. A request to update the complete book includes regenerating and validating its HTML.
+The user's requested scope controls the work. For documentation tasks, treat kernel source as evidence; do not change kernel implementation to make an explanation or check pass. Preserve unrelated user edits. Routine documentation expansion and correction are Markdown-only: do not rebuild HTML unless the user explicitly requests generation. The user will rebuild the book as needed and request inspection of that output. Continue regenerating Markdown navigation and validating links, exact excerpts, licenses and standalone SVG diagrams without running the HTML build.
 
 ## 1. Orient before editing
 
@@ -144,7 +144,7 @@ For an explanation correction or expansion:
 4. If the affected page is generated, edit its authored inputs or generator instead, then regenerate that output.
 5. Regenerate navigation and run the Markdown/source checks.
 6. Update current coverage/backlog records when the reviewed scope changed. Preserve historical counts as historical.
-7. For a full-book update, rebuild HTML and inspect the changed reading route, diagrams and source previews.
+7. When the user explicitly requests HTML generation, rebuild and inspect the changed reading route, diagrams and source previews. When the user supplies an already rebuilt book, inspect that output without regenerating it.
 
 From the Platydoc project root (the directory containing `make_docs.py`):
 

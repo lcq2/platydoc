@@ -76,9 +76,9 @@ Sources: [shared-region pager creation/setup](../../../xnu/osfmk/vm/vm_shared_re
 
 `vm_map_with_linking()` checks that the selected mapping is backed by the supplied file and a suitable snapshot/copy relationship. It rejects submaps, absent objects, inappropriate maximum protections, the wrong file and unsupported extra shadows. After pager creation, ownership of `*link_info` moves to the pager and the caller pointer is nulled. Each range is overwritten with a copy-on-write mapping of that pager. A later mapping failure does not undo earlier mapped ranges: the source explicitly relies on the caller's process-fatal failure policy. [Validation](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1629-L1772), [mapping/ownership and cleanup](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1774-L1841).
 
-[Source: `osfmk/vm/vm_dyld_pager.c`, lines 1775–1785](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1775-L1785).
+[Source: `osfmk/vm/vm_dyld_pager.c`, lines 1775–1781](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1775-L1781).
 
-<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_dyld_pager.c#L1775-L1785 -->
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_dyld_pager.c#L1775-L1781 -->
 ```c
 	/* create a pager, backed by the latest snapshot (copy object) of the file */
 	pager = dyld_pager_setup(task, backing_object, regions, region_cnt, *link_info, link_info_size);
@@ -87,10 +87,6 @@ Sources: [shared-region pager creation/setup](../../../xnu/osfmk/vm/vm_shared_re
 		goto done;
 	}
 	*link_info = NULL; /* ownership of this pointer was given to pager */
-
-	for (r = 0; r < region_cnt; ++r) {
-		vm_map_kernel_flags_t vmk_flags = {
-			.vmf_fixed = true,
 ```
 
 ## One fault transforms a destination page
@@ -113,12 +109,10 @@ The destination physical page comes from UPL page information; the source page c
 
 The code validates source bytes when their object is code-signed and copies validated/tainted/NX masks into the destination's UPL metadata. It then drops the source object's lock while retaining busy and paging protection, copies a page, computes the user VA from the matching range, and invokes fixup. That is provenance-preserving transformation, not a new digest comparison of changed destination bytes against the original file. [Transformation](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1135-L1199), [signature guide](../security/page-signature-validation.md).
 
-[Source: `osfmk/vm/vm_dyld_pager.c`, lines 1147–1167](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1147-L1167).
+[Source: `osfmk/vm/vm_dyld_pager.c`, lines 1149–1165](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1149-L1165).
 
-<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_dyld_pager.c#L1147-L1167 -->
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_dyld_pager.c#L1149-L1165 -->
 ```c
-		UPL_SET_CS_NX(upl_pl, cur_offset / PAGE_SIZE, src_page->vmp_cs_nx);
-
 		/*
 		 * The page provider might access a mapped file, so let's
 		 * release the object lock for the source page to avoid a
@@ -136,8 +130,6 @@ The code validates source bytes when their object is code-signed and copies vali
 		 * into the destination page.
 		 */
 		bcopy((const char *)src_vaddr, (char *)dst_vaddr, PAGE_SIZE);
-
-		/*
 ```
 
 Afterward it reacquires the source object lock, clears busy/wakes waiters, ends paging and releases any top-page fault placeholder. Common cleanup marks provider-generated pages clean, aborts the UPL on failure or commits it with validation/written-by-kernel flags on success, deallocates the UPL and drops the backing-object reference. Clean here means reproducible by this pager, not byte-identical to the original vnode file. [Source cleanup](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1198-L1222), [UPL cleanup](../../../xnu/osfmk/vm/vm_dyld_pager.c#L1223-L1257).

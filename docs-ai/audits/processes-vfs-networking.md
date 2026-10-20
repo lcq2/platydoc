@@ -1,5 +1,7 @@
 # Coverage audit: processes, VFS, networking, and the full Skywalk surface
 
+**Current follow-up status.** The [first-release record](first-release-expansion.md) links the new network, local-IPC/TTY and VFS metadata explanations. Its [follow-up](first-release-expansion.md#10-audit-priority-follow-up) expands descriptors in place and adds Skywalk controller/provider and channel-readiness companions alongside memory and packet-pool coverage. The two-chapter Skywalk count and other dispositions below are historical; the full 13-track program remains partial, especially netif scheduling, deeper flowswitch algorithms and remaining provider combinations.
+
 [Coverage audit](../coverage-audit.md) · [Coverage and verification](../coverage.md) · [Earlier expansion record](../expansion-audit.md)
 
 This is an expansion backlog for the checked-out XNU source, not a new implementation guide. It inventories **all 34 Markdown files** in the three assigned directories: 10 process chapters, 15 VFS chapters, and 9 networking chapters, including their READMEs. It compares the explanations already present with selected source bodies, interfaces, configuration switches, and local tests. No technical chapter or kernel source was changed for this audit.

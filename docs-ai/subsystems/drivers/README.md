@@ -47,6 +47,7 @@ The arrows show ownership or call relationships, not a boot sequence. Three grap
 6. Read [memory and DMA](memory-and-dma.md), [descriptors and CPU mappings](memory-descriptors-and-cpu-mappings.md), and [DMA preparation and mapping](dma-preparation-and-mapping.md). CPU virtual, physical and device-visible addresses have different owners and lifetimes.
 7. Follow [device power transitions](device-power-state-machine.md) into [system sleep and wake](system-sleep-and-wake.md), then [hibernation creation](../platform/hibernation-image-creation.md) and [restore](../platform/hibernation-restore.md).
 8. Read [reporting and performance control](reporting-and-performance-control.md) for report channels, state residency, sample consistency and device-work attribution.
+9. Follow [kernel collections and OSKext loading](kext-loading-and-unloading.md), [serialization and property transport](serialization-and-property-transport.md), and [NVRAM variables and persistence](nvram-variables-and-persistence.md) for executable dependencies, module start/unload, parser ownership, receiver policy, and V3/CHRP bank updates.
 
 The focused implementation chapters extend those introductions:
 
@@ -68,6 +69,9 @@ The focused implementation chapters extend those introductions:
 | Are shared queues lossless, and what does a Mach notification acknowledge? | [Shared queues and notifications](shared-data-queues-and-notifications.md) contrasts full-queue failure, overwrite detection, memory publication and completion messages. |
 | How does a published device become BSD's root device? | [Bootstrap and BSD integration](bootstrap-and-bsd-integration.md) follows readiness resources, matching completion, media identity and VFS handoff. |
 | What does a report sample capture, and how does device work retain its submitter? | [Reporting and performance control](reporting-and-performance-control.md) follows reporter buffer swaps, sample copying, state/histogram updates, work tokens and thread-group/coalition references. |
+| How does a boot collection become started driver code, and when can it unload? | [Kernel collections and module lifetime](kext-loading-and-unloading.md) follows metadata ingestion, dependencies, C++ initialization, start, matching and teardown. |
+| How do serialized bytes become authorized property operations? | [Serialization and property transport](serialization-and-property-transport.md) follows all three parser families, graph ownership, binary formats and registry dispatch. |
+| When does an NVRAM property update reach persistent storage? | [NVRAM variables and persistence](nvram-variables-and-persistence.md) follows namespace/permission checks, staged updates, raw/block sync, bank reclaim and controller boundaries. |
 
 For surrounding machinery, use [Mach IPC](../ipc/README.md), [kernel execution and locking](../runtime/README.md), [VM](../vm/README.md), and [VFS/storage](../vfs/README.md). [Platform code](../platform/README.md) owns processor startup and the low-level sleep boundary; [security](../security/README.md) explains the authorization mechanisms called from IOKit.
 

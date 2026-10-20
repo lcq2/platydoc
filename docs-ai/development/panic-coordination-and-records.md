@@ -35,7 +35,7 @@ Some names in this shared machinery contain “debugger”; the same coordinator
 
 ## 2. Two ownership decisions protect the panic path
 
-On an SPTM build, [`debug_fatal_panic_begin`](../../xnu/osfmk/kern/debug.c#L2551-L2579) asks SPTM to begin panic lockdown and obtains the panicking CPU identity. A different CPU enters the stop path rather than competing to produce a second independent panic. Security-critical entry paths can have begun lockdown before this best-effort call; this helper alone is not the complete protected-execution enforcement story.
+On an SPTM build, [`debug_fatal_panic_begin`](../../xnu/osfmk/kern/debug.c#L2551-L2579) asks SPTM to begin panic lockdown and queries the panicking CPU identity. If the query succeeds and identifies another CPU, the current CPU enters the stop path rather than competing to produce a second independent panic. A failed identity query does not itself reject this CPU: the helper returns true. Security-critical entry paths can have begun lockdown before this best-effort call; this helper alone is not the complete protected-execution enforcement story.
 
 The common coordinator also uses an atomic `debugger_cpu` owner. Reentry by that CPU is recognized; another CPU cannot simply take the shared diagnostics state. `handle_debugger_trap` returns early if it loses this acquisition, allowing the caller's panic stop behavior to take over. It then coordinates the other CPUs before manipulating global panic state. [`owner acquisition/release`](../../xnu/osfmk/kern/debug.c#L611-L652), [`coordinator entry`](../../xnu/osfmk/kern/debug.c#L1715-L1750).
 
@@ -43,9 +43,10 @@ The first panic message is retained rather than overwritten by a later nested en
 
 ```mermaid
 flowchart TD
-    P["panic or fatal exception context"] --> O["Per-CPU state and nesting"]
+    P["panic or fatal exception context"] --> O["Nesting, platform preparation and interrupts off"]
     O --> S["SPTM panic ownership when configured"]
-    S --> D["Acquire common coordinator ownership"]
+    S --> T["Save per-CPU operation and enter handler"]
+    T --> D["Acquire common coordinator ownership"]
     D --> H["Signal and synchronize other CPUs"]
     H --> F["Preserve first panic and set header"]
     F --> L["Text, saved state and panic stackshot"]
@@ -54,7 +55,7 @@ flowchart TD
     C --> R["Platform restart or terminal stop policy"]
 ```
 
-This is the successful diagnostic route. Early-boot and nested-failure branches can stop before all records are written.
+This is the successful `panic_trap_to_debugger` route: its initial SPTM check precedes `DebuggerSaveState`/`DebuggerTrapWithState`. The handler repeats the SPTM check in its fatal-operation branch before collection. Early-boot and nested-failure branches can stop before all records are written. [`entry ordering`](../../xnu/osfmk/kern/debug.c#L1316-L1362), [`fatal handler check`](../../xnu/osfmk/kern/debug.c#L1807-L1820).
 
 ## 3. CPU synchronization has acknowledgments, timeouts and fallback
 
@@ -62,7 +63,7 @@ On ARM64, `DebuggerHaltOtherCores` calls [`DebuggerXCallEnter`](../../xnu/osfmk/
 
 The waiting loop uses a deadline and accounts for CPUs already stopped in the panic path. It can inspect SPTM panic-spin state and copy saved registers when the configured backend provides that facility. If ordinary signaling is insufficient, the fallback attempts hardware debug-wrapper halt and state collection, recording failures. A requested strict synchronization path can itself panic on failure; tolerant fatal diagnostics can continue with imperfect state. [`deadline and acknowledgment`](../../xnu/osfmk/arm/model_dep.c#L1156-L1182), [`SPTM/fallback`](../../xnu/osfmk/arm/model_dep.c#L1216-L1295).
 
-Consequently, a panic log may explicitly say a CPU did not yield usable state. It is misleading to interpret every panic capture as a perfect simultaneous snapshot of all cores. The return-side `DebuggerXCallReturn` releases the shared stop condition and tracks responders for operations that may resume, such as ordinary stackshot. [`return coordination`](../../xnu/osfmk/arm/model_dep.c#L1306-L1362).
+Consequently, a panic log may explicitly say a CPU did not yield usable state. It is misleading to interpret every panic capture as a perfect simultaneous snapshot of all cores. The return-side `DebuggerXCallReturn` releases the shared stop condition and tracks responders for operations that may resume, such as ordinary stackshot. Its wait differs from entry: a zero `debug_ack_timeout` permits an unbounded wait; only a nonzero value supplies the return deadline and timeout panic. The entry-side fallback deadline must not be assumed to cover return as well. [`return coordination`](../../xnu/osfmk/arm/model_dep.c#L1306-L1362).
 
 ## 4. The panic region is a bounded record with offsets and a checksum
 

@@ -103,6 +103,8 @@ Receive similarly separates packet acceptance from readable bytes. In-order payl
 
 ## Timers own references and must revalidate after locking
 
+The [Internet PCB companion](internet-pcbs-ports-and-lifetime.md) explains the underlying wanted-count CAS/sentinel protocol, tuple lookup and GC gates. This section follows its use by TCP timer work.
+
 The current implementation does not merely run a periodic timer callback against every PCB without lifetime protection. `tcp_sched_timers()` records each connection's earliest timer in a shared list and adds a socket use reference when inserting a new entry:
 
 [A timer-list entry keeps its socket alive](../../../xnu/bsd/netinet/tcp_timer.c#L2338)

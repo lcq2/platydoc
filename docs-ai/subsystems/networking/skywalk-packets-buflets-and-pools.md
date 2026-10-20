@@ -19,7 +19,7 @@ A Skywalk packet handle is not a payload address. It identifies metadata whose b
 A buflet's data begins at `buf_addr + buf_doff` and spans `buf_dlen` bytes, subject to its validated limit. For kernel shared buffers, `buf_addr` can identify a span within the underlying object, whose beginning is `buf_ctl->bc_addr`. Distinct buflets can refer to the same buffer with separate use references. The user-facing internalization path in this version explicitly asserts the simpler nonshared buffer relationship; kernel sharing support is not permission to submit arbitrary shared spans from userspace.
 
 ```mermaid
-flowchart LR
+flowchart TD
     H[Kernel packet handle] --> K[Kernel packet metadata]
     K -->|qum_user| U[Separate user metadata mirror]
     K --> B[Kernel buflet chain]
@@ -162,13 +162,17 @@ Shared use affects destruction. [`pp_metadata_destruct_common()`](../../../xnu/b
 
 [`pp_free_packet_array()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L2399) verifies pool identity for every entry, finalizes packets, clears caller array slots, batch-frees metadata/buflets and then frees accumulated attached mbuf or packet chains. Attached packets can come from other pools, so their cleanup groups runs by owning pool. Freeing the visible wrapper can therefore release storage in another representation; treating it as “just free this descriptor” misses ownership.
 
+The user FREE path validates ring indices and removes packet/buflet allocation ownership, but it does not run the TX metadata internalization and datapath. The [free-ring implementation](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L3497-L3541) clears finalized state, detaches the user slot, collects successfully reclaimed packets and batch-frees them. An invalid later slot can leave earlier frees completed. The distinction matters when following the two branches below.
+
 ```mermaid
 flowchart TD
     A[Constructed metadata allocation] --> U[Outstanding user hash and exported metadata]
-    U --> T[TX or FREE removes packet and buflet indices]
-    T --> V[Validate and internalize]
+    U -->|TX| T[Remove packet and buflet ownership indices]
+    T --> V[Validate and internalize for transmission]
     V --> K[Kernel slot and datapath ownership]
     K --> F[Detach from queue or slot before finalization]
+    U -->|FREE| R[Remove ownership indices and detach user slot]
+    R --> F
     F --> M[Return metadata to cache]
     F --> B[Release or cache buflets according to shared use]
     F --> X[Free attached mbuf or packet chains]

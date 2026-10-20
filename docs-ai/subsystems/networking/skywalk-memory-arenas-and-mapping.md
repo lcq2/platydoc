@@ -155,11 +155,12 @@ Only after every current mapper is redirected does the arena clear `ARF_ACTIVE` 
 ```mermaid
 flowchart TD
     A[Active arena and task mappings] -->|redirect one mapper| R[That mapper uses anonymous replacement backing]
-    R -->|other active mappings remain| A
-    R -->|all remaining mappings redirected| I[Inactive arena]
+    R --> C{Active mappings remain?}
+    C -->|yes| W[Arena stays active for those mappings]
+    C -->|no| I[Inactive arena]
+    W -->|redirect or unmap final active mapper| I
     I -->|purge eligible caches and regions| D[Defunct arena]
     D -->|close releases mapper and references| F[Final arena destruction when references drain]
-    A -->|last active mapper unmaps while redirected peers remain| I
 ```
 
 [`skmem_arena_munmap_common()`](../../../xnu/bsd/skywalk/mem/skmem_arena.c#L1555) destroys the mapper, updates map/redirect counts, removes mapping-list membership and releases its arena reference. It requires the caller to hold an additional arena reference while doing this. The channel-specific wrapper invokes domain-provider defunct finalization when unmap makes deferred teardown possible. [`IOSKMapper::free()`](../../../xnu/iokit/bsddev/skywalk/IOSkywalkSupport.cpp#L576) finally releases submaps/arena retention and deallocates its reserved task range.
