@@ -1,0 +1,63 @@
+name: Publish Platydoc
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmark-gfm graphviz
+          python -m pip install -r docs-ai/tools/book/requirements.txt
+
+      - uses: actions/configure-pages@v5
+
+      - name: Test and build the handbook
+        env:
+          DOCS_DIAGRAM_RENDERER: parsed-svg
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python -B -m unittest discover -s docs-ai/tools/book/tests -v
+          node docs-ai/tools/book/tests/assets.test.mjs
+          python make_docs.py
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs-ai-html
+
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v4
