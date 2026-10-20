@@ -10,6 +10,8 @@ For packet transformations, continue with [fragment reassembly and passive flow 
 
 ## Objects and the userspace boundary
 
+For inspection and failure evidence across these paths, use [Skywalk diagnostics, configuration and tests](skywalk-diagnostics-configuration-and-tests.md). It traces counter ownership and sysctl snapshots, distinguishes observation from control, and maps selected local tests to the operations they actually exercise.
+
 For the storage below these objects, read [packets, buflets and pools](skywalk-packets-buflets-and-pools.md) and [memory arenas and task mappings](skywalk-memory-arenas-and-mapping.md). They explain separate user/kernel metadata, allocator backing, validation, mapping permissions and revocation.
 
 Skywalk provides packet-oriented channels backed by rings and mapped memory, with nexus providers implementing different connections. It is not one replacement `tcp_output()` routine. Netif, flowswitch, user-pipe, and kernel-pipe nexus types have different operations and peers. `SKYWALK` and `CONFIG_NEXUS_*` options are declared in [`config/MASTER`](../../../xnu/config/MASTER#L85); provider registration and interface capabilities impose further runtime requirements.

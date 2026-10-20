@@ -74,11 +74,15 @@ For a violation, [`vm_fault_cs_handle_violation()`](../../../xnu/osfmk/vm/vm_fau
 
 ## Trust caches and external policy
 
+The [trust-cache control companion](trust-cache-control.md) expands this route through typed admission, payload ownership, runtime locking, queries, backend selection and unload. It distinguishes locally visible checks from the imported TrustCache and Image4 policy implementations.
+
 [`load_trust_cache_with_type()`](../../../xnu/bsd/kern/kern_trustcache.c#L893) validates pointer/length combinations and cache type, extracts Image4 components when necessary, checks type-specific entitlement requirements and execution-mode constraints, then chooses a backend: TXM for `CONFIG_SPTM`, PPL for its monitor configuration, or the ordinary XNU implementation. The ordinary query path [`xnu_query_trust_cache()`](../../../xnu/bsd/kern/kern_trustcache.c#L731) holds the runtime read lock around `amfi->TrustCache.query`; loading takes exclusive protection. A cache lookup is a separate input to trust decisions, not a replacement for checking file pages.
 
 The repository defines [`amfi_t` and entitlement/trust-cache interfaces](../../../xnu/libkern/libkern/amfi/amfi.h), and [`amfi_interface_register()`](../../../xnu/libkern/amfi/amfi.c#L9) installs a provider once. [`coretrust_t`](../../../xnu/libkern/libkern/coretrust/coretrust.h) exposes certificate/CMS/provisioning-related operations and [`coretrust_interface_register()`](../../../xnu/libkern/coretrust/coretrust.c#L12) similarly registers its provider. Their complete policy and cryptographic implementations are not supplied by these registration functions. `mac_vnode_check_signature()` is the policy callout, with structured fatal-error reporting; reading that wrapper cannot establish the entire AMFI decision.
 
 ## CSR/SIP is boot-derived configuration consumed by checks
+
+The [process-control and CSR companion](code-signing-process-controls.md) traces `csops`/`csops_audittoken`, command-specific identity, authorization, output and mutation, then follows ARM64 CSR initialization and concrete consumers. These controls act on process or boot policy; they do not replace signature attachment and page validation.
 
 [`kern_csr.c`](../../../xnu/bsd/kern/kern_csr.c) has distinct Device Tree and legacy boot-argument implementations. With `CONFIG_CSR_FROM_DT`, early `csr_bootstrap()` starts from restrictive configuration, reads local policy properties, and derives selected environment-dependent flags before normal VM initialization. The legacy branch reads boot-argument state. `csr_get_active_config()` masks valid bits; `csr_check(mask)` evaluates the requested allowance bits with branch-specific rules.
 

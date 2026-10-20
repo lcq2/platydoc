@@ -63,6 +63,8 @@ Sources: [`sync`](../../../xnu/bsd/skywalk/channel/channel_syscalls.c#L356), [`g
 
 The user `os_channel_sync()` wrapper exposes TX/RX requests and supplies appropriate pool flags; the kernel also handles its internal user-pool synchronization mode. Ring progress is described in [sync ownership and partial progress](skywalk-lifecycles.md#sync-is-a-validated-ownership-protocol), including why one syscall can return an error after earlier rings changed ownership.
 
+The [diagnostics companion](skywalk-diagnostics-configuration-and-tests.md) connects these operations to ring counters, channel inspection, descriptor guards, invalid-ring termination requests and selected regression tests. A returned sync error, a guard exception and a process abort request are different observable outcomes.
+
 ## Channel thresholds and knote thresholds are different layers
 
 `ch_ev_thresh_validate()` accepts byte or slot units and normalizes a channel threshold into a nonzero bounded value. The maximum is based on one ring's usable slots (`slots - 1`), or that slot count times provider buffer size for byte units. `ch_set_lowat_thresh()` copies and validates the requested structure, updates the channel threshold under `ch_lock`, and wakes the corresponding selected rings when it changes. Its final `sooptcopyout()` return is ignored after the state update. [`Threshold validation`](../../../xnu/bsd/skywalk/channel/channel.c#L1875-L1936), [`option update and notification`](../../../xnu/bsd/skywalk/channel/channel.c#L2368-L2437).

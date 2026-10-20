@@ -389,6 +389,8 @@ The signature stores an association with a kernel `OSEntitlements` object throug
 
 ### Trust caches: payload retention differs from manifest retention
 
+The [trust-cache control companion](trust-cache-control.md) follows the common admission path before this backend, compares ordinary/PPL/TXM payload and query handling, and explains load/unload state. The transition and shared-memory mechanisms below remain the TXM-specific reading route.
+
 The common `load_trust_cache_with_type()` validates ranges, extracts payload and manifest when needed, rejects static/engineering/legacy types on this dynamic path, checks the type-specific `com.apple.private.pmap.load-trust-cache` entitlement, restricts repeated boot-cache loads, and refuses loads after restricted execution mode becomes active. These local checks precede the TXM loader; they are not the monitor's trust-validation algorithm. [Common loader and policy](../../../xnu/bsd/kern/kern_trustcache.c#L892-L1000).
 
 The TXM loader allocates separate kernel buffers for payload and manifest, copies them, transfers both, then sends seven inputs to `LoadTrustCache`. The auxiliary-manifest arguments are currently ignored and two zeros are sent in their place. A structured duplicate result becomes `KERN_ALREADY_IN_SET`. On success, the returned word tells XNU whether TXM copied the payload into its own storage. [TXM load operation](../../../xnu/bsd/kern/kern_trustcache.c#L161-L224).

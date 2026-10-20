@@ -6,6 +6,8 @@ A kernel log call can produce formatted bytes in the BSD message buffer, a binar
 
 ## 1. Separate the three outputs and their objects
 
+For timestamped instrumentation events, see [Kdebug storage and readout](kdebug-storage-and-readout.md). Its per-CPU storage units, merge barriers and consuming read cursors have separate ownership and loss rules from the logging destinations below.
+
 `os_log_with_type()` places a constant format in `__TEXT,__os_log`, then calls `_os_log_internal()` with the image handle. `_os_log_internal()` records a timestamp and return address and enters `_os_log_with_args_internal()`. Ordinary `printf()` also calls `os_log_with_args()` before separately formatting to the console. Thus console output, message-buffer output and binary logging can originate at the same call, but are not the same record. [Macro](../../xnu/libkern/os/log.h#L376-L386), [ordinary entry](../../xnu/libkern/os/log.c#L797-L807), [printf fanout](../../xnu/osfmk/kern/printf.c#L875-L906).
 
 | Representation | State and ownership |

@@ -36,6 +36,8 @@ Read `assert_wait*()`, `thread_block_reason()`, and the wakeup-to-runnable path 
 
 Only then read [scheduling.md](subsystems/runtime/scheduling.md). Separate common runnable/block/context-switch machinery from the selected scheduler's choice of thread and CPU. Study one Clutch bucket or one Edge placement decision at a time rather than trying to memorize the entire policy.
 
+For primitive state transitions, follow [reader/writer locks](subsystems/runtime/reader-writer-locks.md) and [ticket and pointer locks](subsystems/runtime/ticket-and-pointer-locks.md). Check the selected RW type, whether a failed upgrade retains any ownership, and whether a ticket has already been reserved. Keep a pointer returned under a lock distinct from a pointer value merely observed by a waiter.
+
 Read [ARM64 thread switching, entry and exit](subsystems/platform/arm64-context-switching.md) to connect that decision to `cswitch.s`. Trace a saved kernel call returning on another stack, a continuation starting on a reset stack, first user entry and the final off-CPU termination/reaping sequence.
 
 Continue with [priority, QoS and quanta](subsystems/runtime/priority-qos-and-quanta.md), [realtime deadlines](subsystems/runtime/realtime-deadlines-and-runqueues.md), and [CPU eligibility and scheduler variants](subsystems/runtime/cpu-eligibility-and-scheduler-variants.md). Work through the numerical priority/deadline examples, then identify which lock protects a queued thread while its priority or eligible CPUs change.
@@ -74,6 +76,8 @@ For caching, compare [vnode identity and authorization caches](subsystems/vfs/vn
 
 For networking policy, follow [NECP rule evaluation](subsystems/networking/necp-policy-evaluation.md) into [client and flow-registration lifetime](subsystems/networking/necp-clients-and-flow-registration.md). Then trace [socket content filtering](subsystems/networking/socket-content-filtering.md), keeping pass permission, peek permission and actual reinjection separate. These byte-offset queues differ from Skywalk netif packet-filter channels.
 
+For TCP, first follow [connection and timer lifetime](subsystems/networking/tcp-connections-and-timers.md), then [loss recovery and congestion control](subsystems/networking/tcp-loss-recovery-and-congestion-control.md). Keep acknowledged stream bytes, SACK delivery evidence and transmission timestamps separate. For a channel transport with different ownership, use [Skywalk user and kernel pipes](subsystems/networking/skywalk-user-and-kernel-pipes.md) after the packet-pool and channel guides: follow one packet attachment through transfer and distinguish an endpoint close from final ring storage release.
+
 ## Pass 6: learn IPC ownership and service boundaries
 
 Use the [IPC guide](subsystems/ipc/README.md) to follow a message from user-space port names through copyin, queueing or direct delivery, receive, and copyout. Track rights and out-of-line memory as well as inline bytes. Inspect the destination's right type and any kernel-object conversion.
@@ -93,6 +97,8 @@ Read [security](subsystems/security/README.md) around an operation you already u
 For identity changes, compare [personas and membership resolution](subsystems/security/personas-and-membership-resolution.md) with [audit-session capabilities](subsystems/security/audit-session-capabilities.md). Explain which fields affect authorization, which identify an audit session, and which references survive process detachment or port-right release.
 
 For code signing, read [signature format](subsystems/security/signature-format-and-blob-validation.md) → [vnode attachment](subsystems/security/vnode-signature-lifecycle.md) → [exec/mapping policy](subsystems/security/executable-signature-policy.md) → [page validation](subsystems/security/page-signature-validation.md). Trace one slice-relative CodeDirectory slot to a file offset and then to a resident VM page. Explain why an accepted blob, `CS_VALID`, a page's validated mask and `csm_associated` do not mean the same thing, and what changes after a cached write, COW, page eviction or vnode reclaim.
+
+Then compare [trust-cache control](subsystems/security/trust-cache-control.md) with [process signing controls and CSR](subsystems/security/code-signing-process-controls.md). Follow one load through admission and payload retention, one `csops` request through PID/version and command-specific gates, and one boot-derived CSR allowance to its consumer. A trusted code identity, process policy and resident-page integrity answer different questions.
 
 For power transitions, follow [device power state selection](subsystems/drivers/device-power-state-machine.md) → [system sleep and wake](subsystems/drivers/system-sleep-and-wake.md) → [hibernation image construction](subsystems/platform/hibernation-image-creation.md) → [image restoration](subsystems/platform/hibernation-restore.md). Compare [x86 sleep/resume](subsystems/platform/x86-sleep-and-resume.md) with [ARM64 CPU lifecycle](subsystems/platform/cpu-power-lifecycle.md). Identify the last context that can use ordinary filesystem I/O, the switch to polled I/O, and the separate point at which normal scheduling and services resume.
 
@@ -144,6 +150,10 @@ rg --files osfmk libsyscall iokit | rg '\.(defs|iig)$'
 Search output is a starting point. Read enough surrounding code to see the preprocessor branch, error labels, and the success/cleanup contracts. For a function pointer, locate both the table definition and its registration; for a macro, read its expansion; for a generated name, inspect the declarative interface and build rule.
 
 ## Use diagnostics and tests to check your model
+
+[Skywalk diagnostics, configuration and tests](subsystems/networking/skywalk-diagnostics-configuration-and-tests.md) connects inspected objects and counters to their exporters and local regression cases. Use its sizing and partial-output examples before treating a successful read as a complete, simultaneous snapshot.
+
+[Kdebug storage and readout](development/kdebug-storage-and-readout.md) follows instrumentation records through reservation, timestamp merging, loss markers and consuming output. Use its two-CPU example to distinguish event time from read order, and its output-failure path to see why an error does not restore already-consumed records.
 
 [Kernel logging](development/kernel-logging-and-firehose.md) follows one record through encoding, live streaming and Firehose retry, then compares those results with msgbuf text. Use its loss/publication examples before treating an absent log as evidence that an operation never ran.
 

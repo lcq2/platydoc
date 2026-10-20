@@ -53,6 +53,8 @@ Each thread receives reusable turnstile storage at creation. `turnstile_prepare_
 
 ## Reader/writer and spinning locks: inspect the actual variant
 
+The [reader/writer lock companion](reader-writer-locks.md) traces both implementations through admission, waiting, upgrade/downgrade and release. [Ticket and pointer locks](ticket-and-pointer-locks.md) follows reservation, preemption, invalidation and pointer/waiter publication, with concrete callers.
+
 This checkout sets `XNU_LCK_RW_DEFAULT_TO_NEW` to **0**. Ordinary internal `lck_rw_t` therefore selects `lck_rw_old_t`; explicit `lck_rw_new_t` and `LCK_RW_NEW_DEFINE` select the newer implementation. Reading only `lock_rw.c` would describe the wrong default. [`lock_rw.h`](../../../xnu/osfmk/kern/lock_rw.h#L40), [`lock_rw.h`, typedef selection](../../../xnu/osfmk/kern/lock_rw.h#L206).
 
 The default implementation uses shared count, exclusive/upgrade intent, waiter flags, and an embedded interlock. Its contended paths spin and, when permitted, register reader/writer waits under that interlock before blocking. The newer implementation documents atomic-add reader fast paths and separate typed reader/writer/upgrader events; it uses the corresponding global wait-queue lock as the interlock for waiter registration. Its comments also analyze lifetime hazards when an unlock permits concurrent lock destruction. [`lock_rw_old.c`](../../../xnu/osfmk/kern/lock_rw_old.c#L70), [`lock_rw_old.c`, writer wait](../../../xnu/osfmk/kern/lock_rw_old.c#L589), [`lock_rw.c`, algorithm](../../../xnu/osfmk/kern/lock_rw.c#L69), [`lck_rw_assert_wait()`](../../../xnu/osfmk/kern/lock_rw.c#L1314).

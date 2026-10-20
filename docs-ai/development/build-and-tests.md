@@ -84,6 +84,8 @@ The unit-test documentation also describes simulated preemption, sanitizers, and
 
 ## Tests as executable explanations
 
+The [Skywalk diagnostics and test companion](../subsystems/networking/skywalk-diagnostics-configuration-and-tests.md) applies this method to channel, packet, flow and provider paths. It maps selected test bodies and injection controls to actual state transitions, alongside the configuration and authority needed to reach their diagnostic exporters.
+
 Use a test to identify the intended observable contract, then trace the implementation. Look for the operation under test, the deliberately invalid input or race, expected return values, and cleanup. Do not infer that every path is covered merely because a test file shares the subsystem's name. A test may be excluded by platform/configuration, require an entitlement, or focus on a historical regression.
 
 Formal models under [tools/tla](../../xnu/tools/tla/) provide another level of explanation. The [TLA README](../../xnu/tools/tla/README.md) explicitly says its reader/writer lock model omits hardware memory ordering and some fast paths. A model can clarify an invariant without being a proof of every implementation detail.

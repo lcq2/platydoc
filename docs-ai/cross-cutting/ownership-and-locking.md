@@ -37,6 +37,8 @@ Mach names are interpreted inside an IPC space; rights and generation informatio
 
 ## Locks often protect fields, not entire objects
 
+For the primitives behind those field contracts, read [reader/writer locks](../subsystems/runtime/reader-writer-locks.md) and [ticket and pointer locks](../subsystems/runtime/ticket-and-pointer-locks.md). They distinguish lock admission and memory ordering from object lifetime, and show why an unsuccessful upgrade or a reserved ticket cannot be treated as an ordinary failed try-lock.
+
 The comment above [`struct vnode`](../../xnu/bsd/sys/vnode_internal.h#L149) assigns different fields to the vnode, vnode-list, mount, name-cache, and buffer locks. Knowing only that “the vnode is locked” is insufficient to justify inspecting every list link.
 
 The [`thread` runqueue contract](../../xnu/osfmk/kern/thread.h#L406) is even more state-dependent: a null runqueue pointer is protected by the thread lock, a non-null pointer by the corresponding runqueue lock, and publication requires both. Clearing has its own rule. Helpers encode these transitions; copying an ordinary pointer assignment from elsewhere can violate the protocol.

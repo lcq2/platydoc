@@ -120,6 +120,8 @@ This check protects bytes the parser already consumed into a kernel buffer. It i
 
 ## 5. Exec publishes process flags and performs final launch checks
 
+For commands that inspect or change a running process's signing state after exec, continue with [code-signing process controls](code-signing-process-controls.md). That chapter separates PID/version identity checks, command authority, process flags, VM enforcement and boot-derived CSR allowances.
+
 The Mach-O activator transfers a selected mask of signature flags into `ip_csflags` only when `load_result.csflags` contains `CS_VALID`; otherwise it clears validity. Parent-requested exec-hard, exec-kill and exec-enforcement flags can add restrictions independently. This is neither a blind copy of all signature fields nor proof that all flags originate inside a CodeDirectory. [Activator transfer](../../../xnu/bsd/kern/kern_exec.c#L2162-L2195).
 
 Later `process_signature()` publishes `ip_csflags` under the process lock. It sets map switch protection for hard/kill policy and sets the map's signing enforcement from `CS_ENFORCEMENT`. It then handles saved MAC activation failure, a fatal signature reason, launch constraints, subsystem-root restrictions and selected platform checks. Only after those gates does `CS_SIGNED` from image activation skip the external-signature/task-access-port route. [Final setup](../../../xnu/bsd/kern/kern_exec.c#L8562-L8682).

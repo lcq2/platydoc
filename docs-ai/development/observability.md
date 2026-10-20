@@ -25,6 +25,8 @@ For log production and delivery, read [kernel logging and Firehose](kernel-loggi
 
 ## ktrace controls; kdebug records
 
+The [Kdebug storage and readout companion](kdebug-storage-and-readout.md) follows record reservation, storage reuse, timestamp merging, loss reporting and partial output through to reset. It distinguishes these trace records from the [formatted/binary logging paths](kernel-logging-and-firehose.md).
+
 The control plane in [kern_ktrace.c](../../xnu/bsd/kern/kern_ktrace.c#L77) manages a mutex, off/foreground/background state, active subsystem mask, and owner identity. It uses a process unique identifier as well as a PID: `ktrace_ownership_maintenance()` checks that a found PID still names the owner instead of trusting a recycled PID. `ktrace_configure()` permits the existing owner, controls foreground/background takeover, and rejects conflicting owners. Access checks are part of this path; development/debug entitlement behavior is guarded separately from the superuser check.
 
 The event path is in [kdebug.c](../../xnu/bsd/kern/kdebug.c#L829). A typical kernel call follows:
@@ -103,6 +105,8 @@ Use symbols and structure definitions matching the image being inspected. The [L
 These are navigation starting points, not commands executed during this review. A debugger can display a pointer even when the object's logical lifetime has ended; interpret it with the subsystem's reference and teardown rules.
 
 ## Sysctl: a typed control tree with handler lifetimes
+
+For concrete networking exporters, see [Skywalk diagnostics, configuration and tests](../subsystems/networking/skywalk-diagnostics-configuration-and-tests.md). It follows snapshot sizing, object protection, user copies and counter ownership rather than assuming that a sysctl read is a single atomic view of the datapath.
 
 Sysctl exposes many subsystem counters and controls through a tree of named/numbered objects. [`sysctl_oid`](../../xnu/bsd/sys/sysctl.h#L269) records the parent/link, number, kind/flags, name, handler, arguments, format, and reference count. `sysctl_req` holds the caller, input/output positions, lengths, and transfer functions; `SYSCTL_IN` and `SYSCTL_OUT` dispatch through those functions. A sysctl is therefore not necessarily a direct read of a global variable: a handler can validate input, calculate a result, or perform a subsystem operation.
 

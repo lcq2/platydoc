@@ -95,6 +95,8 @@ sequenceDiagram
 
 ## Buffered data, acknowledgment, and loss are separate mechanisms
 
+The [loss-recovery and congestion-control companion](tcp-loss-recovery-and-congestion-control.md) develops the algorithms behind this section: cumulative ACK release, SACK-hole maintenance, RACK transmission ordering, retransmission selection and congestion-window changes. Timer registration and connection-reference ownership remain the subject of this chapter.
+
 `tcp_usr_send()` appends stream data to `so_snd`; `tcp_output()` chooses what can be sent from sequence state, advertised window, congestion window, and recovery policy. It builds packet representations while leaving unacknowledged data available in the socket buffer. The packet accepted by IP is therefore not the authoritative copy of TCP's outstanding byte stream. See [`send`](../../../xnu/bsd/netinet/tcp_usrreq.c#L1153) and [`output`](../../../xnu/bsd/netinet/tcp_output.c#L1015).
 
 `snd_una` identifies the oldest unacknowledged sequence, `snd_nxt` the next output position, and `snd_max` the furthest transmitted sequence. ACK handling removes acknowledged data with `sbdrop()`, advances sequence state, updates RTT/recovery information, and makes send capacity available. Duplicate ACK/SACK/RACK paths can diagnose loss without waiting for the retransmission timer; they are not interchangeable with the timer's recovery branch. This chapter inspects the timer dispatch and representative ACK/state transitions, not every congestion algorithm. See [`established ACK path`](../../../xnu/bsd/netinet/tcp_input.c#L3800) and [`general ACK/FIN accounting`](../../../xnu/bsd/netinet/tcp_input.c#L5705).

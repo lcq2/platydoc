@@ -6,6 +6,8 @@ Before a process can use a channel, a domain implementation must exist, a contro
 
 ## The object hierarchy and its two kinds of provider
 
+For concrete implementations of two domains introduced here, continue with [Skywalk user and kernel pipes](skywalk-user-and-kernel-pipes.md). It follows paired user endpoints and their ring/adapter references, then compares the kernel-pipe callback and slot-storage lifetime.
+
 A **domain** defines a nexus type such as netif, flowswitch, user pipe, or kernel pipe. A **domain provider** supplies the implementation for that type. A **registered nexus provider** is a controller-owned registration with checked parameters and, where supported, external callbacks. A **nexus** is an instance created from that registration. A **port** is an entry in that instance's port table; it can hold a binding, an adapter association, or both. A **channel** connects a process or kernel client to selected rings of that adapter.
 
 | Object | Fields that establish the relationship | What it owns or retains |
