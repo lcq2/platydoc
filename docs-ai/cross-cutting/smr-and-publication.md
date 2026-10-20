@@ -232,7 +232,7 @@ This distinction matters if deferred callbacks themselves access a structure bei
 
 Allocator-integrated SMR clients need not enqueue one `smr_call` per free. VFS enables SMR on vnode/name/string zones and uses `zfree_smr`; the zone allocator has its own batching and reuse protocol. See [VFS zone setup](../../xnu/bsd/vfs/vfs_subr.c#L444), [name-cache zones](../../xnu/bsd/vfs/vfs_cache.c#L3115), and [SMR zones](../subsystems/vm/read-only-and-special-zones.md). Avoid replacing that protocol in a diagram with a nonexistent direct callback.
 
-This chapter covers domain entry/leave, publication, grace-period scanning, sleepable-reader transfer, callback batching and barriers. Lockless hash resizing, every CPU-offline/worker-retargeting interleaving, all SMR allocator clients and a formal ordering proof remain outside its selected paths.
+This chapter covers domain entry/leave, publication, grace-period scanning, sleepable-reader transfer, callback batching and barriers. Continue with [SMR hash tables](smr-hash-tables.md) for serialized-writer grow/shrink, scalable bucket migration/reseeding, acquisition callbacks and array retirement, then [symbol interning](../subsystems/drivers/symbol-interning.md) for a concrete client. Every CPU-offline/worker-retargeting interleaving, all SMR allocator clients and a formal ordering proof remain outside these selected paths.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

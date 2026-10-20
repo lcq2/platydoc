@@ -194,6 +194,8 @@ The ordinary entry [`zalloc_flags()`](../../../xnu/osfmk/kern/zalloc.c#L6557) pa
 
 Preemption is disabled because `cpu_number()` and that CPU's active magazines must remain paired. The successful fast path needs no central zone lock. It pops one address, clears the magazine entry, restores preemption, and calls `zalloc_return()`. That final helper restores allocator tagging/sanitizer state, performs configured zero validation, records allocation logging, and returns both pointer and usable size. [`zalloc_return()`](../../../xnu/osfmk/kern/zalloc.c#L6027).
 
+For hardware MTE, follow [tag selection and reuse](mte-tag-storage-and-page-lifecycle.md) alongside this path. Eligible zones initialize allocation tags, retag on ordinary free and reload the tag when returning an allocation; SMR delays invalidation until readers are safe. Zone/cache publication, tag compatibility and object lifetime are separate parts of that explanation.
+
 Each [`zone_cache`](../../../xnu/osfmk/kern/zalloc.c#L367) has two current magazines: an allocation stack and a free stack. A magazine is a header plus an array of addresses, with an SMR sequence field when relevant. The default magazine capacity starts at eight; absent a `zc_mag_size` override, bootstrap raises it to fourteen for at least ten CPUs, otherwise ten for at least 4 GiB RAM. Those are concrete defaults in [`cache tunables`](../../../xnu/osfmk/kern/zalloc.c#L662) and [`zone_bootstrap()`](../../../xnu/osfmk/kern/zalloc.c#L9561), not ABI constants.
 
 [`zalloc_cached_get_pcpu_cache()`](../../../xnu/osfmk/kern/zalloc.c#L6267) tries these levels in order:

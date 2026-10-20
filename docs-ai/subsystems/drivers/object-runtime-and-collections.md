@@ -219,6 +219,8 @@ For IOService, the insertion happens at first publication in `doServiceMatch()`,
 
 Start with `OSDefineBasicStructors`, `OSObject::taggedRelease`, and `OSObject::free`; then inspect one array insertion/removal and `OSCollectionIterator::isValid`. Continue into `copyCollection`, metaclass `preModLoad/postModLoad`, and finally `copyMetaClassWithName/removeClasses`. That route separates memory ownership, mutable-container synchronization, and executable-class lifetime before introducing the service-instance index.
 
+For dictionary-key identity and its separate backing lifetime, continue with [symbol interning](symbol-interning.md). It follows ordinary/huge lookup, duplicate creation, no-copy/permanent strings, pool resizing, module-unload adjustment and SMR-zone destruction. The symbol's deferred cleanup deliberately differs from the ordinary `OSObject::free()` route above.
+
 | Source inspected | Depth here | Limits |
 |---|---|---|
 | `OSObject.cpp`, `OSMetaClass.h`, `OSSharedPtr.h`, intrusive-pointer reset | Allocation, initialization, reference transition and final-free bodies | Tracking internals and every macro variant are peripheral |

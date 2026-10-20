@@ -90,7 +90,9 @@ GROUPS = [
         "ipv6-output-and-neighbor-discovery", "packets-routes-and-interfaces",
         "mbuf-allocation-caches-and-pressure",
         "kernel-control-sockets-and-network-statistics",
-        "policy-extensions", "skywalk", "skywalk-lifecycles",
+        "policy-extensions", "necp-policy-evaluation",
+        "necp-clients-and-flow-registration", "socket-content-filtering",
+        "skywalk", "skywalk-lifecycles",
         "skywalk-controller-provider-and-port-lifetime",
         "skywalk-channel-abi-and-readiness",
         "skywalk-memory-arenas-and-mapping", "skywalk-packets-buflets-and-pools",
@@ -105,7 +107,8 @@ GROUPS = [
     ]),
     ("IOKit, drivers and kernel libraries", "subsystems/drivers", [
         "README", "bootstrap-and-bsd-integration", "libkern-and-kext-runtime",
-        "object-runtime-and-collections", "kext-loading-and-unloading",
+        "object-runtime-and-collections", "symbol-interning",
+        "kext-loading-and-unloading",
         "serialization-and-property-transport", "nvram-variables-and-persistence",
         "registry-and-service-lifecycle",
         "registry-planes-and-properties", "service-matching-and-termination",
@@ -121,10 +124,11 @@ GROUPS = [
     ]),
     ("Authorization, audit and protected execution", "subsystems/security", [
         "README", "credentials-and-policy", "credential-and-policy-lifetimes",
-        "task-and-thread-capabilities",
+        "personas-and-membership-resolution", "task-and-thread-capabilities",
         "code-signing", "signature-format-and-blob-validation",
         "vnode-signature-lifecycle", "executable-signature-policy",
-        "page-signature-validation", "audit", "audit-pipeline", "protected-execution",
+        "page-signature-validation", "audit", "audit-pipeline",
+        "audit-session-capabilities", "protected-execution",
         "sptm", "txm", "exclaves", "exclaves-execution",
         "exclaves-resources-and-memory", "exclaves-services",
     ]),
@@ -138,7 +142,7 @@ GROUPS = [
     ]),
     ("Paths and protocols across subsystems", "cross-cutting", [
         "execution-paths", "executable-loading", "ownership-and-locking",
-        "smr-and-publication", "completion-and-failure",
+        "smr-and-publication", "smr-hash-tables", "completion-and-failure",
     ]),
     ("Build, tests and observation", "development", [
         "build-and-tests", "observability", "kernel-logging-and-firehose",

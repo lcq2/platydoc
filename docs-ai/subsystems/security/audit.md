@@ -2,7 +2,7 @@
 
 [Back to security](README.md)
 
-For detailed ownership, backpressure, trail/pipe failure, rotation, and user-submitted record paths, read [Audit selection, queue ownership, and output](audit-pipeline.md).
+For detailed ownership, backpressure, trail/pipe failure, rotation, and user-submitted record paths, read [Audit selection, queue ownership, and output](audit-pipeline.md). For shared identity, process masks, Mach-port membership, spawn and session lifetime, continue with [Audit-session capabilities](audit-session-capabilities.md).
 
 ## Selection begins before the operation
 
@@ -42,7 +42,7 @@ flowchart LR
 
 ## Sessions and control interfaces
 
-`ucred.cr_audit` associates the process with audit session information and a selection mask. Audit user identity and session identity are separate from effective UID. [`audit_session_setaia()`](../../../xnu/bsd/security/audit/audit_session.c#L1160) holds the process audit-session lock, checks permitted changes to an existing session, obtains a session reference, and replaces credential audit state through `kauth_cred_proc_update()`. It also adjusts session process counts and drops temporary references. Session Mach ports (`audit_session_self`, `audit_session_join`) provide another link to [IPC](../ipc/README.md); their full join policy was only surveyed here.
+`ucred.cr_audit` associates the process with shared audit session information and a per-credential selection mask. Audit user identity and session identity are separate from effective UID. [`audit_session_setaia()`](../../../xnu/bsd/security/audit/audit_session.c#L1160) holds the process audit-session lock, checks permitted changes to an existing session, obtains a session reference, and replaces credential audit state through `kauth_cred_proc_update()`. It also adjusts session process counts and drops temporary references. Session Mach ports (`audit_session_self`, `audit_session_join`) provide another link to [IPC](../ipc/README.md): possession of the typed send right permits joining, and the port can keep an empty session alive. [The capability companion](audit-session-capabilities.md) follows admission, mask adoption, separate count lifetimes and no-senders cleanup.
 
 | Interface | In-tree responsibility |
 | --- | --- |

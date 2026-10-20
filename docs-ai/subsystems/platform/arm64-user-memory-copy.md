@@ -101,6 +101,8 @@ Under `HAS_MTE`, [`WRAP_COPYIO`](../../../xnu/osfmk/arm64/copyio.c#L186-L208) se
 
 `userspace_access_is_tagged()` considers task settings and a thread override; `unprivileged_user_access_disable()` clears the thread's `in_unprivileged_access` state. Inspect these guards when describing a particular build. The presence of the MTE branch in source does not establish that it executes on all ARM64 machines. [`selection and state`](../../../xnu/osfmk/arm64/copyio.c#L105-L159), [`tag-fault recovery`](../../../xnu/osfmk/arm64/sleh.c#L2280-L2455).
 
+The [MTE mitigation and page-lifetime chapter](../vm/mte-tag-storage-and-page-lifecycle.md) connects those choices to process enablement, tagged mappings, allocator reuse, hard/soft fault policy and deferred task attribution. [Bootstrap memory and lockdown](bootstrap-memory-and-lockdown.md) explains CPU setup and why local SPTM callers cannot stand in for the monitor's protected-register implementation.
+
 A tag-check fault takes `handle_kernel_tag_check_fault` before the ordinary VM-fault branch. A recoverable user-address access can arrange a deferred fatal exception, a soft-mode exception or map-associated asynchronous reporting, then return through the copy recovery epilogue. An `EFAULT` return therefore need not be the only consequence. Kernel-address tag faults require explicit read/write recovery permissions in the table entry; otherwise the handler panics. These decisions are separate from faulting in a missing page. [`tag dispatch`](../../../xnu/osfmk/arm64/sleh.c#L2571-L2586), [`tag-check handling`](../../../xnu/osfmk/arm64/sleh.c#L2401-L2501).
 
 ## 4. The assembly exports both a copy routine and its recovery contract

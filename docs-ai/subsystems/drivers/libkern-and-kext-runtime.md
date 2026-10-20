@@ -24,6 +24,8 @@ The [allocator interface trace](../vm/allocator-interfaces.md) follows those mac
 
 `OSSymbol` supplies shared symbols for class names and dictionary keys. Its current pool uses a specialized symbol lookup path, and `withCString` first checks for an existing symbol. Read-only kernel strings can receive a permanent/no-copy optimization under relevant integrity configurations. Do not assume every apparent string allocation creates a fresh private byte array. [`OSSymbol::withCString`](../../../xnu/libkern/c++/OSSymbol.cpp#L438).
 
+For the full pool and backing-byte lifecycle, continue with [symbol interning](symbol-interning.md): lookup acquisition, duplicate insertion, ordinary/huge storage, resizing, unload adjustment and deferred cleanup have separate contracts.
+
 ## Metaclasses connect a name to an allocatable class
 
 IOKit class macros create metaclass information used for runtime casts, superclass traversal, instance accounting, and named allocation. `OSMetaClass::allocClassWithName` takes a class reference, calls its allocator, and releases the class reference. This is exactly the bridge from an `IOClass` personality string to the candidate object used by service matching. [`allocClassWithName`](../../../xnu/libkern/c++/OSMetaClass.cpp#L1285), [`probeCandidates`](../../../xnu/iokit/Kernel/IOService.cpp#L3851).

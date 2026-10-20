@@ -58,7 +58,7 @@ For the protected-domain side of VM, follow [SPTM/TXM/Exclaves boundaries](subsy
 
 Use [pmap translation walkthroughs](subsystems/vm/pmap-translation-walkthroughs.md) to decompose concrete 4 KiB and 16 KiB addresses. Distinguish the physical location of a PTE from the physical page it names, then follow a mapping change through TLB completion and safe reuse.
 
-Continue with [MTE tag-storage lifetime](subsystems/vm/mte-tag-storage-and-page-lifecycle.md) to distinguish data-page tags, allocator cells and physical tag backing. [Bootstrap memory and lockdown](subsystems/platform/bootstrap-memory-and-lockdown.md) connects the first translation roots and stolen pages to ordinary VM descriptors and final protection. Track when an address becomes usable separately from when its storage becomes reusable.
+Continue with [MTE tagging and page lifetime](subsystems/vm/mte-tag-storage-and-page-lifecycle.md) to follow the mitigation from pointer tags and process opt-in through first faults, mapping provenance, allocator reuse and fault reporting. Distinguish data-page tags, allocator cells and physical tag backing; follow the zone free example to see when a stale pointer becomes invalid. [Bootstrap memory and lockdown](subsystems/platform/bootstrap-memory-and-lockdown.md) supplies the prerequisites: boot-policy selection, CPU controls, tag-generator state, early tagged zones and final protection. Then use [ARM64 user-memory copying](subsystems/platform/arm64-user-memory-copy.md) and [AST handling](subsystems/runtime/ast-mechanism.md) to follow a kernel access to a user buffer through recovery and delayed notification. Track when an address becomes usable separately from when its storage becomes reusable or its tag checks are disabled.
 
 ## Pass 5: follow a file descriptor into VFS or networking
 
@@ -71,6 +71,8 @@ Trace the decision itself through [permissions and ACL evaluation](subsystems/vf
 For caching, compare [vnode identity and authorization caches](subsystems/vfs/vnode-cache-identity-and-reuse.md), [UBC resident/missing-page reads](subsystems/vfs/file-data-cache-and-read-path.md), and [buffer-cache ownership](subsystems/vfs/buffer-cache-and-block-io.md). Follow one read hit, one read miss, one truncate and one final close. Identify which of those operations changes file bytes, which releases an active owner, and which actually evicts cached state.
 
 **Checkpoint:** explain why duplicating a descriptor can share an open-file offset, why a vnode is not just a pathname, and why socket readiness belongs to both networking state and the event/wakeup machinery.
+
+For networking policy, follow [NECP rule evaluation](subsystems/networking/necp-policy-evaluation.md) into [client and flow-registration lifetime](subsystems/networking/necp-clients-and-flow-registration.md). Then trace [socket content filtering](subsystems/networking/socket-content-filtering.md), keeping pass permission, peek permission and actual reinjection separate. These byte-offset queues differ from Skywalk netif packet-filter channels.
 
 ## Pass 6: learn IPC ownership and service boundaries
 
@@ -88,6 +90,8 @@ For receive multiplexing, follow [port-set membership and persistent readiness](
 
 Read [security](subsystems/security/README.md) around an operation you already understand: file open, process execution, task-port access, or a driver request. Find which credential is used, where an operation invokes authorization or a MAC hook, and what implementation lies outside the public source.
 
+For identity changes, compare [personas and membership resolution](subsystems/security/personas-and-membership-resolution.md) with [audit-session capabilities](subsystems/security/audit-session-capabilities.md). Explain which fields affect authorization, which identify an audit session, and which references survive process detachment or port-right release.
+
 For code signing, read [signature format](subsystems/security/signature-format-and-blob-validation.md) → [vnode attachment](subsystems/security/vnode-signature-lifecycle.md) → [exec/mapping policy](subsystems/security/executable-signature-policy.md) → [page validation](subsystems/security/page-signature-validation.md). Trace one slice-relative CodeDirectory slot to a file offset and then to a resident VM page. Explain why an accepted blob, `CS_VALID`, a page's validated mask and `csm_associated` do not mean the same thing, and what changes after a cached write, COW, page eviction or vnode reclaim.
 
 For power transitions, follow [device power state selection](subsystems/drivers/device-power-state-machine.md) → [system sleep and wake](subsystems/drivers/system-sleep-and-wake.md) → [hibernation image construction](subsystems/platform/hibernation-image-creation.md) → [image restoration](subsystems/platform/hibernation-restore.md). Compare [x86 sleep/resume](subsystems/platform/x86-sleep-and-resume.md) with [ARM64 CPU lifecycle](subsystems/platform/cpu-power-lifecycle.md). Identify the last context that can use ordinary filesystem I/O, the switch to polled I/O, and the separate point at which normal scheduling and services resume.
@@ -99,6 +103,8 @@ Then read [platform](subsystems/platform/README.md) around a fault or syscall yo
 ## A repeatable source-reading worksheet
 
 The [complete table of contents](table-of-contents.md) provides a section-level route through the whole handbook. For the newly expanded lifecycle and failure paths, use the [topic audit](expansion-audit.md), then compare [completion and cancellation](cross-cutting/completion-and-failure.md) across the relevant subsystems. The [SMR chapter](cross-cutting/smr-and-publication.md) supplies the shared reclamation protocol behind many lookup and teardown paths.
+
+For a concrete concurrent lookup, continue from SMR into [hash resizing and migration](cross-cutting/smr-hash-tables.md), then [symbol interning](subsystems/drivers/symbol-interning.md). Track the borrowed hash match, successful object acquisition, unlink, old-array retirement and eventual backing release separately.
 
 For a function worth understanding, record:
 
