@@ -8,7 +8,11 @@ The [MTE mitigation follow-up](audits/first-release-expansion.md#14-mte-mitigati
 
 The [TCP/pipe/trace batch](audits/first-release-expansion.md#15-tcp-recovery-skywalk-pipes-and-kdebug-readout) now explains selected TCP loss/congestion decisions, Skywalk user/kernel pipe transports and Kdebug storage/consuming readout. The subsequent [trust/locks/diagnostics batch](audits/first-release-expansion.md#16-trust-controls-lock-implementations-and-skywalk-diagnostics) traces those control, synchronization and inspection mechanisms. Power assertions/idle policy, IP control paths and DTrace are next; the earlier audit tables remain historical.
 
+The [IOKit and worked-operation batch](audits/first-release-expansion.md#17-iokit-queue-and-service-protocols-and-worked-operations) now expands queue reset/publication and service matching/notification variants in place. Three companions trace a mapped file through ARM64 faults, client memory through DMA completion, and a Skywalk channel through mapping, transfer, readiness and close. These implement selected cross-subsystem operations without replacing the remaining power, IP-control and tracing backlog.
+
 [Guide index](README.md) · [Contents](table-of-contents.md) · [Verification record](coverage.md) · [Earlier expansion history](expansion-audit.md)
+
+The [VM/IPC complex-flow batch](audits/first-release-expansion.md#18-vm-fault-upl-and-complex-ipc-state-transitions) now expands delayed-copy preservation, object collapse/bypass, fault revalidation and resilient recovery, UPL gather/range/vector completion, complex-message conversion, importance propagation and receive-right recovery. Historical V7 is addressed at the recorded mechanism depth; remaining configurations, interleavings and external providers are still explicit limits.
 
 The highest-value next work is to explain missing mechanisms and complete concrete operations across subsystem boundaries. Adding more detail uniformly would repeat substantial material in IPC, allocation, file caching, signing, scheduling and IOKit while leaving larger gaps elsewhere.
 

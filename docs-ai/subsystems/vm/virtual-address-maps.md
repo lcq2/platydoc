@@ -6,6 +6,8 @@ The map is the authoritative description of a virtual address range: its backing
 
 ## The map and entry layouts
 
+Map policy also determines whether a later fault may recover unavailable contents. [Resilient mappings](fault-resolution.md#resilient-mappings-recover-selected-missing-contents-without-changing-the-file) explains `MAP_RESILIENT_MEDIA` versus `MAP_RESILIENT_CODESIGN`, BSD/current/max-protection admission, internal top-object requirements, and revalidation after a fault retains a failed object/offset. These flags do not replace the ordinary map permission checks.
+
 `_vm_map` has a linked-entry header, a B+tree root, a pmap, virtual-size/limit accounting and a reference count. Its `ilock` is the structural interlock. `unlink_timestamp` helps detect whether an entry pointer can still be dereferenced after dropping that interlock; an unchanged counter does not guarantee unchanged entry bounds.
 
 [struct _vm_map — source lines 594–618](../../../xnu/osfmk/vm/vm_map_xnu.h#L594):

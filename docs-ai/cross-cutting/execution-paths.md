@@ -4,6 +4,14 @@
 
 The paths below connect the subsystem guides. They show selected operations and boundary calls, with helpers and error branches omitted. An arrow may represent an indirect operation-vector call or a later wakeup, rather than a direct C call. Use the linked detailed guide when exact lock, reference, and branch ordering matters.
 
+Three worked companions carry concrete object identities, addresses and completion state across those boundaries:
+
+| Operation | State followed through the whole example |
+| --- | --- |
+| [Mapped file to ARM64 fault](mapped-file-to-arm64-fault.md) | BSD descriptor and vnode, UBC/pager association, private VM objects and offsets, first read, COW write, PTE publication and unmapping. |
+| [User buffer to DMA completion](user-buffer-to-dma-completion.md) | Client virtual interval, descriptor and wired pages, command subrange, device addresses, bounded segment output, completion and release. |
+| [Skywalk channel operation](skywalk-channel-operation.md) | Controller/nexus identities, guarded channel fd, IOKit task mapping, packet attachments, visible ring state, readiness and close. |
+
 ## 1. Open a file, then read it
 
 Opening is mainly a namespace and object-publication operation; reading follows an already-established descriptor to a concrete object.
@@ -62,6 +70,8 @@ The direct operation-table dispatch matters: the pager boundary here is not nece
 
 **Questions to follow:** Is the fault a missing page or a protection failure? Is the backing shared or private COW? Is the page busy, compressed, dirty, or absent? What changed while the fault dropped map protection?
 
+The [worked file mapping](mapped-file-to-arm64-fault.md) follows one 16 KiB ARM64 mapping through its first read and subsequent private write, showing which object offset changes and which identity survives.
+
 ## 3. Fork and then exec
 
 Fork crosses BSD identity/descriptor state, Mach task/thread initialization, VM inheritance, and machine thread state. In this checkout, [fork1()](../../xnu/bsd/kern/kern_fork.c) reaches `cloneproc()`, `forkproc()`, and `fork_create_child()`. These initialize the combined proc/task allocation, establish descriptor sharing, call `task_create_internal()`, and create the initial thread behind return gates. For fork, VM inheritance invokes [vm_map_fork()](../../xnu/osfmk/vm/vm_map.c), and the child receives the calling thread's machine state. The other parent threads are not each cloned.
@@ -115,6 +125,8 @@ The event path is not a second copy of every packet. [knote_post()](../../xnu/bs
 
 Skywalk introduces channel/ring/nexus/packet-pool paths alongside traditional socket/mbuf processing. Do not force every packet through the exact diagram above; the [networking guide](../subsystems/networking/README.md) distinguishes the representative paths and their integration points.
 
+The [worked channel operation](skywalk-channel-operation.md) follows an in-tree 100-slot pipe test through descriptor publication, IOKit mapping, transfer and receiver-driven progress. It distinguishes internal transfer, user-visible slot counts and the readiness machinery that can synchronize those views.
+
 **Questions to follow:** Was a packet dropped before socket delivery? Is data present but a different thread consumed it? Is the event enabled and active? Is the service thread runnable, admitted by the workqueue, or blocked on another dependency?
 
 ## 6. A user process asks a driver to operate on memory
@@ -126,6 +138,8 @@ If the operation exposes or transfers memory, [IOMemoryDescriptor.cpp](../../xnu
 For pageable backing, the descriptor's `prepare()` acquires the pages needed by the transfer. The DMA command's `prepare()` establishes device mapping and segment state; it does not replace descriptor preparation. Complete device use and the command's preparation interval before completing the descriptor's interval. The [memory and DMA guide](../subsystems/drivers/memory-and-dma.md) follows these separate lifetimes.
 
 Follow [drivers](../subsystems/drivers/README.md), [VM pager/UPL boundaries](../subsystems/vm/pagers-and-upl.md), and [security](../subsystems/security/README.md). Track the object's retained lifetime, the memory preparation/completion pair, outstanding asynchronous work, and connection/service termination together.
+
+The [worked DMA operation](user-buffer-to-dma-completion.md) grounds that path in the local DriverKit bridge, carries an unaligned client interval through VM preparation and segment generation, and separates the source-visible completion methods from the external device's quiescence contract.
 
 ## 7. Memory pressure crosses from pages to processes
 

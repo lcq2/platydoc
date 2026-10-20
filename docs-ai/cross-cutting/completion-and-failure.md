@@ -105,6 +105,21 @@ In particular, `clios.io_completed` advances before the main UPL commit/free wor
 
 See [clustered writeback](../subsystems/vfs/clustered-writeback.md), [`buf_biodone`](../../xnu/bsd/vfs/vfs_bio.c#L4343), [`cluster_iodone_finish`](../../xnu/bsd/vfs/vfs_cluster.c#L1109), and [`cluster_push_err`](../../xnu/bsd/vfs/vfs_cluster.c#L6545). Filesystem/device durability requires the relevant synchronization and storage contract beyond these generic buffer events.
 
+## DMA and channels: publishing addresses is not completing their use
+
+The [user-buffer DMA walkthrough](user-buffer-to-dma-completion.md) separates a descriptor's prepared pages from a command's prepared subrange, mapper state and returned segments. The [Skywalk walkthrough](skywalk-channel-operation.md) follows a pipe whose packet attachments move through an IOKit-backed task mapping. Both expose memory, but they have different consumers and completion rules:
+
+| Observation | What it establishes in the worked operation | What it does not establish |
+| --- | --- | --- |
+| Descriptor preparation succeeds | VM backing for the selected descriptor is prepared for the requested direction | A device has been programmed or has stopped accessing that backing. |
+| DMA segment generation succeeds | The bounded output call emitted its selected addresses and lengths | The output array necessarily describes the entire requested interval, or any device transfer occurred. |
+| DMA completion method is called | The local command/descriptor cleanup path is invoked | Generic code independently observed physical-device quiescence; the driver must establish the applicable device contract. |
+| Pipe TX sync succeeds | Validated pending work was processed subject to receiver capacity | At least one packet moved, or the receiver's mapped view already reflects internal transfer. |
+| Pipe RX sync follows consumed slots | Capacity can be reclaimed and already-validated peer work pulled | The sender's mapped free-slot count has already been refreshed. |
+| A readiness event is delivered | The filter observed its selected condition and threshold | A particular consumer owns the packet or has completed processing it. |
+
+The two walkthroughs cite the concrete operations and failure cleanup behind these distinctions. They also show why retaining a C++ object, retaining an arena, wiring a page and keeping an IOVA valid are separate obligations.
+
 ## Cancellation removes a particular kind of pending work
 
 | Interface/path | What cancellation establishes | What still needs separate reasoning |
@@ -118,6 +133,8 @@ See [clustered writeback](../subsystems/vfs/clustered-writeback.md), [`buf_biodo
 Sources: [`timer_call_cancel`](../../xnu/osfmk/kern/timer_call.c#L780), [`thread_call_cancel_wait`](../../xnu/osfmk/kern/thread_call.c#L1413), [`do_aio_cancel_locked`](../../xnu/bsd/kern/kern_aio.c#L1036). Follow the complete [timer/thread-call protocol](../subsystems/runtime/timer-and-thread-call-lifetime.md) and [AIO cancellation/draining](../subsystems/processes/async-io.md).
 
 The ordinary thread-call case is especially easy to misread from its name. The implementation's successful queued cancellation can coexist with an older running invocation. `thread_call_free` can also release the client's call-object reference while an invocation reference keeps that object alive. Neither fact automatically retains or releases the external object stored in a callback argument.
+
+For IOKit callbacks, compare [notifier selection, disable and removal](../subsystems/drivers/service-notifications-and-arbitration.md) with the [shared-queue notification protocols](../subsystems/drivers/shared-data-queues-and-notifications.md). A retained selected notifier can still be disabled before invocation. Queue publication, notification acceptance and consumer progress likewise establish different conditions; the actual cancellation body determines whether callbacks are drained.
 
 AIO exit adds admission control and a full active-request drain. Process exit marks the workqueue exiting, drains AIO, invalidates descriptors and their event objects, then tears down remaining workqueue state. The ordering lets detach/completion code use the structures it still depends on. See [`proc_exit`](../../xnu/bsd/kern/kern_exit.c#L2371) and [pthread/workqueue lifetime](../subsystems/processes/pthread-workqueue-lifecycle.md).
 

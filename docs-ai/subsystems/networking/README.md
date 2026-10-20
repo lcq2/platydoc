@@ -15,6 +15,8 @@ This chapter describes the supplied `xnu-12377.121.6` snapshot. It was developed
 
 Continue with the mechanism guides when the overview raises a lifetime or synchronization question:
 
+For a single operation that connects the layers, follow [the Skywalk channel walkthrough](../../cross-cutting/skywalk-channel-operation.md): a local user-pipe test moves through controller/nexus setup, guarded descriptors, IOKit task mappings, packet transfer, readiness and teardown. Its visible-slot table distinguishes backpressure from stale published state.
+
 | Guide | Concrete questions answered |
 | --- | --- |
 | [Socket lifetime, buffering, and I/O ownership](socket-lifecycle-and-io.md) | Which reference/lock survives user copy? Who owns data after a failed send? How do receive, ancillary rights, wait-all, upcalls, and close interact? |

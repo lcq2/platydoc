@@ -30,6 +30,8 @@ Then follow [AST publication and consumption](subsystems/runtime/ast-mechanism.m
 
 **Checkpoint:** distinguish a syscall number, a Mach trap number, a Mach message ID, a port name, and a kernel object pointer. None is a substitute for the others.
 
+For a harder IPC exercise, use [complex message conversion](subsystems/ipc/complex-message-copyin-and-copyout.md). Give one header name two dispositions, then add memory and port-array descriptors. Predict which sender resources move and which receiver resources exist after each failure stage. Follow [importance propagation](subsystems/ipc/importance-propagation-and-delayed-drops.md) separately: a task can stop contributing to the dependency graph while an applied boost remains pending delayed withdrawal.
+
 ## Pass 3: understand blocking before scheduler policy
 
 Read `assert_wait*()`, `thread_block_reason()`, and the wakeup-to-runnable path in [sched_prim.c](../xnu/osfmk/kern/sched_prim.c), with [waitq.c](../xnu/osfmk/kern/waitq.c) beside it. Follow the [waits and locks guide](subsystems/runtime/waits-and-locks.md). Notice where the condition's lock is released, where the thread is registered as waiting, and how a wakeup racing with the block is handled.
@@ -53,6 +55,10 @@ Use the [mapping walkthroughs](subsystems/vm/mapping-walkthroughs.md) to follow 
 Next follow the resulting physical frame into [ARM64 pmap](subsystems/vm/pmap-arm64.md), [mapping lifetimes](subsystems/vm/pmap-mapping-lifecycle.md), and [TLB/cache completion](subsystems/vm/pmap-tlb-and-cache.md), or the separate [x86_64 implementation](subsystems/vm/pmap-x86.md). Then connect [wiring and memory entries](subsystems/vm/wiring-and-memory-entries.md) and [pagers/UPL](subsystems/vm/pagers-and-upl.md) to page ownership during sharing and I/O. Finish with [reclamation](subsystems/vm/reclaim-and-pressure.md) and [kernel allocation](subsystems/vm/kernel-allocation.md).
 
 **Checkpoint:** explain how a valid mapping can lack a resident physical page, why a resident page can still fault, how two mappings can share backing, and when an old translation stops being usable. Distinguish virtual size, resident size, compressed contents, and allocation-zone usage.
+
+Then follow the harder retry and reclamation paths: [delayed-copy preservation and collapse/bypass](subsystems/vm/objects-and-pages.md), [copy-version revalidation and resilient faults](subsystems/vm/fault-resolution.md), and [UPL gathering/partial completion](subsystems/vm/upl-gather-and-completion.md). Explain why an unchanged copy pointer can require new preservation work, why a page-in result does not authorize a PTE at an address that was remapped, and why a failed vector completion can have already retired an earlier child.
+
+Then work through [one mapped file and ARM64 fault](cross-cutting/mapped-file-to-arm64-fault.md). Keep a ledger of the vnode, pager, private VM objects, file/object offsets and physical frame across read, private write and unmap. Use the concrete address calculation to test the distinctions above.
 
 For allocator internals, continue from the [allocator overview](subsystems/vm/kernel-allocation.md) to [zones](subsystems/vm/zone-allocator.md), [kalloc routing](subsystems/vm/kalloc-heaps-and-routing.md) and [type isolation](subsystems/vm/typed-allocation.md). Follow one metadata record from its macro into startup assignment, then through allocation and compatible free. Finally trace a refill or large request into [guarded kernel VM allocation](subsystems/vm/kernel-virtual-allocation.md). Check which state is per call site, per type/signature group, per zone, per physical page, or per CPU.
 
@@ -78,6 +84,8 @@ For networking policy, follow [NECP rule evaluation](subsystems/networking/necp-
 
 For TCP, first follow [connection and timer lifetime](subsystems/networking/tcp-connections-and-timers.md), then [loss recovery and congestion control](subsystems/networking/tcp-loss-recovery-and-congestion-control.md). Keep acknowledged stream bytes, SACK delivery evidence and transmission timestamps separate. For a channel transport with different ownership, use [Skywalk user and kernel pipes](subsystems/networking/skywalk-user-and-kernel-pipes.md) after the packet-pool and channel guides: follow one packet attachment through transfer and distinguish an endpoint close from final ring storage release.
 
+The [worked Skywalk operation](cross-cutting/skywalk-channel-operation.md) joins those mechanisms to guarded descriptors, IOKit task mappings and readiness. Explain each row of its two-batch backpressure table: which state changed in userspace, which was validated by the kernel, and which completion view is still stale.
+
 ## Pass 6: learn IPC ownership and service boundaries
 
 Use the [IPC guide](subsystems/ipc/README.md) to follow a message from user-space port names through copyin, queueing or direct delivery, receive, and copyout. Track rights and out-of-line memory as well as inline bytes. Inspect the destination's right type and any kernel-object conversion.
@@ -85,6 +93,8 @@ Use the [IPC guide](subsystems/ipc/README.md) to follow a message from user-spac
 Then use [drivers](subsystems/drivers/README.md) to follow a request from a user-client connection into an IOKit object. Compare a driver work loop with the BSD `kevent` workloop described in the process guide; the similar names do not imply a shared object type.
 
 The driver index now provides a full reading route from [bootstrap](subsystems/drivers/bootstrap-and-bsd-integration.md) and [object runtime](subsystems/drivers/object-runtime-and-collections.md) through registry/matching, notifications, execution, user interfaces, memory and power. Compare a [shared queue notification](subsystems/drivers/shared-data-queues-and-notifications.md) with a [DriverKit action](subsystems/drivers/driverkit-dispatch-and-actions.md), and follow one buffer through [CPU mapping](subsystems/drivers/memory-descriptors-and-cpu-mappings.md) before [DMA preparation](subsystems/drivers/dma-preparation-and-mapping.md). Continue into [segment generation](subsystems/drivers/dma-segment-walkthrough.md) and explain which returned address is physical or IOVA, where a padded mapping introduces a gap, and how a second capacity-limited call resumes.
+
+Use the [complete user-buffer DMA example](cross-cutting/user-buffer-to-dma-completion.md) to connect client-task selection, VM COW/wiring, descriptor ranges, command preparation, segment output and release. Then compare [matching rescans and deferred starts](subsystems/drivers/service-matching-and-termination.md) with [notifier selection, replay and removal](subsystems/drivers/service-notifications-and-arbitration.md). Explain why a matched event need not imply a successfully started child, and why callback self-removal does not end that callback's use of its context.
 
 **Checkpoint:** explain why a port name is local to an IPC space, why sending a right changes ownership/accounting, and why possession of a connection does not mean every external driver method is authorized.
 

@@ -8,7 +8,11 @@ The [MTE mitigation follow-up](audits/first-release-expansion.md#14-mte-mitigati
 
 The [TCP/pipe/trace batch](audits/first-release-expansion.md#15-tcp-recovery-skywalk-pipes-and-kdebug-readout) now explains selected TCP loss/congestion decisions, Skywalk user/kernel pipe transports and Kdebug storage/consuming readout. The subsequent [trust/locks/diagnostics batch](audits/first-release-expansion.md#16-trust-controls-lock-implementations-and-skywalk-diagnostics) traces those control, synchronization and inspection mechanisms. Power assertions/idle policy, IP control paths and DTrace are next; the earlier audit tables remain historical.
 
+The [IOKit and worked-operation batch](audits/first-release-expansion.md#17-iokit-queue-and-service-protocols-and-worked-operations) now expands queue reset/publication and service matching/notification variants in place. Three companions trace a mapped file through ARM64 faults, client memory through DMA completion, and a Skywalk channel through mapping, transfer, readiness and close. The remaining power, IP-control and tracing backlog is unchanged.
+
 [Guide index](README.md) · [Complete contents](table-of-contents.md) · [Coverage and verification](coverage.md)
+
+The [VM/IPC complex-flow batch](audits/first-release-expansion.md#18-vm-fault-upl-and-complex-ipc-state-transitions) deepens existing object/fault and port-lifetime chapters, with three companions for UPL completion, complex-message conversion and importance propagation. Its examples track offsets, copy versions, busy/wire/activity holds, rights and delayed policy separately. Historical findings below remain unchanged.
 
 This audit records the Markdown expansion requested before building an HTML handbook. The existing chapters are the starting explanation, not a fixed limit on topics or depth. The unit of review is a mechanism and its execution paths: its state, inputs, decisions, synchronization, ownership, completion, and failure handling.
 

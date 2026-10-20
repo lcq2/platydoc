@@ -6,6 +6,8 @@ The virtual filesystem layer connects BSD file operations, pathname resolution, 
 
 Read [vnodes, mounts and dispatch](vnodes-mounts-and-dispatch.md) first. Then follow [pathname lookup and authorization](pathname-and-authorization.md), [file data and I/O completion](io-and-cache.md), and the [in-tree filesystems and NFS survey](filesystems-and-nfs.md). The [VM chapter](../vm/README.md) covers the other side of file-backed mappings and page faults.
 
+The [mapped-file worked operation](../../cross-cutting/mapped-file-to-arm64-fault.md) connects these paths: descriptor lookup and release, vnode/UBC/pager identity, a cold read fault, private COW write, ARM64 translation and unmapping. Its file coordinate remains explicit across clustered page-in and changing VM object offsets.
+
 Continue into the detailed implementation chapters:
 
 | Chapter | Main questions answered |

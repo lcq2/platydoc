@@ -4,6 +4,8 @@
 
 A pager supplies backing behavior for VM contents. A universal page list, or UPL, records pages participating in I/O and the work needed to finish with them. The unified buffer cache, or UBC, connects file vnodes to these VM objects and pages. Reading this path requires following both data movement and completion: a successful allocation or I/O submission does not complete page ownership.
 
+For the general I/O-wire gather loop, copy synchronization, absent-but-busy pages, partial completion and vector ownership, continue with [UPL gathering and completion](upl-gather-and-completion.md).
+
 For the syscall-side resident hit, missing-page read and truncation paths, continue with [file-data caching](../vfs/file-data-cache-and-read-path.md). [Page-signature validation](../security/page-signature-validation.md) explains the additional integrity state, including why signed-object UPL commits suppress caller-supplied validation bits and how COW and transforming pagers propagate selected results.
 
 ## The pager boundary is an object interface
@@ -289,7 +291,7 @@ Before dropping the range lock, it marks the object shared and takes an ordinary
 
 A data request reaches [`device_pager_data_action`](../../../xnu/osfmk/vm/device_vm.c#L306), which validates the requested extent and calls `device_data_action`. The [IOKit callback](../../../xnu/iokit/Kernel/IOMemoryDescriptor.cpp#L217) retains the descriptor while invoking `handleFault` under its synchronization. [`device_pager_populate_object`](../../../xnu/osfmk/vm/device_vm.c#L180) can install private physical-page descriptions through `vm_object_populate_with_private`; these are not newly allocated anonymous RAM pages.
 
-[`vm_object_iopl_request`](../../../xnu/osfmk/vm/vm_pageout.c#L8618) is a distinct I/O-oriented gathering path used behind map/descriptor operations. It rounds object coordinates while preserving original byte offsets, derives read versus read/write fault access from transfer direction, validates low-address requirements, and has special physically contiguous/device-memory representation. It can block access until completion and has its own physical wire and completion accounting. Its detailed general page-gather loop is broader than the file UPL path traced above.
+[`vm_object_iopl_request`](../../../xnu/osfmk/vm/vm_pageout.c#L8618) is a distinct I/O-oriented gathering path used behind map/descriptor operations. It rounds object coordinates while preserving original byte offsets, derives read versus read/write fault access from transfer direction, validates low-address requirements, and has special physically contiguous/device-memory representation. It can block access until completion and has its own physical wire and completion accounting. The [gathering companion](upl-gather-and-completion.md#resident-fast-paths-and-the-general-fault-loop) traces its fast and faulting paths, delayed work, failure unwind and completion state.
 
 A physical page list still does not define device-visible addresses, DMA permissions or cache synchronization for every device. The descriptor, I/O mapper and driver protocols supply those additional steps; see [driver memory and DMA](../drivers/memory-and-dma.md). CPU pmap translations and IOMMU mappings belong to different translation domains even when they refer to the same physical RAM.
 
@@ -299,7 +301,7 @@ A physical page list still does not define device-visible addresses, DMA permiss
 |---|---|---|
 | Pager/control and vnode pager | Generic header/dispatch, control identity, vnode setup/init, request/return, cluster boundaries and pager lifetime | Other pager operation tables are identified, not each implementation exhaustively traced. |
 | UBC and `vnode_pagein` | Named association, UPL flag translation, traditional versus PAGEINV2 creation, selected error paths | Filesystem-private implementations and full vnode reclaim/truncation coordination are outside this chapter. |
-| UPL request/commit/abort/destruction | Lite versus alias representation, activity holds, COW synchronization, page state, empty detection, UBC deallocation | Vector scheduling, every I/O tracking/MTE branch and the full IOPL gathering loop are partial coverage. |
+| UPL request/commit/abort/destruction | Lite versus alias representation, activity holds, COW synchronization, page state, empty detection, UBC deallocation | The companion covers IOPL gathering and vector completion; every I/O tracking/MTE branch and mixed-page-size combination remain partial coverage. |
 | Cluster I/O and pageout | Page-in bounds/submission, completion-to-UPL boundary, external worker relookup and data-return | Device transport and all filesystem writeback policies are covered only at their interface here. |
 | Device pager | Setup, private population, request callback, deallocation boundary | Driver-specific fault providers, DMA translation hardware and external filesystems cannot be inferred from this generic adapter. |
 

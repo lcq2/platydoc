@@ -34,6 +34,7 @@ GROUPS = [
         "pmap-translation-walkthroughs",
         "pmap-mapping-lifecycle", "pmap-tlb-and-cache", "pmap-x86",
         "wiring-and-memory-entries", "copy-overwrite-and-remap", "pagers-and-upl",
+        "upl-gather-and-completion",
         "shared-regions-and-transforming-pagers", "reclaim-and-pressure",
         "compressor-segments-and-swapfiles", "deferred-reclamation",
         "purgeable-memory", "phantom-cache-and-refaults",
@@ -51,10 +52,12 @@ GROUPS = [
     ("Mach IPC and exception delivery", "subsystems/ipc", [
         "README", "names-and-rights", "ports-and-rights-lifecycle",
         "port-sets-and-waitq-readiness", "message-path",
-        "message-send-receive", "synchronous-dependencies-and-special-replies",
+        "message-send-receive", "complex-message-copyin-and-copyout",
+        "synchronous-dependencies-and-special-replies",
         "kernel-rpc-and-exceptions", "exception-delivery",
         "policies-and-attribution", "guards-and-policy-enforcement",
-        "vouchers-and-importance", "bank-accounts-and-charging",
+        "vouchers-and-importance", "importance-propagation-and-delayed-drops",
+        "bank-accounts-and-charging",
     ]),
     ("System-call and Mach entry-point map", "interfaces", [
         "README", "machine-entry-points", "mach-traps",
@@ -146,7 +149,9 @@ GROUPS = [
         "hibernation-image-creation", "hibernation-restore", "x86-sleep-and-resume",
     ]),
     ("Paths and protocols across subsystems", "cross-cutting", [
-        "execution-paths", "executable-loading", "ownership-and-locking",
+        "execution-paths", "mapped-file-to-arm64-fault",
+        "user-buffer-to-dma-completion", "skywalk-channel-operation",
+        "executable-loading", "ownership-and-locking",
         "smr-and-publication", "smr-hash-tables", "completion-and-failure",
     ]),
     ("Build, tests and observation", "development", [

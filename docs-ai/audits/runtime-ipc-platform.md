@@ -4,6 +4,8 @@
 
 [Complete audit](../coverage-audit.md) · [Guide index](../README.md)
 
+The [VM/IPC complex-flow batch](first-release-expansion.md#18-vm-fault-upl-and-complex-ipc-state-transitions) adds [complex message conversion](../subsystems/ipc/complex-message-copyin-and-copyout.md) and [importance propagation/delayed drops](../subsystems/ipc/importance-propagation-and-delayed-drops.md), while deepening [port transit/circularity and backup recovery](../subsystems/ipc/ports-and-rights-lifecycle.md). These trace resource ownership, partial publication, graph accounting and applied policy separately. All death/fault interleavings, legacy/watchport combinations and external runtime policy remain outside the selected paths.
+
 This is a documentation-scope audit of **all 34 baseline Markdown chapters** in runtime (12), IPC (10), and platform (12), followed by bounded verification of the source paths that support the recommendations below. It identifies work to do; it does not itself expand the technical chapters, assert that every source file was audited, or report kernel execution. Chapter structure, explanatory depth, reading routes, and stated limits were considered together: a citation alone does not count as coverage.
 
 Requested follow-ups added alongside this audit are [ARM64 exception assembly walkthroughs](../subsystems/platform/arm64-assembly-walkthroughs.md) and [thread switching, entry and exit](../subsystems/platform/arm64-context-switching.md). They are additions to the baseline disposition table below.

@@ -252,6 +252,46 @@ ipc_port_mark_in_transit(ipc_port_t port, ipc_port_t dest)
 
 Successful receive copyout writes the new receiver space/name, adds the receive bit, and consumes the extra reference if it merges with an existing send entry. It removes that entry from the send-only reverse hash. After unlocking, it completes the old destination's send-turnstile association and releases the destination reference. Guarded receive descriptors can establish a new guard/context at the receiving side; this is not preservation of the sender's arbitrary context. [`receive copyout`](../../../xnu/osfmk/ipc/ipc_right.c#L2690), [`destination release`](../../../xnu/osfmk/ipc/ipc_right.c#L2801).
 
+### Locking a chain without creating a cycle
+
+The graph edge is `P.ip_destination = Q`: P's receive right is being carried by a message addressed to Q. Consider an existing Q→P edge, created by sending Q's receive right to P. Trying next to send P's receive right to Q would create P→Q→P. Neither task could retrieve either receive right without first retrieving the other. The check prevents this graph from being installed; it does not reject ordinary two-way RPC between tasks whose receive rights remain in their spaces. [Circularity contract](../../../xnu/osfmk/ipc/ipc_importance.c#L2194-L2235).
+
+```mermaid
+flowchart TD
+    Q["Q: receive right in a message queued on P"] -->|"existing edge"| P["P: receive right now in limbo"]
+    P -.->|"rejected edge"| Q
+    X["New carrying message addressed to Q"] -->|"contains receive right P"| P
+    X -->|"CIRCULAR flag"| D["Send destroys the message and its owned rights"]
+```
+
+With importance enabled, the concrete lock protocol is:
+
+1. `port == dest` returns circular immediately, before preparing the destination turnstile. Otherwise prepare the destination send-turnstile association. Latch the moving port's donation state, and acquire importance when donation or an existing carried count requires it.
+2. Lock the moving port, then **try** the destination lock. A destination that is not in transit is an immediate non-circular endpoint; the pair can be linked while protected. Failed try-lock or a transit destination releases those port locks before the slow path.
+3. The slow path acquires importance and `ipc_port_multiple_lock()`, then locks every destination-chain port through the non-transit base. A base equal to the moving port proves a cycle. Otherwise it locks the moving port while the full existing chain remains protected, then releases the serialization lock before installing the new edge.
+4. A cycle unwinds the chain locks and completes the prepared destination turnstile association. A successful link retains the destination, transfers importance accounting, updates any source send turnstile, and finishes turnstile work after port locks are dropped.
+
+[Fast and slow checks](../../../xnu/osfmk/ipc/ipc_importance.c#L2232-L2329), [publication, donation and completion](../../../xnu/osfmk/ipc/ipc_importance.c#L2330-L2490). The `!IMPORTANCE_INHERITANCE` variant has the same port-chain serialization shape without the assertion transfer. [Non-importance path](../../../xnu/osfmk/ipc/ipc_port.c#L1378-L1518).
+
+The base may have died while a receive right was in transit. `ipc_port_destination_chain_lock()` takes an extra reference to an inactive base because callers unlock predecessors before the tail. Without this reference, the very chain that made the tail reachable would no longer protect its storage during unwinding. The caller releases this extra reference separately from every port lock and the normal transit destination reference. [Inactive-tail protection](../../../xnu/osfmk/ipc/ipc_port.c#L1321-L1357).
+
+Circularity has a surprising send result. Descriptor copyin records `MACH_MSGH_BITS_CIRCULAR`; `ipc_kmsg_send()` destroys that message and returns `MACH_MSG_SUCCESS`. Therefore successful send status does not establish that this carrying message was queued or that its receive right remains usable. The source receive right has already left its namespace; destruction now invokes the normal owned-right disposal/recovery paths. [Descriptor flagging](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2217-L2227), [send handling](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5157-L5163).
+
+Source: [`ipc_kmsg_send`, lines 5157–5163](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5157-L5163).
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L5157-L5163 -->
+```c
+	hdr = ikm_header(kmsg);
+	/* don't allow the creation of a circular loop */
+	if (hdr->msgh_bits & MACH_MSGH_BITS_CIRCULAR) {
+		ipc_kmsg_destroy(kmsg, IPC_KMSG_DESTROY_ALL);
+		KDBG(MACHDBG_CODE(DBG_MACH_IPC, MACH_IPC_KMSG_INFO) | DBG_FUNC_END, MACH_MSGH_BITS_CIRCULAR);
+		return MACH_MSG_SUCCESS;
+	}
+```
+
+The same links have two further effects: existing assertions behind a moved port must reach its new responsible task, and live send/synchronous waits can inherit toward the carrier's send turnstile. These are distinct accounting and scheduler mechanisms. Continue with [importance propagation and port migration](importance-propagation-and-delayed-drops.md#4-a-receive-right-in-transit-extends-the-port-path) and [synchronous dependencies](synchronous-dependencies-and-special-replies.md).
+
 ### Worked server handoff
 
 Assume server S has `0x403 = R + S(1)` for P, client C has `0x903 = S(1)` for P, and worker W owns a separate carrier port Q's receive right. S transfers P's receive right in a message to Q. Counts below refer to **P**, excluding temporary lookup references and Q's separate references.
@@ -394,6 +434,31 @@ simpleroutine mach_notify_port_destroyed(
 
 The backup's receive path installs the live right in its own namespace and can continue servicing the same queued endpoint. Existing senders still refer to P. If the backup destination is already inactive, the direct destruction path runs. The unlocked activity check is an optimization rather than a guarantee of later delivery; notification send/cleanup must still handle races and consume the owned rights. [`ipc_port_destroy`](../../../xnu/osfmk/ipc/ipc_port.c#L1208), [`ipc_notify_should_send` rationale](../../../xnu/osfmk/ipc/ipc_notify.c#L70), [`ipc_notify_port_destroyed`](../../../xnu/osfmk/ipc/ipc_notify.c#L127).
 
+### Recovery consumes the old registration before attempting transfer
+
+`ipc_port_destroy()` detaches `ip_pdrequest` under the port lock and clears the stored field before testing notification delivery. A recovery attempt therefore does not leave the same backup registration armed on P. This matters if the notification's destination dies or the carrying transfer becomes circular: disposing of the notification's receive descriptor re-enters P's receive-right cleanup, which no longer finds that same registration and cannot endlessly retry it. The notification interface is `simpleroutine` with `MOVE_SEND_ONCE` and `MOVE_RECEIVE`; the wrapper documents consumption of both owned capabilities. Its generated message stub is not present as a checked-in body, so do not invent its allocation layout or guarantee a successful queued notification from the wrapper alone. [Detach before send](../../../xnu/osfmk/ipc/ipc_port.c#L1174-L1218), [wrapper](../../../xnu/osfmk/ipc/ipc_notify.c#L126-L131), [declaration](../../../xnu/osfmk/mach/notify.defs#L102-L108), [kernel receive-right circularity handling](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4954-L4976).
+
+A transit receive right also has a saved **old** destination. `ipc_port_release_receive()` saves that destination before calling destruction/recovery; afterwards it completes the old destination's send-turnstile association and releases its retained port reference. A successful recovery can create a different new transit destination during the call, so the old pointer must not be recovered by rereading P's union afterwards. [Saved destination](../../../xnu/osfmk/ipc/ipc_port.c#L3161-L3181).
+
+Source: [old transit edge cleanup, lines 3170–3180](../../../xnu/osfmk/ipc/ipc_port.c#L3170-L3180).
+
+<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_port.c#L3170-L3180 -->
+```c
+	ip_mq_lock(port);
+
+	ipc_release_assert(ip_is_moving(port));
+	dest = ip_get_destination(port);
+
+	ipc_port_destroy(port); /* consumes ref, unlocks */
+
+	if (dest != IP_NULL) {
+		ipc_port_send_turnstile_complete(dest);
+		ip_release(dest);
+	}
+```
+
+Receive migration and recovery also move/drop importance accounting. `ip_tempowner` and optional `ip_imp_task` identify whether assertions were charged to a saved task rather than the current task. `ipc_port_destroy()` uses `current_thread()->ith_assertions` and a `top` test to coordinate nested destruction, clears that bookkeeping before the final task drop, and releases any saved task-importance reference. A backup branch keeping the port live does not mean the relinquishing task retains the old assertion charge. [Destruction accounting](../../../xnu/osfmk/ipc/ipc_port.c#L1140-L1204), [final drops](../../../xnu/osfmk/ipc/ipc_port.c#L1287-L1304), [new-owner accounting](importance-propagation-and-delayed-drops.md#moving-the-receive-right-changes-where-existing-assertions-are-charged).
+
 ### Dead-name, deletion, and send-once disposal
 
 For a live entry, dead-name/send-possible registration cancels a prior per-name request and allocates a new request slot. When replacing a request, freeing its old slot guarantees room for the new slot, making that swap atomic within the locked operation. Growing the request table instead drops locks and retries. Canceling by supplying a null notification right returns the previous request to the caller. [`request replacement`](../../../xnu/osfmk/ipc/ipc_right.c#L508), [`request growth`](../../../xnu/osfmk/ipc/ipc_right.c#L538).
@@ -429,7 +494,7 @@ A useful source-reading checklist is to record the entry bits before and after a
 | --- | --- | --- |
 | Deep path review | `mach_port_allocate*`, insert/extract/deallocate/mod-refs/destroy/destruct handlers in [`mach_port.c`](../../../xnu/osfmk/ipc/mach_port.c), representative traps in [`mach_kernelrpc.c`](../../../xnu/osfmk/ipc/mach_kernelrpc.c), and direct-trap/RPC fallback wrappers in [`libsyscall/mach_port.c`](../../../xnu/libsyscall/mach/mach_port.c) | Generated MIG stub bodies were not built or inspected. |
 | Deep path review | Copyin, copyout, lookup, reverse coalescing, delta/deallocation/destruction, dead-name conversion, and request operations in [`ipc_right.c`](../../../xnu/osfmk/ipc/ipc_right.c), [`ipc_object.c`](../../../xnu/osfmk/ipc/ipc_object.c) | Header alias transactions, pseudo-receive, and descriptor-by-descriptor transport recovery are documented by the transport guide. |
-| Deep path review | Allocation, movement, non-importance circularity path, receive release, destruction, and request notifications in [`ipc_port.c`](../../../xnu/osfmk/ipc/ipc_port.c); delivery in [`ipc_notify.c`](../../../xnu/osfmk/ipc/ipc_notify.c) | Importance-enabled circularity delegates to a combined path; its full donation and race analysis is outside this page. |
+| Deep path review | Allocation, movement, circularity locking with and without importance, receive release, destruction, and request notifications in [`ipc_port.c`](../../../xnu/osfmk/ipc/ipc_port.c); delivery in [`ipc_notify.c`](../../../xnu/osfmk/ipc/ipc_notify.c) | The [importance companion](importance-propagation-and-delayed-drops.md) follows selected donation transfers; exhaustive multi-port races and generated notification stubs remain outside review. |
 | Focused review | Receive-first teardown in [`ipc_space.c`](../../../xnu/osfmk/ipc/ipc_space.c), set destruction in [`ipc_pset.c`](../../../xnu/osfmk/ipc/ipc_pset.c), relevant movement/recovery checks in [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c) | Policy behavior depends on port type, task policy, build flags, and runtime enforcement. This is not a complete policy matrix. |
 
 For the original design context, see [port types](../../../xnu/doc/mach_ipc/port_types.md), [guard exceptions](../../../xnu/doc/mach_ipc/guard_exceptions.md), and [IPC security concepts](../../../xnu/doc/mach_ipc/ipc_security_concepts.md). The claims above follow active source branches where older comments and current implementation differ.

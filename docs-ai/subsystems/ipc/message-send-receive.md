@@ -6,6 +6,8 @@ The transport is easiest to read as a succession of owners. Before copyin, the s
 
 ## 1. Allocate storage before acquiring message resources
 
+For the most involved conversion paths, continue with [complex message copyin and copyout](complex-message-copyin-and-copyout.md). It works through shared header names, nested descriptor/array cleanup, OOL memory geometry, receiver namespace publication and the exact limits of pseudo-receive compensation.
+
 `mach_msg_trap_send()` first rejects sizes below the 24-byte user header, sizes not divisible by four, excessive message sizes, and impossible complex descriptor counts. It allocates an `ipc_kmsg` with `IPC_KMSG_ALLOC_USER`, then calls `ipc_kmsg_copyin_from_user()`. A copyin failure has already cleaned any resources it acquired, so this caller only frees the buffer. A subsequent send failure is a different ownership state: the complete message is still owned, and the trap invokes pseudo-receive to return its resources. [`mach_msg_trap_send()`](../../../xnu/osfmk/ipc/mach_msg.c#L652).
 
 [The send helper distinguishes failed copyin from failed delivery](../../../xnu/osfmk/ipc/mach_msg.c#L718).
@@ -86,7 +88,7 @@ The modern equivalent of the older conceptual “get a kmsg” step is `ipc_kmsg
 	}
 ```
 
-`ipc_kmsg_copyin_header()` normalizes dispositions, stores the voucher port in `ikm_voucher_port`, applies destination-dependent state such as send-possible handling, and replaces remote/local names with owned port pointers. It initializes the sender trailer and message signature. The atomicity promised by this function is **header-right conversion**, not an all-or-nothing transaction spanning every descriptor and eventual delivery. A later policy/body failure cleans acquired resources; it does not restore every moved right or deallocated region to its original sender state. [`header conversion contract`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2020), [`header completion`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2044).
+`ipc_kmsg_copyin_header()` normalizes dispositions, stores the voucher port in `ikm_voucher_port`, applies destination-dependent state such as send-possible handling, and replaces remote/local names with owned port pointers. It initializes the sender trailer and message signature. The header coordinates move acquisition and prevalidates later conversions, but its distinct-entry branch explicitly accepts an observable port-death/notification race; see [header aliasing and its atomicity boundary](complex-message-copyin-and-copyout.md#2-header-aliasing-needs-a-coordinated-right-operation). It is not an all-or-nothing transaction spanning every descriptor and eventual delivery. A later policy/body failure cleans acquired resources; it does not restore every moved right or deallocated region to its original sender state. [`header conversion contract`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2020), [`header completion`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2044).
 
 ### Body rights and OOL data
 
@@ -302,6 +304,8 @@ Only after resource conversion does `ipc_kmsg_put_to_user()` deflate descriptors
 ```
 
 This distinction also matters for cleanup libraries: normal `mach_msg_destroy()` does not destroy the received header's local name because delivery has already consumed the destination right. Code handling an unsent message must use the appropriate send-error ownership rules, not assume it is an ordinary received request. The server helpers have dedicated recoverable-send-error handling for this reason. [`mach_msg_destroy()`](../../../xnu/libsyscall/mach/mach_msg.c#L392), [`server send-error handling`](../../../xnu/libsyscall/mach/mach_msg.c#L531).
+
+The pseudo-receive wrapper also discards the final `ipc_kmsg_put_to_user()` return, reporting resource-copyout status instead. Restored rights/mappings and successful publication of their new values to the send buffer are therefore separate outcomes. [Detailed compensation cases](complex-message-copyin-and-copyout.md#7-failed-send-compensation-has-its-own-reply-and-error-rules), [`discarded byte-copy result`](../../../xnu/osfmk/ipc/mach_msg.c#L634-L637).
 
 ### Library interruption handling must not resend a completed request
 

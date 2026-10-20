@@ -197,6 +197,182 @@ The detailed first-write decision belongs in [fault resolution](fault-resolution
 
 Collapsing is an optimization of representation, not permission to discard an object just because it has no resident pages. Nonresident compressed or external backing can remain the only copy of data.
 
+## Delayed copies preserve snapshots by pushing old contents upward
+
+Symmetric COW lets both mappings move into private shadows before writing. Delayed copying instead keeps the source object `O` as the write target and creates a copy object `C` above it. `C.shadow = O` owns a reference on `O`; `O.vo_copy = C` tells a source write where to preserve old contents. The latter is a lookup relationship, not a separate retain: `VM_OBJECT_COPY_SET` only assigns the pointer and updates a version. A fault must lock and explicitly reference `C` before dropping protection. [Copy construction and reference transfer](../../../xnu/osfmk/vm/vm_object.c#L4105-L4149), [copy-pointer setter](../../../xnu/osfmk/vm/vm_object_internal.h#L826-L836), [fault reference acquisition](../../../xnu/osfmk/vm/vm_fault.c#L2384-L2427).
+
+This explanation concerns ordinary untagged objects and system-page offsets. With a 16 KiB system page, let a caller copy `[0x8000, 0x10000)` from `O`. The delayed copy has `C.vo_size = 0x10000`, `C.vo_shadow_offset = 0`, and the returned mapping starts at **object offset `0x8000`**, not zero. A copy can be reused by mappings of other source ranges; that is why its extent includes the prefix before this particular mapping. `vm_object_copy_strategically` returns `dst_needs_copy = TRUE`, so a destination writer will create its own symmetric shadow rather than modify the shared snapshot object directly. [Extent calculation](../../../xnu/osfmk/vm/vm_object.c#L3784-L3843), [strategy result](../../../xnu/osfmk/vm/vm_object.c#L4228-L4265).
+
+```mermaid
+flowchart TD
+    S["Source mapping at offset 0x8000"] -->|"writable object"| O["O: current contents"]
+    D["Copied mapping at offset 0x8000"] -->|"needs_copy"| C["C: preserved contents"]
+    C -->|"shadow, offset 0"| O
+    O -.->|"vo_copy lookup"| C
+    W["Source write to O at 0x8000"] -->|"preserve old page first"| C
+    W -->|"then allow modification"| O
+```
+
+The dashed arrow is a lookup relationship; solid shadow and mapping arrows identify content ownership. The source-write path may first need a page from a deeper shadow and then need to preserve it into `C`, so one fault can require **two** page copies. The comments and operations in [`vm_fault_page`](../../../xnu/osfmk/vm/vm_fault.c#L2280-L2381) make these two obligations explicit.
+
+### Reuse, growth and insertion are distinct operations
+
+`vm_object_copy_delayed` enters with the source locked and a caller-owned reference. It returns with the source unlocked. An allocation or lock-order retry can release that lock, so the function returns to `Retry` and rereads `src_object->vo_copy`; it cannot continue with a cached pointer from before the unlock. The initial shared-lock optimization is useful when an unchanged copy can simply be referenced. Mutation upgrades the protocol to exclusive ownership by dropping locks and restarting. [Entry contract](../../../xnu/osfmk/vm/vm_object.c#L3769-L3797), [retry and reverse-lock acquisition](../../../xnu/osfmk/vm/vm_object.c#L3844-L3912).
+
+| State found under the relevant locks | Action and reason |
+| --- | --- |
+| No copy object | Allocate `new_copy` outside the source lock, reacquire locks, then restart before publishing it. Another copier may have installed one meanwhile. |
+| Existing copy has no resident pages and no pager was created | Its preserved content has not diverged; return another reference to that same object. |
+| That reusable copy is too small | Take exclusive ownership, write-protect the newly covered source pages, flush deferred pmap changes, grow `vo_size`, and increment the source's `vo_copy_version`. |
+| Existing copy has resident contents or has created a pager | It may preserve an older version. Insert a new copy between it and the source: `C_old → C_new → O`. Subsequent source writes push into `C_new`; `C_old` still finds older preserved pages first. |
+| A page requiring write-protection is wired | Abandon delayed copying and return null; `vm_object_copy_strategically` falls back to physical copying. Earlier protection changes can already have happened. |
+
+Sources: [reuse/growth checks](../../../xnu/osfmk/vm/vm_object.c#L3914-L4020), [allocation/restart](../../../xnu/osfmk/vm/vm_object.c#L4024-L4065), [write protection and wired rejection](../../../xnu/osfmk/vm/vm_object.c#L4067-L4104), [chain insertion](../../../xnu/osfmk/vm/vm_object.c#L4105-L4149), [fallback](../../../xnu/osfmk/vm/vm_object.c#L4228-L4265).
+
+A pointer comparison alone cannot detect growth of the same copy object. The version records a changed preservation obligation even though `O.vo_copy` still equals `C`. In the example, a later copy of `[0x10000, 0x18000)` can grow `C` to `0x18000`; an already-running fault at `O+0x14000` must now preserve that page before allowing a write.
+
+[Source: `vm_object.c`, lines 3993–4003](../../../xnu/osfmk/vm/vm_object.c#L3993-L4003).
+
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_object.c#L3993-L4003 -->
+```c
+				old_copy->vo_size = copy_size;
+
+				/*
+				 * src_object's "vo_copy" object now covers
+				 * a larger portion of src_object.
+				 * Increment src_object's "vo_copy_version"
+				 * to make any racing vm_fault() on
+				 * "src_object" re-check if it needs to honor
+				 * any new copy-on-write obligation.
+				 */
+				src_object->vo_copy_version++;
+```
+
+The source page scan removes write permission from existing aliases through `pmap_page_protect_options`, keeping execute permission for an `xpmapped` page. Calls accumulate `PMAP_OPTIONS_NOFLUSH` work and then flush it before publishing the larger extent or new relationship. A wired page can reject the operation after earlier pages were already protected; the function flushes that accumulated work even on this failure exit. Extra future faults are safe, but this is not an all-or-nothing restoration of the original PTEs. The reusable-copy growth branch skips busy-and-absent pages because they do not yet contain user-visible data; its corresponding new-copy scan does not contain that same exception. [Growth scan](../../../xnu/osfmk/vm/vm_object.c#L3937-L3988), [new-copy scan](../../../xnu/osfmk/vm/vm_object.c#L4080-L4104).
+
+Pager/UPL coordination also qualifies the path. A configurable wait for paging/activity is skipped for `true_share` objects; its default differs between OSX and other targets. The separate `vmo_pl_req_in_progress` wait still occurs. These are inspected predicates, not a claim that every platform waits for all I/O before every delayed copy. [Defaults and waits](../../../xnu/osfmk/vm/vm_object.c#L3763-L3767), [retry preflight](../../../xnu/osfmk/vm/vm_object.c#L3844-L3868).
+
+### A source write must finish preservation before receiving write access
+
+In `vm_fault_internal`, a write to a delayed-copy object with a `vo_copy` leaves the fast path. `vm_fault_page` owns the selected source page busy and holds paging state while it resolves the preservation obligation. A read only needs to withhold WRITE. A write finds the corresponding copy offset, checks whether it is within `C.vo_size`, and looks for a resident page or known compressed contents there. Either is already a preserved version and must not be overwritten with today's source bytes. [Slow-path dispatch](../../../xnu/osfmk/vm/vm_fault.c#L5219-L5228), [copy range and existing content](../../../xnu/osfmk/vm/vm_fault.c#L2391-L2499).
+
+The normal object-lock direction follows shadows downward, `C → O`. The writer already holds `O` and wants `C`, so waiting unconditionally for `C` would invert that order. It uses a try-lock and releases `O` on collision:
+
+[Source: `vm_fault.c`, lines 2408–2419](../../../xnu/osfmk/vm/vm_fault.c#L2408-L2419).
+
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_fault.c#L2408-L2419 -->
+```c
+		/*
+		 * Try to get the lock on the copy_object.
+		 */
+		if (!vm_object_lock_try(copy_object)) {
+			vm_object_unlock(object);
+			try_failed_count++;
+
+			mutex_pause(try_failed_count);  /* wait a bit */
+			vm_object_lock(object);
+
+			continue;
+		}
+```
+
+The busy source page and paging ownership survive that pause. Re-entering the loop reloads `first_object->vo_copy`; it does not assume the copy pointer stayed unchanged. Once `C` is locked, the fault takes a reference on it. If the destination page is itself busy, it releases the source page and fault state, relocks/relooks up the copy page, waits only if that page still exists and is busy, and returns retry/interrupted status. The original `copy_m` pointer cannot be reused across that cleanup. [Busy-copy handling](../../../xnu/osfmk/vm/vm_fault.c#L2422-L2479).
+
+When no preserved resident/compressed page exists, the fault allocates and inserts one into `C`, copies the old source bytes, and disconnects the original physical page's mappings when `vmp_pmapped` is set. The disconnect is broad because users of `C` may still have translations directly to the old `O` page; those translations must fault back to the newly preserved page before `O` changes. A memory shortage releases the source page, copy reference and paging state and reports `VM_FAULT_MEMORY_SHORTAGE`. [Allocation/copy/disconnect](../../../xnu/osfmk/vm/vm_fault.c#L2490-L2530).
+
+The newly preserved page is marked dirty and either activated/woken or handed to `vm_pageout_initialize_page`, according to pager state. The latter path unlocks the source object and may drop the copy lock internally. Afterward it checks `copy_object->shadow == object` and whether references other than its temporary one remain; if not, it deallocates through the full path and restarts the preservation loop. Waiters on the original busy page receive `THREAD_RESTART`, without clearing its busy bit, because pushing contents upward can change the correct starting point for their faults. [Pageout/recheck and restart wakeup](../../../xnu/osfmk/vm/vm_fault.c#L2532-L2627).
+
+For the 16 KiB example, an initial source write at `O+0x8000` first places the old page at `C+0x8000`. A second delayed copy after that preservation inserts `C_new`: the old reader sees its page in `C_old`, while a new reader can fall through `C_new` to current `O`. A later source write at the same offset preserves the newer version into `C_new`. These are versions of page contents, not a chain of copied virtual addresses. A destination's own write follows its separate `needs_copy` shadow path, covered in [fault resolution](fault-resolution.md#resident-pages-and-copy-on-write).
+
+## Collapse and bypass: remove a level without changing visible contents
+
+For `A.shadow = B`, collapse consumes `B` and moves its needed contents into `A`. Bypass changes `A` to reference `B.shadow` while leaving `B` available to its other owners. Both must preserve the page selected by every offset in `A`; having no resident pages in `B` is insufficient if a pager owns its data. `vm_object_collapse` is called after selected COW faults, during fault completion and by pageout work, so this optimization must respect ongoing faults rather than assume a stopped process. [Main routine](../../../xnu/osfmk/vm/vm_object.c#L5153-L5188), [COW caller](../../../xnu/osfmk/vm/vm_fault.c#L2361-L2370), [completion caller](../../../xnu/osfmk/vm/vm_fault.c#L4395-L4416), [pageout caller](../../../xnu/osfmk/vm/vm_pageout.c#L4985-L5003).
+
+### Eligibility is checked again after lock mode changes
+
+The caller holds the original top object exclusively and does not hold page-queue locks. The first traversal takes shared locks on lower objects. For each pair, the implementation requires no paging/activity on either object and an internal backing object. If that pair is ineligible it can continue farther down the shadow chain while retaining the original top lock. Purgeable participation is treated as an invariant violation and panics. A backing object that is itself the next lower object's `vo_copy` cannot be collapsed/bypassed here: it needs its zero-offset preservation relationship. [Pair checks](../../../xnu/osfmk/vm/vm_object.c#L5209-L5293).
+
+Collapse additionally requires `B.ref_count == 1` and compatible pager state: either compressor collapse is enabled or at least one object has not created a pager. The destructive pass needs exclusive ownership of both objects. It releases lower shared locks and starts again from the original object with exclusive descent; independently upgrading two shared locks could deadlock with another traversal doing the same thing. Reaching a candidate in the first pass is therefore not a promise that the same pair is still eligible in the second. [Collapse selection/restart](../../../xnu/osfmk/vm/vm_object.c#L5296-L5358), [bypass exclusive restart](../../../xnu/osfmk/vm/vm_object.c#L5549-L5568).
+
+```mermaid
+flowchart TD
+    A["Inspect A and backing B under chain locks"] --> G{"Pair eligible?"}
+    G -->|"no"| D["Try deeper pair"]
+    G -->|"yes"| C{"Can collapse B?"}
+    C -->|"yes"| X["Rewalk with exclusive locks and recheck"]
+    X --> M["Move needed contents and consume B"]
+    C -->|"no"| P{"Can bypass B?"}
+    P -->|"no"| D
+    P -->|"yes"| Y["Rewalk exclusively and repeat proof"]
+    Y --> B["Retain next shadow and redirect A"]
+    M --> R["Evaluate A with its new backing"]
+    B --> R
+```
+
+The diagram omits several rejecting predicates and the next iteration's possible exit. Both rewalk boxes include rerunning the decision checks, not just changing a lock bit.
+
+### Resident-page movement is offset rebasing, not byte copying
+
+Let the system page size be 16 KiB, `A.vo_size = 0xc000` (three pages), `A.vo_shadow_offset = 0x8000`, `B.shadow = D`, and `B.vo_shadow_offset = 0x4000`. Assume an eligible pair and `B.ref_count == 1`. `A` sees `B`'s interval `[0x8000, 0x14000)`. Collapse visits each resident page of `B` and computes `new_offset = B_page_offset - 0x8000`:
+
+| Page/state before collapse | Action |
+| --- | --- |
+| `B+0x4000` | Outside `A`'s window; discard it because no other owner of `B` exists. |
+| `B+0x8000`, with no `A+0` resident/compressed page | Rename the existing page into `A+0`; keep its physical contents. |
+| `B+0xc000`, while `A+0x4000` already exists | Discard the backing version; the parent version already hides it. |
+| `B+0x10000` compressed, with no `A+0x8000` contents | Preserve it through compressor-slot transfer or pager handoff, as described below. |
+| Next-shadow lookup after collapse | `A+q` now reaches `D+(q+0xc000)`, preserving `0x8000 + 0x4000`. |
+
+The resident branch checks both parent resident pages and compressor existence before renaming. `vm_page_rename` removes old object/hash membership and inserts new membership under the page-queue lock, with accounting adjustments; it does not allocate a replacement physical page and copy bytes. [Resident decisions](../../../xnu/osfmk/vm/vm_object.c#L4870-L4919), [rename implementation](../../../xnu/osfmk/vm/vm_resident.c#L4131-L4186).
+
+[Source: `vm_object.c`, lines 4885–4899](../../../xnu/osfmk/vm/vm_object.c#L4885-L4899).
+
+<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_object.c#L4885-L4899 -->
+```c
+		if (p->vmp_offset < backing_offset || new_offset >= size) {
+			VM_PAGE_FREE(p);
+		} else {
+			pp = vm_page_lookup(object, new_offset);
+			if (pp == VM_PAGE_NULL) {
+				if (vm_object_compressor_pager_state_get(object,
+				    new_offset)
+				    == VM_EXTERNAL_STATE_EXISTS) {
+					/*
+					 * Parent object has this page
+					 * in the VM compressor.
+					 * Throw away the backing
+					 * object's page.
+					 */
+					VM_PAGE_FREE(p);
+```
+
+### Compressed contents have two different migration paths
+
+If both objects have pagers and compressor collapse is enabled, `vm_object_do_collapse_compressor` iterates occupied backing slots within the parent's window. It converts a source pager offset to a backing object offset, subtracts `A.vo_shadow_offset`, and adds `A.paging_offset` to obtain the destination pager offset. A parent resident page or occupied compressor slot wins over the backing version. Otherwise `vm_compressor_pager_transfer` moves the slot ownership and adjusts each pager's occupied-slot count; this is not decompression followed by recompression. [Window/slot iteration](../../../xnu/osfmk/vm/vm_object.c#L4768-L4831), [slot transfer](../../../xnu/osfmk/vm/vm_compressor_pager.c#L1033-L1063).
+
+If `A` has no pager and `B` does, the alternate path moves `pager`, `pager_control`, creation/readiness state and paging coordinates into `A`. It changes `A.paging_offset` to `B.paging_offset + old_A_shadow_offset` and updates the control's object association. The source explicitly notes that pager space outside the retained view is not trimmed here. These pager coordinates explain why an object offset and a compressor slot's byte offset must not be treated as interchangeable. [Pager handoff](../../../xnu/osfmk/vm/vm_object.c#L4921-L4967).
+
+In both cases `A` then adopts `B.shadow` and accumulates shadow offsets. The existing reference formerly owned by `B.shadow` is **transferred**, rather than acquired again; `B` clears that pointer. If a pager remains on `B` after slot migration, normal termination releases leftover slots and pager state. Otherwise its empty object storage can be freed directly. [Shadow handoff and destruction](../../../xnu/osfmk/vm/vm_object.c#L4969-L5036).
+
+### Bypass must prove there is no remaining dependency
+
+Bypass cannot steal pages from `B`, because another mapping may still need it. Under the earlier invariants, a fully resident `A` (`resident_page_count == vo_size >> PAGE_SHIFT`) already hides the complete visible range. Otherwise this checkout refuses bypass when either object has `pager_created`: it does not attempt a comprehensive compressed-content proof in that branch. Older comments about pagemaps and the `EXISTS_IN_OBJECT` macro must be read together with these earlier guards. [Bypass entry and pager-created guards](../../../xnu/osfmk/vm/vm_object.c#L5365-L5423).
+
+For eligible objects without pagers, the proof uses several increasingly expensive checks:
+
+1. Compare counts. If even placing as many `B` pages as possible outside `A`'s window would still leave more pages inside than `A` owns, at least one backing page must show through; stop for this pair.
+2. Check `cow_hint`, or a point up to eight system pages before the caller's hint. A known dependency often rejects the attempt immediately.
+3. For a sparse backing object, inspect its resident list and convert each in-window offset into `A` coordinates.
+4. If needed, walk remaining offsets around the window. An existing `B` page with no matching `A` page records the dependency in `cow_hint` and prevents bypass.
+
+[Count bound](../../../xnu/osfmk/vm/vm_object.c#L5425-L5448), [hint](../../../xnu/osfmk/vm/vm_object.c#L5464-L5490), [sparse-list/offset passes](../../../xnu/osfmk/vm/vm_object.c#L5492-L5547).
+
+For example, with a four-page `B` and a three-page `A` window, at most one backing page lies outside the window. If `B` owns three resident pages and `A` only one, at least two backing pages lie inside and one must remain uncovered: `3 - (4 - 3) > 1`. Bypass fails even without finding which offset is missing. If counts do not disprove bypass, the actual offset checks are still necessary; equal counts alone do not establish matching contents.
+
+After proof and exclusive revalidation, `vm_object_do_bypass` acquires a **new** reference on the next shadow, redirects `A`, adds shadow offsets, and clears `B.vo_copy` if it pointed to `A`. It drops the old reference on `B`, which may need full `vm_object_deallocate` for last/named-reference behavior. That slow path temporarily drops `A`'s lock; an activity hold keeps `A` stable even when the caller has no independent ordinary reference. On return, the outer loop rechecks state. [Bypass references and activity hold](../../../xnu/osfmk/vm/vm_object.c#L5039-L5132).
+
+Neither operation promises to shorten every chain in one call. Runtime enablement, outstanding operations, other references, copy relationships and pager state can leave levels intact. A skipped pair can still allow work below it; a successful rewrite can expose another eligible pair. The invariants describe preserved lookup results and ownership, not a maximum supported shadow depth.
+
 ## Last-reference teardown can outlive the last mapping
 
 [`vm_object_deallocate`](../../../xnu/osfmk/vm/vm_object.c#L674) has shared-lock/refcount fast paths and an exclusive slow path. Special cases prevent blindly applying a decrement:
@@ -260,7 +436,7 @@ A wired page follows a different transition: [`vm_page_wire`](../../../xnu/osfmk
 | Area | Inspection depth | Limits |
 |---|---|---|
 | `vm_object_xnu.h` / `vm_object_internal.h` | Object fields, union interpretations, paging/activity helpers and locking contracts | Optional accounting/debug fields are navigation references, not a field-by-field specification. |
-| `vm_object.c` | Allocation, deallocation, termination/reaper, symmetric copy, strategy dispatch, shadow creation, selected collapse/bypass branches, private population | Delayed-copy internals and every collapse/compressor migration case were not exhaustively audited. |
+| `vm_object.c` | Allocation, deallocation, termination/reaper, symmetric/delayed copy, preservation faults, shadow creation, collapse/bypass eligibility, page/slot/pager migration and private population | Selected ordinary-object flows and their retry/ownership boundaries are traced; this is not exhaustive configuration/interleaving verification or a live-kernel test. |
 | `vm_page.h` / `vm_resident.c` | Page state/locking, lookup/insertion, allocation paths, final release and wire/unwire | Boot-time page enumeration, every queue optimization and all MTE-specific paths are not traced here. |
 | `vm_pageout.c` | External worker object/offset relookup as a concrete lifetime example | Reclaim policy and compressor algorithms remain in the sibling guide. |
 
