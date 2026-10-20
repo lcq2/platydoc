@@ -41,6 +41,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmark-gfm graphviz
+          sudo apt-get install -y ripgrep
           python -m pip install -r docs-ai/tools/book/requirements.txt
 
       - uses: actions/configure-pages@v5
