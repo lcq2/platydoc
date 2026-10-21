@@ -2,6 +2,8 @@
 
 [Networking](README.md) · [TCP/IP overview](tcp-ip-interfaces.md) · [Socket ownership](socket-lifecycle-and-io.md) · [Skywalk lifecycles](skywalk-lifecycles.md)
 
+For descriptor and backing lifetime, use [mbufs and external storage](../../structures/mbufs-and-external-storage.md). It separates the current byte range from capacity, descriptor ownership from cluster sharing, packet-header transfer from cloning, and software read-only state from protected mappings.
+
 Below the transport layer, three independent objects often travel together: an mbuf carrying packet bytes, a referenced route used as an output hint, and an interface whose data path must remain available during processing. Their lifetimes differ. A packet may be consumed by address resolution before driver output. A route can remain allocated after removal from the routing table. An interface can disappear from lookup tables before its existing I/O operations finish. This chapter follows those distinctions through [`ip_output()`](../../../xnu/bsd/netinet/ip_output.c#L284), [`dlil_output()`](../../../xnu/bsd/net/dlil_output.c#L65), [`rtfree_common()`](../../../xnu/bsd/net/route.c#L1206), and [`ifnet_detach()`](../../../xnu/bsd/net/dlil.c#L5362).
 
 ## Mbuf chains, packet lists, and external storage

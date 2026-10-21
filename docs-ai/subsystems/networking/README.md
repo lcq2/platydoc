@@ -8,6 +8,8 @@ This chapter describes the supplied `xnu-12377.121.6` snapshot. It was developed
 
 ## Reading route
 
+The [network structure companions](../../structures/README.md#follow-messages-and-packets-into-their-storage) explain [socket allocation and attachments](../../structures/sockets-and-protocol-attachments.md), [sockbuf records and counters](../../structures/socket-buffers-and-record-queues.md), [Internet PCB/TCP storage](../../structures/internet-pcbs-and-transport-storage.md), and [mbuf views and external backing](../../structures/mbufs-and-external-storage.md). Use these field/ownership maps alongside the operation guides below.
+
 For three distinct packet mechanisms, follow [BPF capture and filter lifetime](bpf-capture-and-filter-lifecycle.md), [PF rule publication and state](pf-rules-states-and-packet-ownership.md), and [IPsec policy, associations and transforms](ipsec-policy-associations-and-transforms.md). These connect control calls to packet decisions, buffers, retained state and reclamation.
 
 [IPsec interface lifecycle](ipsec-interface-lifecycle.md) continues from association/transform state into virtual-interface control, mbuf and Skywalk packet paths, and disconnect draining. [MPTCP sessions and subflows](mptcp-sessions-and-subflows.md) follows the connection above individual TCP paths, including data numbering, reinjection, receive ordering and teardown.

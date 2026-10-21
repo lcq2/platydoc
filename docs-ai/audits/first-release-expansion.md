@@ -511,6 +511,24 @@ The [structure overview](../structures/README.md#follow-descriptors-into-file-an
 
 The five companions add 20 diagrams and 44 exact source excerpts. Validation results are recorded in [coverage and verification](../coverage.md#documentation-checks). The batch is Markdown-only: no XNU changes, kernel/runtime tests, HTML generation or browser work. Historical audit data and prior chapter excerpts remain preserved.
 
+## 29. Message and networking structures
+
+This parallel batch follows five message/network structure families in `xnu-12377.121.6` at `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`. Independent authors cover kmsg storage, sockets/socket buffers and Internet/TCP PCBs; coordinating work covers mbufs and integrates the routes. Source review follows allocation, selected fields and accessors, publication, ownership, locking, failures and teardown. Existing message, protocol, buffer and allocator operation chapters supply the surrounding algorithms.
+
+| Companion | Reviewed source paths and distinctions |
+| --- | --- |
+| [IPC kmsgs and message storage](../structures/ipc-kmsgs-and-message-storage.md) | Fixed metadata zone and four buffer layouts; size calculations and representation-dependent access, staged rights/voucher/VM ownership, queue transfer, cleanup versus storage free, and reusable timer-message ownership. |
+| [Sockets and protocol attachments](../structures/sockets-and-protocol-attachments.md) | Socket zone and constructor, protocol selection and attachment, fd/kernel-handle publication, field/lock/reference contracts, listener queues, upcalls and close/detach/final storage release. |
+| [Socket buffers and record queues](../structures/socket-buffers-and-record-queues.md) | Embedded headers versus mbuf records, fragment/record links, byte/control/capacity accounting, reservation and limits, append/compress/drop/flush, buffer serialization versus socket mutex, and copy/peek ownership. |
+| [Internet PCBs and transport storage](../structures/internet-pcbs-and-transport-storage.md) | Combined TCP allocation and plain UDP/raw variants, address/route unions, table and port-head ownership, wanted/socket/timer references, subordinate reassembly/recovery storage, route transfers and delayed disposal. |
+| [Mbufs and external storage](../structures/mbufs-and-external-storage.md) | Both allocator/layout configurations, separate descriptor/cluster/reference records, current views and capacity, sticky sharing flags, metadata move/copy, consuming and partially progressing helpers, custom destructor attachment, paired-ring reuse and final cache/free decisions. |
+
+The review corrects the older [TCP attachment description](../subsystems/networking/tcp-connections-and-timers.md): the PCB allocator obtains one `inp_tp` aggregate and `tcp_newtcpcb()` initializes its embedded TCP member. The caller retains a defensive null-result branch. A separate bandwidth-helper null check clears a feature flag, but the helper itself waits for storage and immediately initializes it without an explicit null-return path. New companions also distinguish declared historical state/zone fields from the allocation paths actually present, and distinguish mbuf `EXTF_READONLY` software sharing state from RO-zone protection. Existing exact excerpts are retained.
+
+The [structure overview](../structures/README.md#follow-messages-and-packets-into-their-storage), home, architecture, reading guide, IPC/network indexes and related operation introductions connect the new material. Worked examples account for message capacity, socket references, queue charges, tuple hashing and shared packet views. IOKit user-client, memory-descriptor and mapping objects remain candidates for the next structure batch; mount, buffer-cache and event/workloop structures also merit later companions. This is selected implementation coverage: external driver callbacks, generated transport, all protocol/configuration branches and every concurrency interleaving are not reconstructed or claimed complete.
+
+The five companions add 20 diagrams and 44 exact source excerpts. Validation results are recorded in [coverage and verification](../coverage.md#documentation-checks). The batch is Markdown-only, with standalone diagram validation and navigation regeneration. No XNU changes, kernel/runtime tests, HTML generation or browser work are part of it. Historical audit data and prior chapter excerpts remain preserved.
+
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.
 <!-- END PLATYDOC DOCUMENTATION LICENSE -->

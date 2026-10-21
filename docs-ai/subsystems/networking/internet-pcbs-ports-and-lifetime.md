@@ -2,6 +2,8 @@
 
 [Networking](README.md) · [UDP](udp-send-receive-and-errors.md) · [TCP timers](tcp-connections-and-timers.md) · [Skywalk namespaces](skywalk-lifecycles.md)
 
+The [Internet PCB and transport structure companion](../../structures/internet-pcbs-and-transport-storage.md) supplies allocation geometry, field and union maps, embedded/subordinate TCP storage, wanted/socket/timer ownership and final disposal. It connects the binding and lookup operations below to the concrete records they access.
+
 An Internet protocol control block (`inpcb`) connects a BSD socket to addresses, ports, routes and protocol lookup tables. Receiving a datagram first finds this object; it does not search file descriptors or copy directly into a process. This chapter follows allocation, publication, lookup and reclamation in `xnu-12377.121.6`. TCP and UDP share the PCB machinery, while their protocol-specific timers and final cleanup differ.
 
 The [IPv6 socket companion](ipv6-sockets-and-packet-options.md) expands scoped bind/connect publication, native/mapped family flags and ephemeral port reservations; [source selection](ipv6-source-selection-and-scopes.md) follows the address and route references used around output.

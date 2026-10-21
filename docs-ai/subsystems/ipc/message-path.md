@@ -6,6 +6,8 @@ A Mach message is a byte sequence plus an ownership transfer. The kernel copies 
 
 This chapter follows the modern LP64/ARM64 userspace route in this checkout. [The companion chapter](message-send-receive.md) follows allocation, rights, queue locks, blocking, copyout, and failure cleanup in detail. Read [ports and rights lifetime](ports-and-rights-lifecycle.md) for the name-table operations below those calls, and [kernel RPC and exceptions](kernel-rpc-and-exceptions.md) for dispatch after the transport boundary.
 
+The [kmsg structure companion](../../structures/ipc-kmsgs-and-message-storage.md) follows the fixed metadata zone, four storage layouts, buffer accessors, staged resource ownership and timer-message reuse. It supplies the allocation and lifetime details behind the representation changes below.
+
 ## The stages and the actual delivery point
 
 ```mermaid

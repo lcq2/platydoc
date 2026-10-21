@@ -2,6 +2,8 @@
 
 [Networking](README.md) · [Packet storage and sharing](packets-routes-and-interfaces.md) · [Kernel allocation](../vm/kernel-allocation.md) · [Skywalk memory](skywalk-memory-arenas-and-mapping.md)
 
+The [mbuf structure companion](../../structures/mbufs-and-external-storage.md) compares both configuration-dependent layouts and the alternative zone backend, then follows current byte views, shared-reference flags, packet metadata, paired rings and final release. This chapter retains the deeper MCACHE pressure and slab route.
+
 The mbuf is a packet representation, but allocating one does not always allocate a new VM object or a new payload buffer. With `CONFIG_MBUF_MCACHE`, XNU caches plain mbufs, payload clusters, and already-constructed mbuf-plus-cluster objects through a per-CPU cache layer backed by mbuf-specific slabs. This chapter follows that configured implementation in `xnu-12377.121.6`, including partial batches, shared backing and reclamation.
 
 ## Select the allocator before following a same-named function

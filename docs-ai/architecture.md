@@ -54,6 +54,8 @@ For memory, follow [map and entry storage](structures/vm-maps-and-entries.md), [
 
 For files, follow the [descriptor table](structures/file-descriptor-tables.md) into [fileproc/fileglob storage](structures/fileprocs-and-fileglobs.md), then [vnode identity](structures/vnodes-and-vnode-identity.md), [UBC/pager associations](structures/ubc-and-vnode-pagers.md) and [signature storage](structures/code-signature-blob-storage.md). Slot publication, shared open-file references, filesystem identity and signed-file backing each have their own lifetime.
 
+For messages and networking, follow [kmsg storage](structures/ipc-kmsgs-and-message-storage.md), [sockets](structures/sockets-and-protocol-attachments.md), [socket-buffer records](structures/socket-buffers-and-record-queues.md), [Internet PCBs](structures/internet-pcbs-and-transport-storage.md) and [mbuf backing](structures/mbufs-and-external-storage.md). A queue header, protocol attachment, retained capability and shared packet-byte view have separate allocation and ownership rules.
+
 | Object | Responsibility | Principal source |
 | --- | --- | --- |
 | `proc` | BSD process identity, lifecycle, descriptor state, signal state, process relationships | [proc_internal.h](../xnu/bsd/sys/proc_internal.h) |

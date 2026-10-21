@@ -26,6 +26,9 @@ GROUPS = [
         "file-descriptor-tables", "fileprocs-and-fileglobs",
         "vnodes-and-vnode-identity", "ubc-and-vnode-pagers",
         "code-signature-blob-storage",
+        "ipc-kmsgs-and-message-storage", "sockets-and-protocol-attachments",
+        "socket-buffers-and-record-queues",
+        "internet-pcbs-and-transport-storage", "mbufs-and-external-storage",
     ]),
     ("Execution, scheduling, waits and timers", "subsystems/runtime", [
         "README", "objects-and-lifecycle", "suspension-stop-and-abort",
