@@ -23,6 +23,10 @@ from build_toc import GROUPS
 from check_links import DOCS, ROOT, prose_lines
 from doc_license import LICENSE_URL, handbook_paths, strip_license_notice, sync_notices
 from paths import SOURCE_ROOT, require_source
+from .offline import (
+    ARCHIVE_NAME, ARCHIVE_ROOT, DOWNLOAD_PAGE, DOWNLOAD_START, DOWNLOAD_END,
+    HEADER_START, HEADER_END, HEADER_LABEL, create_archive,
+)
 
 HERE = Path(__file__).resolve().parent
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
@@ -235,6 +239,7 @@ def shell(title, content, current, *, nav="", toc="", chapter="", breadcrumb="",
  <nav class="header-links" aria-label="Book tools"><a href="{prefix}table-of-contents.html">Contents</a><a href="{prefix}concept-index.html">A–Z index</a></nav>
  <button id="search-open" type="button" aria-label="Search the handbook">Search <kbd>/</kbd></button>
  <button id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button>
+ {HEADER_START}<a class="offline-download" href="{prefix}{ARCHIVE_NAME}" download="{ARCHIVE_NAME}">{HEADER_LABEL}</a>{HEADER_END}
 </header>
 <aside id="chapter-nav" class="chapter-nav" aria-label="Chapters"{" data-shared-nav" if nav else ""}>{nav}</aside>
 <main id="main" class="book-main">
@@ -243,7 +248,7 @@ def shell(title, content, current, *, nav="", toc="", chapter="", breadcrumb="",
  <article id="content">{content}</article>
  <nav class="page-navigation" aria-label="Adjacent chapters">{page_navigation}</nav>
  <footer class="book-footer">
-  <p>XNU 12377.121.6 · Source-based technical documentation · <a href="{prefix}build-info.html">Build &amp; provenance</a></p>
+  <p>XNU 12377.121.6 · Source-based technical documentation · <a href="{prefix}build-info.html">Build &amp; provenance</a> · <a href="{prefix}{DOWNLOAD_PAGE}">Offline handbook</a></p>
   <p>Original Platydoc documentation and diagrams: <a href="{LICENSE_URL}" rel="license">CC BY 4.0</a>
   (<a href="{prefix}licenses/CC-BY-4.0.txt">license text</a>). Platydoc software:
   <a href="{prefix}licenses/GPL-2.0.txt">GPLv2</a>. XNU source, quoted code and third-party materials
@@ -270,6 +275,28 @@ def shell(title, content, current, *, nav="", toc="", chapter="", breadcrumb="",
 </dialog>
 </body></html>
 """
+
+
+def download_page(pages):
+    content = (
+        '<h1 id="download">Download the offline handbook</h1>'
+        '<p>Take the complete HTML handbook with you: every chapter, search, the A–Z index, '
+        'SVG diagrams, cited source files, Markdown sources and license notices.</p>'
+        f'{DOWNLOAD_START}\n'
+        f'<p><a class="start-reading" href="{ARCHIVE_NAME}" download="{ARCHIVE_NAME}">Download ZIP</a></p>'
+        '<ol><li>Download and extract the ZIP file completely.</li>'
+        f'<li>Open <code>{ARCHIVE_ROOT}/index.html</code> in your browser.</li>'
+        '<li>Keep the extracted folder together so its links and reading tools continue to work.</li></ol>\n'
+        f'{DOWNLOAD_END}'
+        '<p>No web server, installation or network connection is needed. '
+        'Enable JavaScript for search, the A–Z index and source previews/downloads. '
+        'Chapters and diagrams can also be read without JavaScript.</p>'
+        '<p><a href="index.html">Read the handbook</a> · '
+        '<a href="build-info.html#licenses">Licenses and attribution</a></p>'
+    )
+    return shell("Offline handbook", content, DOWNLOAD_PAGE,
+                 nav=nav_html(pages, DOWNLOAD_PAGE), chapter="OFFLINE READING",
+                 breadcrumb='<a href="index.html">Handbook</a> / Offline reading')
 
 
 class Book:
@@ -427,7 +454,8 @@ class Book:
                         f'<span><strong>{len(self.diagrams)}</strong> SVG diagrams</span>'
                         f'<span><strong>Offline</strong> search &amp; source previews</span></div>'
                         f'<a class="start-reading" href="architecture.html">Start with the architecture →</a> '
-                        f'<a href="concept-index.html">Browse the A–Z index</a></section>')
+                        f'<a href="concept-index.html">Browse the A–Z index</a> '
+                        f'<a href="{DOWNLOAD_PAGE}">Download offline ZIP</a></section>')
             content = lead + page["dom"].render()
             write(self.output/page["url"], shell(page["title"], content, page["url"],
                 nav=nav_html(self.pages,page["url"]), toc=toc,
@@ -686,6 +714,7 @@ def main():
     script_data(staging/"assets"/"search-index.js", "XNU_SEARCH", book.search)
     book.render_sources(args.jobs)
     book.copy_downloads()
+    write(staging/DOWNLOAD_PAGE, download_page(pages))
     import pygments
     renderers = Counter(ET.parse(staging/path).getroot().get("data-renderer","unknown")
                         for path in svg_paths.values())
@@ -699,6 +728,7 @@ def main():
               "diagrams":len(book.diagrams),"sources":len(book.sources),
               "concepts":count,"search_sections":len(book.search),
               "source_format":"gzip-base64-pygments-tokens-v2",
+              "offline_archive":{"file":ARCHIVE_NAME,"root":ARCHIVE_ROOT},
               "diagram_renderers":dict(sorted(renderers.items())),
               "pygments_version":pygments.__version__,
               "book_tool_hashes":{path.relative_to(ROOT).as_posix():digest(path.read_bytes())
@@ -714,7 +744,8 @@ def main():
              '<p>All browsing assets are local. No server, account, analytics, CDN or network connection is required to read this book. '
              'Source files, search and index data are stored losslessly compressed. The browser creates highlighting and exact-byte downloads from the shared data.</p>'
              '<p><a href="build-manifest.json">Content hashes and build manifest</a> · '
-             '<a href="development/building-html.html">Build and maintenance instructions</a></p>'
+             '<a href="development/building-html.html">Build and maintenance instructions</a> · '
+             f'<a href="{DOWNLOAD_PAGE}">Download the offline handbook</a></p>'
              '<h2 id="licenses">Documentation, software and source licenses</h2>'
              f'<p>Original Platydoc documentation and diagrams, including the Markdown and generated HTML, '
              f'are licensed under <a href="{LICENSE_URL}" rel="license">Creative Commons Attribution 4.0 International</a> '
@@ -728,8 +759,10 @@ def main():
              "".join(f'<li><a href="{url}">{name}</a></li>' for name,url in notice_links.items()) + '</ul>')
     write(staging/"build-info.html",shell("Build and provenance",content,"build-info.html",
           nav=nav_html(pages,"build-info.html"),chapter="BUILD REFERENCE"))
+    log("Packaging the complete offline handbook ZIP…")
+    create_archive(staging)
     from .verify import verify_generated
-    log("Checking generated HTML, anchors, assets and SVG…")
+    log("Checking generated HTML, anchors, assets, SVG and offline ZIP…")
     checks=verify_generated(staging)
     log(json.dumps(checks,indent=2))
     backup=output.with_name(output.name+".previous")
@@ -743,4 +776,5 @@ def main():
     if backup.exists():
         shutil.rmtree(backup)
     log(f"Built in {time.monotonic()-started:.1f}s. Open {output/'index.html'}")
+    log(f"Offline download: {output/ARCHIVE_NAME}")
     return 0

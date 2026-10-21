@@ -433,6 +433,8 @@ pre.source-code { padding: 1rem 0; }
 .header-links { display: flex; gap: 1rem; margin: 0 .65rem; }
 .header-links a { color: var(--nav-ink); font-size: .76rem; text-decoration: none; white-space: nowrap; }
 .header-links a:hover { color: #fff; text-decoration: underline; }
+.offline-download { color: var(--nav-ink); font-size: .76rem; white-space: nowrap; }
+.offline-download:hover { color: #fff; }
 .part-number, .nav-number { color: var(--nav-muted); font: .7rem/1.5 var(--mono); font-variant-numeric: tabular-nums; }
 .nav-number { margin-right: .25rem; }
 .page-toc .toc-level-3 a { padding-left: 1.3rem; font-size: .71rem; }
@@ -507,6 +509,11 @@ pre.source-code .line-code { white-space: pre; }
   .brand-mark { width: 1.6rem; height: 1.6rem; font-size: 1.1rem; }
   .header-links { margin-inline: .1rem; }
   #content .book-intro { padding-top: .25rem; margin-bottom: 2rem; }
+}
+@media (max-width: 1100px) {
+  :root { --header-height: 6rem; }
+  .book-header { flex-wrap: wrap; }
+  .offline-download { flex: 0 0 100%; text-align: center; }
 }
 @media print {
   .book-intro { break-inside: avoid; }

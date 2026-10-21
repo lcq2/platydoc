@@ -2949,6 +2949,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Reading tools](development/building-html.md#reading-tools)
   - [Updating Markdown and source](development/building-html.md#updating-markdown-and-source)
   - [Build components](development/building-html.md#build-components)
+  - [Offline ZIP packaging](development/building-html.md#offline-zip-packaging)
   - [Documentation license](development/building-html.md#documentation-license)
   - [Compact static storage](development/building-html.md#compact-static-storage)
   - [Verification limits](development/building-html.md#verification-limits)

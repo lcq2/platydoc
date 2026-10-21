@@ -14,6 +14,8 @@ python3 make_docs.py
 
 Open `docs-ai-html/index.html` in a browser. The whole output folder can be copied elsewhere and browsed without the checkout. A web server is optional: search and source previews use local classic-script assets and work with `file://` URLs. No CDN, account, analytics service or network connection is needed for reading.
 
+Every build also creates `docs-ai-html/xnu-source-handbook.zip`. **Download offline version from here** in every page's header downloads the ZIP directly; the link remains visible on narrow screens. Extract the ZIP completely, then open `xnu-source-handbook/index.html`. Keep the extracted folder together. The archive contains every chapter, navigation/search/index data, source previews and downloads, SVG diagrams, styles, scripts, linked assets and license notices. It does not require the original checkout or build tools.
+
 The builder uses Python 3.10 or newer, `cmark-gfm` for GitHub-flavored Markdown, Node.js 20 or newer for the bundled Mermaid parser, and Pygments for syntax highlighting. Chromium can render Mermaid directly where the environment permits; Graphviz supplies the browserless graph layout. Install the Python dependency with:
 
 ```sh
@@ -75,6 +77,7 @@ python3 make_docs.py --output /tmp/xnu-book --cache /tmp/xnu-book-cache --jobs 4
 | [tools/doc_license.py](../tools/doc_license.py) | Shared Markdown documentation-license notice, idempotent updates and notice coverage checks. |
 | [book/build.py](../tools/book/build.py) | Markdown conversion, chapter ordering, heading preservation, link rewriting, search records, source highlighting/previews, output staging and build manifest. |
 | [book/source_codec.py](../tools/book/source_codec.py) | Exact source tokenization, deterministic compression, byte preservation and versioned source cache. |
+| [book/offline.py](../tools/book/offline.py) | Compressed offline ZIP creation, extraction instructions and archive membership/byte validation. |
 | [book/concepts.py](../tools/book/concepts.py) | Alphabetical concept/symbol/interface extraction and occurrence links. |
 | [book/diagrams.py](../tools/book/diagrams.py) | Diagram rendering, content-addressed cache and renderer selection. |
 | [book/verify.py](../tools/book/verify.py) | Generated local links, HTML anchors, assets and SVG verification. |
@@ -84,6 +87,14 @@ python3 make_docs.py --output /tmp/xnu-book --cache /tmp/xnu-book-cache --jobs 4
 Path conventions distinguish evidence from project infrastructure. `PROJECT_ROOT` is the Platydoc directory, `SOURCE_ROOT` is its `xnu/` child, and `DOCS` is `docs-ai/`. Kernel paths in inventory records and implementation-location metadata remain XNU-relative (`osfmk/...`); Markdown destinations and generated source-record paths are project-relative where appropriate (`xnu/osfmk/...`). Embedded Markdown links in authored catalog text resolve from the generated chapter, just like links in ordinary Markdown.
 
 The generated `build-manifest.json` records input/tool content hashes, diagram renderers, the highlighter version and artifact counts. `build-info.html` describes the build's scope and links to source/build-tool license notices. Generated HTML and caches should not be edited manually; rebuild them from Markdown and the book tools.
+
+## Offline ZIP packaging
+
+The ZIP is built in the staging output and validated before the previous successful book is replaced. It uses standard ZIP DEFLATE compression and one fixed top-level folder, `xnu-source-handbook/`, even with a custom `--output` directory. Share the ZIP by itself, or publish the complete generated output directory to retain its download page.
+
+Packaging reads only the generated book. It includes its manifests, license notices and referenced source payloads; it does not copy the working tree, build cache or the entire XNU checkout. The ZIP excludes itself. Inside the archive, marked header download links become links to local offline-reading instructions, and `download.html` replaces its download button and extraction steps with instructions for using the offline copy. All other generated content retains its bytes. Reading links remain local and valid after extraction.
+
+The generated-output verifier checks unique archive membership, compression and every member's bytes against the built book, accounting for those marked download-control replacements. `python3 make_docs.py --check` also checks the ZIP when present. An extracted copy can be checked with `--output /path/to/xnu-source-handbook --check`; it has no nested ZIP to validate. Archive creation or validation failure leaves the previous successful output in place.
 
 ## Documentation license
 
@@ -128,7 +139,7 @@ python3 -B -m unittest discover -s docs-ai/tools/book/tests -v
 node docs-ai/tools/book/tests/assets.test.mjs
 ```
 
-These include source ranges and Markdown heading previews, exact token/download byte preservation, compressed payload integrity, both gzip decoding paths, concept destinations, invalid links/SVGs, search matching/pagination and bounded preview context. The JavaScript tests execute the implementation helpers with a small DOM fixture; they do not substitute for a visual browser check.
+These include source ranges and Markdown heading previews, exact token/download byte preservation, compressed payload integrity, both gzip decoding paths, concept destinations, invalid links/SVGs, ZIP completeness and extraction, search matching/pagination and bounded preview context. The JavaScript tests execute the implementation helpers with a small DOM fixture; they do not substitute for a visual browser check.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

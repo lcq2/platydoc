@@ -647,6 +647,15 @@ def verify_generated(output_dir):
 
     if not counts["html_files"]:
         errors.append("No generated HTML files were found.")
+    # The extracted copy omits the ZIP itself and replaces marked download
+    # controls. Verify distributed archives against all remaining bytes.
+    from .offline import ARCHIVE_NAME, verify_archive
+    archive = root / ARCHIVE_NAME
+    if archive.exists() or archive.is_symlink():
+        try:
+            counts.update(verify_archive(root))
+        except (ValueError, OSError) as exc:
+            error(archive, str(exc))
     counts["errors"] = len(errors)
     summary = ", ".join(f"{key}={value}" for key, value in sorted(counts.items()))
     if errors:

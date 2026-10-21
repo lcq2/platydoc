@@ -20,6 +20,8 @@ python3 make_docs.py
 
 Open `docs-ai-html/index.html` in a browser. The book works offline and on static hosts such as GitHub Pages, with full-text search, an alphabetical index, SVG diagrams and syntax-highlighted source previews.
 
+Each build also creates `docs-ai-html/xnu-source-handbook.zip`. Use **Download offline version from here** in any page's header to download it directly. Extract the ZIP completely, then open `xnu-source-handbook/index.html`; keep the whole folder together. The archive includes all reading assets and license notices, so no server or network connection is needed.
+
 Edit the Markdown and rerun the build to update the book. See [AGENTS.md](AGENTS.md) for research, validation and release-update instructions.
 
 ## License
