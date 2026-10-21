@@ -10,6 +10,8 @@ For worked operations spanning other subsystems, use [a mapped file through an A
 
 ## Detailed reading route
 
+For allocation, field access and final storage release, use the [VM structure route](../../structures/README.md#follow-virtual-memory-into-backing-and-translation-storage): [maps and entries](../../structures/vm-maps-and-entries.md) → [objects](../../structures/vm-objects-and-backing.md) → [page descriptors](../../structures/vm-pages-and-resident-storage.md) → [pmap and table storage](../../structures/pmap-and-translation-storage.md) → [named entries and copies](../../structures/memory-entries-and-vm-copies.md). These companions supply field and ownership maps for the operation chapters below.
+
 For concrete clients of the allocator, the [key-structures section](../../structures/README.md) follows `proc` and `task` from their combined allocation into a separate protected record. [Writing protected object fields](../../structures/read-only-object-updates.md) connects their update helpers to the RO-zone validation and ARM64 alias-write paths described below.
 
 | Question | Guide |

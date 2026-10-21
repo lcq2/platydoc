@@ -31,6 +31,8 @@ Continue into the detailed implementation chapters:
 
 For signed files, continue from those caches into [signature format and structural checks](../security/signature-format-and-blob-validation.md) → [attachment to the vnode's UBC state](../security/vnode-signature-lifecycle.md) → [exec and mapping policy](../security/executable-signature-policy.md) → [page hashing and cached validation](../security/page-signature-validation.md). A name-cache hit, a resident data page, an accepted `cs_blob`, and an executable mapping are separate results.
 
+The [file structure route](../../structures/README.md#follow-descriptors-into-file-and-signature-storage) connects [descriptor tables](../../structures/file-descriptor-tables.md) and [fileproc/fileglob storage](../../structures/fileprocs-and-fileglobs.md) to [vnode identity](../../structures/vnodes-and-vnode-identity.md), [UBC/pager allocation and lifetime](../../structures/ubc-and-vnode-pagers.md), and [RO signature attachments](../../structures/code-signature-blob-storage.md). Use these companions for field access, references, publication and final storage release.
+
 ## The main boundaries
 
 ```mermaid

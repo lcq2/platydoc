@@ -48,7 +48,11 @@ This is a dependency map, not a strict stack. For example, a device interrupt en
 
 ## The objects to learn first
 
-The [key-structures section](structures/README.md) follows these declarations into allocation, accessors, checked updates and final release. Its first study covers `proc`, `task` and their protected `proc_ro` data, including ordinary creation, kernel bootstrap and corpse differences.
+The [key-structures section](structures/README.md) follows these declarations into allocation, accessors, checked updates and final release. Its process/task route includes ordinary creation, kernel bootstrap and corpse differences. Continue with [thread storage and protected associations](structures/thread-and-thread-ro.md), [credentials](structures/credentials-and-credential-storage.md), [MAC labels](structures/mac-label-storage.md), [IPC spaces and entries](structures/ipc-spaces-and-entries.md), and [ports and kobjects](structures/ipc-ports-and-kobjects.md) to connect execution identity and capability lookup to their concrete representations.
+
+For memory, follow [map and entry storage](structures/vm-maps-and-entries.md), [object backing](structures/vm-objects-and-backing.md), [resident-page metadata](structures/vm-pages-and-resident-storage.md) and [pmap/table storage](structures/pmap-and-translation-storage.md). The [memory-entry and copy companion](structures/memory-entries-and-vm-copies.md) connects those ownership rules to exported capabilities and transfer containers. A live range, a retained object, a resident frame and an installed translation are distinct states.
+
+For files, follow the [descriptor table](structures/file-descriptor-tables.md) into [fileproc/fileglob storage](structures/fileprocs-and-fileglobs.md), then [vnode identity](structures/vnodes-and-vnode-identity.md), [UBC/pager associations](structures/ubc-and-vnode-pagers.md) and [signature storage](structures/code-signature-blob-storage.md). Slot publication, shared open-file references, filesystem identity and signed-file backing each have their own lifetime.
 
 | Object | Responsibility | Principal source |
 | --- | --- | --- |
@@ -56,6 +60,8 @@ The [key-structures section](structures/README.md) follows these declarations in
 | `proc_ro` | Protected process/task association and selected process state | [proc_ro.h](../xnu/bsd/sys/proc_ro.h) |
 | `task` | Mach resource container: VM map, IPC space, threads, policy, accounting | [task.h](../xnu/osfmk/kern/task.h#L266) |
 | `thread`, `thread_ro`, `uthread` | Schedulable execution, protected associations, and per-thread BSD state | [thread.h](../xnu/osfmk/kern/thread.h), [user.h](../xnu/bsd/sys/user.h) |
+| `ucred`, `posix_cred`, `ucred_rw` | Shared identity value, embedded POSIX fields, and separate writable lifetime/hash bookkeeping | [ucred.h](../xnu/bsd/sys/ucred.h#L146-L180), [kern_credential.c](../xnu/bsd/kern/kern_credential.c#L3295-L3305) |
+| MAC `label` | Protected owner/slot representation for policy-specific values | [_label.h](../xnu/security/_label.h#L72-L92) |
 | `processor`, `processor_set` | CPU execution and scheduling domains | [processor.h](../xnu/osfmk/kern/processor.h) |
 | `vm_map`, `vm_map_entry` | Virtual-address ranges, protections, backing relationships | [vm_map_xnu.h](../xnu/osfmk/vm/vm_map_xnu.h) |
 | `vm_object`, `vm_page` | Backing-store identity and resident physical-page metadata | [vm_object_xnu.h](../xnu/osfmk/vm/vm_object_xnu.h), [vm_page.h](../xnu/osfmk/vm/vm_page.h) |

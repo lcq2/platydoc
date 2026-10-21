@@ -6,6 +6,8 @@ A `task` owns the Mach resources shared by its threads: an address space, IPC na
 
 This chapter follows `xnu-12377.121.6`: ordinary process-associated tasks, corpse tasks and the kernel bootstrap exception. The [process transition chapter](../subsystems/processes/process-transitions.md) supplies the surrounding fork, exec, exit and wait protocols; the focus here is storage, access and mutation.
 
+Continue through [thread and thread_ro](thread-and-thread-ro.md) for the thread's task association, [IPC spaces and entries](ipc-spaces-and-entries.md) for `itk_space`, and [ports and kobjects](ipc-ports-and-kobjects.md) for the task's exported capability objects and referenced conversion.
+
 ## 1. Writable task state and the protected companion
 
 `struct task` begins with its mutex and reference count. Neither the whole structure nor all of its security-related state is in a read-only zone. Its `bsd_info_ro` member points to `struct proc_ro`; the latter contains a `task_data` group declared with the type name `task_ro_data`. That group is part of the RO allocation, not a separately allocated `task_ro`. [Task declaration](../../xnu/osfmk/kern/task.h#L266-L350), [RO pointer](../../xnu/osfmk/kern/task.h#L374-L383), [protected layout](../../xnu/bsd/sys/proc_ro.h#L69-L97).

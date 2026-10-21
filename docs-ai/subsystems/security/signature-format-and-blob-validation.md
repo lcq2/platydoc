@@ -6,6 +6,8 @@ A signature attached to a vnode has two representations: serialized signature by
 
 This chapter follows the parser and representation-changing helpers in `ubc_subr.c`. The companion [vnode lifecycle](vnode-signature-lifecycle.md) follows input acquisition, MAC/monitor calls, publication, revalidation, and destruction. [TXM](txm.md) covers protected monitor ownership and its external implementation boundary.
 
+The [code-signature storage companion](../../structures/code-signature-blob-storage.md) follows the RO wrapper, serialized backing and interior views through allocation, relocation, accessors, protected mutation and cleanup. It also provides a numeric example separating file coverage from directory-relative buffer offsets.
+
 ## 1. Three layers of data and three kinds of offset
 
 | Representation | Important fields | Coordinate system |

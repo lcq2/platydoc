@@ -22,7 +22,11 @@ flowchart TD
 
 The diagram identifies relationships, not a mandatory ordering of checks for every API.
 
+For the storage behind signed-file policy, read [code-signature blob storage](../../structures/code-signature-blob-storage.md): RO wrapper allocation, serialized byte ownership, pointer reconstruction, PAC preparation, borrowed/retained access, permitted field writes and cleanup. The [UBC/pager companion](../../structures/ubc-and-vnode-pagers.md) supplies its enclosing vnode/VM lifetime.
+
 ## Reading routes
+
+The structure companions follow [credential values and writable lifetime state](../../structures/credentials-and-credential-storage.md), [MAC label slots and ownership](../../structures/mac-label-storage.md), and [thread identity in `thread_ro`](../../structures/thread-and-thread-ro.md). Read them beside the operation chapters below to connect authorization inputs to allocation, protected updates, references, publication and cleanup. [Ports and kobject associations](../../structures/ipc-ports-and-kobjects.md) supplies the corresponding storage and conversion model for Mach capabilities.
 
 [Executable-memory policy](../vm/executable-memory-policy.md) connects MAP_JIT admission and protection changes to monitor association, ARM64 faults and SPTM frame types. It distinguishes current permissions, maximum permissions, entry classification and the physical mapping that a later access obtains.
 

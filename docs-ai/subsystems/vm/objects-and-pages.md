@@ -6,6 +6,8 @@ A map entry describes a virtual range. A `vm_object` describes the contents avai
 
 This chapter follows object allocation, resident lookup, shadow relationships and reclamation in this checkout. [Fault resolution](fault-resolution.md) covers choosing a page for a particular access; [wiring and memory entries](wiring-and-memory-entries.md) covers holding and exporting contents. [MTE tag storage](mte-tag-storage-and-page-lifecycle.md) follows the additional backing/cell state that makes a free data page eligible for tagging, including ordinary reuse and relocation.
 
+For detailed field and lifetime maps, read [VM objects and backing](../../structures/vm-objects-and-backing.md) and [VM pages and resident storage](../../structures/vm-pages-and-resident-storage.md). They separate object allocation from content acquisition, page descriptors from frames, and ordinary references from paging, busy, wire and queue protocols.
+
 ## The object is an offset namespace with backing policy
 
 The actual private definition is [`struct vm_object` in vm_object_xnu.h](../../../xnu/osfmk/vm/vm_object_xnu.h#L136). It is not a list of virtual addresses. Its important relationships are:

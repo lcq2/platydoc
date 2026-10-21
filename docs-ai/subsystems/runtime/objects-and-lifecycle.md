@@ -6,6 +6,8 @@ The [scheduler execution chapter](scheduler-execution.md#6-departure-quantum-and
 
 For the task's own storage and protected state, continue with [the task and its shared read-only data](../../structures/task-and-shared-ro.md). It connects the combined process/task allocation, `bsd_info_ro`, accessors, field updates and final release to the process-side lifetime.
 
+For the corresponding thread layout, follow [thread, uthread and thread_ro](../../structures/thread-and-thread-ro.md). It maps the important field groups and their access rules, then follows initialization, references, protected credentials/exception associations, constructor failure and final storage release.
+
 ## Four objects to distinguish
 
 | Object | Fields worth locating first | Meaning |

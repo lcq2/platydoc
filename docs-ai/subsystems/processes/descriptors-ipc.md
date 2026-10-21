@@ -6,6 +6,8 @@ A descriptor operation first stabilizes a process-local table slot, then uses a 
 
 [Process inspection and snapshots](process-inspection-and-snapshots.md) applies that distinction to `proc_info`: listing descriptor numbers and later retrieving a typed record are separate operations, with separate process/object lookups and result lifetimes.
 
+For the underlying declarations and storage contracts, keep [descriptor tables](../../structures/file-descriptor-tables.md) and [fileprocs/fileglobs](../../structures/fileprocs-and-fileglobs.md) beside this operation trace. They follow allocation, fields, lock domains, borrowed/retained access, sharing examples and staged release.
+
 ## Three levels of identity
 
 ```mermaid

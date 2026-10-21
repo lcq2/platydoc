@@ -6,6 +6,8 @@ The detailed [vnode reclamation](name-cache-and-vnode-reclaim.md) and [mount lif
 
 [VFS index](README.md) · [Pathnames](pathname-and-authorization.md) · [I/O](io-and-cache.md)
 
+The [vnode structure companion](../../structures/vnodes-and-vnode-identity.md) follows allocation, field/union access, identity validation, reference kinds, publication and reclamation. The [fileproc/fileglob companion](../../structures/fileprocs-and-fileglobs.md) explains the open-file records that dispatch into these vnode operations.
+
 ## Four objects with different lifetimes
 
 [`struct vnode`](../../../xnu/bsd/sys/vnode_internal.h#L159) describes an in-memory filesystem object. Its `v_type` distinguishes `VREG`, `VDIR`, `VCHR`, `VBLK`, and other kinds; `v_op` selects vnode operations; `v_mount` identifies the containing filesystem instance; `v_data` belongs to the filesystem. A union holds type-specific state such as `v_ubcinfo`, `v_specinfo`, `v_fifoinfo` or `v_mountedhere`. `v_id` identifies the current incarnation, while `v_name` and `v_parent` assist name caching rather than defining the object's only possible pathname.

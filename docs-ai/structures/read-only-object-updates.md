@@ -6,6 +6,8 @@ Read-only metadata can change. In this XNU snapshot, ordinary kernel loads read 
 
 The prerequisite [RO-zone chapter](../subsystems/vm/read-only-and-special-zones.md#1-read-only-zone-registration-and-geometry) explains registration, allocator geometry and the other special zone families. Here the focus is the relationship between the actual process/task fields, their update APIs and the ARM64 implementation. Read-only mapping protection, atomicity, object lifetime and permission to perform a particular process operation are separate contracts.
 
+Other callers use the same update machinery with different ownership rules: [thread_ro](thread-and-thread-ro.md) stores protected associations and credential pointers, [ucred](credentials-and-credential-storage.md) combines immutable identity with a protected holding count, and [MAC labels](mac-label-storage.md) update owner/slot representation. Follow their companions for the caller-side locking, reference transfer and cleanup that the RO helper itself does not supply.
+
 ## 1. The ordinary process/task pair shares one RO record
 
 For the ordinary associated pair, `proc.p_proc_ro` and `task.bsd_info_ro` point to the same `struct proc_ro`. That structure contains `pr_proc` and `pr_task` backlinks, a process-data group and a task-data group. There is no separate `struct task_ro` allocation in this path. Bootstrap and task-only/corpse cases require the qualifications in the [task companion](task-and-shared-ro.md). [Process pointer](../../xnu/bsd/sys/proc_internal.h#L277-L277), [task pointer](../../xnu/osfmk/kern/task.h#L375-L375), [shared structure](../../xnu/bsd/sys/proc_ro.h#L57-L97).

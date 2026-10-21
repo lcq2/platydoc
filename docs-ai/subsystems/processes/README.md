@@ -6,9 +6,13 @@ This part of XNU turns Mach tasks and threads into processes with PIDs, parent/c
 
 These pages describe the supplied `xnu-12377.121.6` source snapshot. Configuration guards matter: a declaration in `syscalls.master` does not establish that a feature is enabled in a particular shipped kernel. No running-kernel experiments or kernel build were performed for this chapter.
 
+For descriptor storage, read [filedesc tables and slot publication](../../structures/file-descriptor-tables.md) and [fileproc/fileglob allocation and lifetime](../../structures/fileprocs-and-fileglobs.md) beside [descriptor operations](descriptors-ipc.md). The companions separate movable arrays, per-descriptor I/O holds, shared offsets/references, guarded variants and final endpoint close.
+
 ## Read in this order
 
 For the structures behind these operations, use [the process and its protected data](../../structures/proc-and-proc-ro.md) and [the task and its shared RO data](../../structures/task-and-shared-ro.md). They follow zone allocation, validated access, field updates and the two sides of final reclamation; [the RO update walkthrough](../../structures/read-only-object-updates.md) carries those writes into the selected pmap backend.
+
+[Thread and uthread storage](../../structures/thread-and-thread-ro.md) follows BSD initialization, credential caches, process associations and their cleanup. [Credential storage and replacement](../../structures/credentials-and-credential-storage.md) supplies the allocation, uniquing and ownership model behind UID/GID changes and exec identity publication.
 
 1. [Process objects and lifetime](lifecycle.md): the initial map of `proc`, `task`, `thread`, and `uthread`; continue with [Fork, spawn, exec, exit, and wait](process-transitions.md) for publication gates, failure paths, reference drains, and reaping.
 2. [System calls, signals, and exceptions](syscalls-signals.md): syscall entry and the exception bridge; continue with [Signal posting, handler entry, and sigreturn](signal-delivery-and-return.md) for target selection, AST processing, ARM64 frames, and validation.

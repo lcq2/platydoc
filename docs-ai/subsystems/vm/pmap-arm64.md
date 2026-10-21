@@ -6,6 +6,8 @@ A `vm_map` records which virtual ranges exist and how VM obtains their contents.
 
 There are two ARM64 implementations in this checkout. The legacy implementation under `osfmk/arm/pmap/` can run with `XNU_MONITOR` protection through the Page Protection Layer (PPL). The SPTM implementation under `osfmk/arm64/sptm/pmap/` requests protected changes through `sptm_*` interfaces. The build selects these through [files.arm64](../../../xnu/osfmk/conf/files.arm64#L10). Similar exported function names conceal substantially different synchronization and table ownership. Read [mapping lifecycle](pmap-mapping-lifecycle.md) next, followed by [TLB and cache completion](pmap-tlb-and-cache.md). The [monitor guide](../platform/exception-levels-and-monitors.md) describes the visible crossing interfaces and the missing external monitor implementation.
 
+The [pmap and translation-storage companion](../../structures/pmap-and-translation-storage.md) follows allocation and release of the pmap object, roots, lower tables, PTD and PV metadata. It distinguishes writable zone storage, PPL-protected wrapper slots and SPTM table ownership, with separate reference, pin and deferred-reuse contracts.
+
 ## The objects behind one translation
 
 For the protected side of these operations, continue into [SPTM frame authority and entry/exit](../security/sptm.md), [TXM signature and address-space lifetimes](../security/txm.md), and [Exclaves page donation and sharing](../security/exclaves-resources-and-memory.md). These guides distinguish XNU's mapping metadata from protected frame ownership and the state retained across external calls.

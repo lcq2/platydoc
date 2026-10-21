@@ -26,6 +26,8 @@ The arrows identify relationships and control transfers; they do not all denote 
 
 The [key-structures section](../../structures/README.md) adds a storage-focused route. Start with [the task and its shared read-only data](../../structures/task-and-shared-ro.md) for allocation, references, accessors and final release, then follow [a protected field update](../../structures/read-only-object-updates.md) through the zone API and ARM64 backend.
 
+[Thread, uthread and thread_ro](../../structures/thread-and-thread-ro.md) continues through combined writable storage, protected associations, creation/publication, accessors, state gates and staged destruction. Its [credential companion](../../structures/credentials-and-credential-storage.md) explains the two identity pointers cached by the thread and the ownership transferred when either changes.
+
 1. [Objects and lifecycle](objects-and-lifecycle.md): distinguish task, thread, processor, and processor set; trace creation and staged destruction.
 2. [Scheduling](scheduling.md): understand the common scheduler core before studying the Clutch hierarchy and Edge placement policy.
 3. [Waits, locks, and priority inheritance](waits-and-locks.md): follow an event wait and a contended mutex; learn which locks protect the transition.

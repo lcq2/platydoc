@@ -4,6 +4,8 @@ For concrete 4 KiB/16 KiB address walks, descriptor locations, and decoded PTE v
 
 A pmap update has more state to reconcile than a hardware PTE. A managed mapping also needs reverse-map metadata, physical-page attributes, table lifetime protection, ledger accounting, and completed translation maintenance. The legacy and SPTM implementations expose similar APIs but commit this state differently. This page follows one managed user mapping through both implementations, then explains the removal and reference/modify paths. Keep the [structure guide](pmap-arm64.md) open for `pmap`, PVH, and PTD layouts; use [TLB and cache completion](pmap-tlb-and-cache.md) for the hardware visibility rules.
 
+Use [pmap and translation storage](../../structures/pmap-and-translation-storage.md) for the allocation graph and exact lifetime holders behind these operations, including empty-table detachment versus final table release.
+
 ## The contract at the VM boundary
 
 `vm_fault_enter()` prepares and queues the selected page, then reaches `vm_fault_pmap_enter_with_object_lock()` and `vm_fault_attempt_pmap_enter()`. The checked wrappers convert the selected page number to a physical byte address and add `fault_phys_offset` before calling `pmap_enter_options_addr()`; this preserves subpage displacement for mappings smaller than VM's page unit. VM still owns the object/page decision: pmap does not choose the pager, resolve a shadow chain, or perform copy-on-write. Its job is to install the supplied physical page with permitted hardware access and relevant accounting options. [Fault entry and pmap helpers](../../../xnu/osfmk/vm/vm_fault.c#L3813), [physical-address construction](../../../xnu/osfmk/vm/vm_fault.c#L3684), [complete common-VM trace](fault-resolution.md).

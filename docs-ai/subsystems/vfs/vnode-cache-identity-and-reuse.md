@@ -6,6 +6,8 @@ A cached vnode can still describe a file after its last operation finishes. XNU 
 
 The existing [name-cache chapter](name-cache-and-vnode-reclaim.md) traces SMR lookup and the reclaim callbacks. This chapter extends it with allocation policy, filesystem-side pointer recovery, the authorization cache, and the separation between cache eviction and filesystem operations. The concrete filesystem example is devfs. APFS's inode tables, metadata cache, and on-disk deletion implementation are outside this checkout's generic VFS implementation; the `v_data`/vnode-operation boundary must not be mistaken for their implementation.
 
+For the concrete representation behind this cache policy, read [vnodes and vnode identity](../../structures/vnodes-and-vnode-identity.md). It distinguishes storage holds from identity protection and traces creation, acquisition, reclaim and final zone release.
+
 ## 1. What is cached, and what does eviction mean?
 
 Several independent associations can all be described loosely as “the file cache.” Keeping their keys and ownership separate makes a failed lookup or unexpected reclaim understandable.

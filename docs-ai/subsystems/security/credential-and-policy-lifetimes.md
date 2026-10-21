@@ -4,6 +4,8 @@
 
 Authorization operates on identity and policy objects whose lifetimes can exceed one syscall. This chapter follows three separate protocols: immutable credentials published to processes/threads, kauth scopes/listeners, and MAC policies/labels. They use different synchronization and result-combination rules. None of these registries supplies the implementation of every platform policy that participates in a decision.
 
+For the underlying field and allocation maps, read [credentials and credential storage](../../structures/credentials-and-credential-storage.md), [MAC label storage](../../structures/mac-label-storage.md), and [thread identity and RO associations](../../structures/thread-and-thread-ro.md). They expand the structure-level accessors, counter meanings, uniquing races, owner checks and final frees used by the operations here.
+
 ## 1. A credential is a shared value with two kinds of holdings
 
 For the concrete exec caller, continue with [exec identity and inherited state](../processes/exec-identity-and-inherited-state.md). It distinguishes the operation's context credential, the published process credential and the later task-token update.

@@ -4,6 +4,8 @@
 
 A Mach port name identifies an entry in one IPC space. That entry records rights to a kernel object; the integer is neither the object pointer nor an identifier shared by all processes. To follow a right across a message, track three things separately: the sender's entry, the owned right in the kernel message, and the receiver's entry after copyout. The endpoint can remain the same while its names, owners, and reference counts change. [`ipc_object_copyin`](../../../xnu/osfmk/ipc/ipc_object.c#L526), [`ipc_object_copyout`](../../../xnu/osfmk/ipc/ipc_object.c#L853).
 
+[IPC spaces and entries](../../structures/ipc-spaces-and-entries.md) expands the structure layout, name arithmetic, allocation/publication and table-reader protocols. [Ports and kobjects](../../structures/ipc-ports-and-kobjects.md) follows the entry's object pointer into the endpoint's state-dependent representation, references and conversion rules.
+
 ```mermaid
 flowchart LR
     S[Server ipc_space] --> SE[Entry 0x403: receive and send]

@@ -10,6 +10,8 @@ For the general I/O-wire gather loop, copy synchronization, absent-but-busy page
 
 For the syscall-side resident hit, missing-page read and truncation paths, continue with [file-data caching](../vfs/file-data-cache-and-read-path.md). [Page-signature validation](../security/page-signature-validation.md) explains the additional integrity state, including why signed-object UPL commits suppress caller-supplied validation bits and how COW and transforming pagers propagate selected results.
 
+For the concrete file-backed allocations, use [UBC and vnode pagers](../../structures/ubc-and-vnode-pagers.md) alongside this operation trace. It follows ubc_info/pager creation, control access, named and mapping holds, partial initialization, truncation and final association release.
+
 ## The pager boundary is an object interface
 
 A VM object's `pager` is a `memory_object_t`, whose [generic header](../../../xnu/osfmk/mach/memory_object_types.h#L120) supplies `mo_pager_ops`, `mo_control` and other bookkeeping. Individual pagers embed this header and supply an operation table: reference/deallocate, initialization/termination, data request/return, map/last-unmap and related operations.
@@ -65,7 +67,9 @@ The lifetime handoff is explicit [in UBC setup](../../../xnu/bsd/kern/ubc_subr.c
 
 The temporary pager reference returned by setup is released because the named association took its own reference. A file's VM object can therefore outlive one mapping, one file descriptor and one resident page. `ui_size` is established from the vnode or supplied file size; it should not be confused with the internal-object size union described in [objects and pages](objects-and-pages.md).
 
-[`vnode_pager_init`](../../../xnu/osfmk/vm/bsd_vm.c#L400) attaches the control to the pager and sets delayed-copy strategy, one-page base cluster size and cacheable/temporary object attributes. [`vnode_pager_map` / `vnode_pager_last_unmap`](../../../xnu/osfmk/vm/bsd_vm.c#L731) call the UBC mapping notifications. This is why object reference transitions can trigger pager notifications even without transferring file data.
+[`vnode_pager_init`](../../../xnu/osfmk/vm/bsd_vm.c#L400-L439) stores the control and requests delayed-copy/cacheable backing. Its argument also supplies a one-page `cluster_size` and `temporary = TRUE`, but this snapshot's [`MEMORY_OBJECT_ATTRIBUTE_INFO` handler](../../../xnu/osfmk/vm/memory_object.c#L1191-L1205) consumes only `copy_strategy` and `may_cache_object`; the [common setter](../../../xnu/osfmk/vm/memory_object.c#L1063-L1083) updates strategy, persistence and readiness. The [control-reference helper](../../../xnu/osfmk/vm/memory_object.c#L1882-L1898) is a no-op here. Fault clustering is selected separately by [`vnode_pager_data_request`](../../../xnu/osfmk/vm/bsd_vm.c#L647-L675).
+
+[`vnode_pager_map` / `vnode_pager_last_unmap`](../../../xnu/osfmk/vm/bsd_vm.c#L731) call the UBC mapping notifications. This is why object reference transitions can trigger pager notifications even without transferring file data.
 
 BSD [`mmap`](../../../xnu/bsd/kern/kern_mman.c#L833) obtains the UBC control with `ubc_getobject` and maps backing into the process. A private mapping can put COW contents above file backing; shared mapping writes stay associated with the file object. [`ubc_info_free`](../../../xnu/bsd/kern/ubc_subr.c#L1198) releases credentials, the control association, cluster state and code-signing state. It is one teardown stage; it does not by itself describe the entire vnode/named-object release protocol.
 

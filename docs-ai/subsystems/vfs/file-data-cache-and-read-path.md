@@ -8,6 +8,8 @@ This chapter follows ordinary cached reads in depth and then explains the lifeti
 
 The signature paths are developed separately: [vnode signature attachment and lifetime](../security/vnode-signature-lifecycle.md), [page-byte validation and invalidation](../security/page-signature-validation.md), and [executable mapping policy](../security/executable-signature-policy.md). A valid cache page, a matching signature hash and permission to execute are separate decisions.
 
+The [UBC and vnode-pager structure companion](../../structures/ubc-and-vnode-pagers.md) follows the allocation, field access, named-object ownership and staged destruction behind these data paths. [Signature storage](../../structures/code-signature-blob-storage.md) separates its RO wrappers from retained byte buffers and provider objects.
+
 ## 1. Keep file identity, VM contents and transfers separate
 
 | Representation | Important state | Lifetime or interpretation |
@@ -24,7 +26,7 @@ See [`ubc_info`](../../../xnu/bsd/sys/ubc_internal.h#L171-L207), [`vnode_object_
 
 `ubc_info_init_internal` installs or reuses `v_ubcinfo`, creates a vnode pager, and calls `memory_object_create_named`. That creates the named object association while taking its own pager reference; UBC then drops the setup reference, stores the control and sets `UI_HASOBJREF`. It obtains the real file size only after establishing the association, because a filesystem size operation can reenter invalidation. The named association is recorded by `VNAMED_UBC`. [`initialization`](../../../xnu/bsd/kern/ubc_subr.c#L1096-L1180)
 
-The pager's `init` takes a control reference, selects delayed-copy semantics, sets a one-page base cluster size, and marks the object cacheable/temporary. “Temporary” here is a VM object attribute; it does not turn the file into an anonymous allocation or remove the filesystem's backing obligation. The generic pager can later choose larger fault clusters. [`vnode_pager_init`](../../../xnu/osfmk/vm/bsd_vm.c#L400), [`vnode_pager_data_request`](../../../xnu/osfmk/vm/bsd_vm.c#L647)
+The pager's `init` stores the control and requests delayed-copy/cacheable backing. It also supplies a one-page `cluster_size` and `temporary = TRUE`, but this snapshot's `MEMORY_OBJECT_ATTRIBUTE_INFO` handler consumes only `copy_strategy` and `may_cache_object`. The control-reference helper called during initialization is a no-op; lifetime comes from the surrounding object/pager protocol. Fault clustering is selected separately by `vnode_pager_data_request`. [`vnode_pager_init`](../../../xnu/osfmk/vm/bsd_vm.c#L400-L439), [attribute handler](../../../xnu/osfmk/vm/memory_object.c#L1191-L1205), [control helpers](../../../xnu/osfmk/vm/memory_object.c#L1882-L1898), [fault clustering](../../../xnu/osfmk/vm/bsd_vm.c#L647-L675)
 
 ## 2. The first decision is which read mechanism applies
 

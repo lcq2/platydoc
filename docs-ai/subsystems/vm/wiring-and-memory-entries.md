@@ -4,6 +4,8 @@
 
 This chapter follows three ways VM contents outlive an ordinary lookup: wiring keeps physical pages resident, a named memory entry exports an authorized view of contents through Mach rights, and a `vm_map_copy` carries contents between maps or through IPC. These mechanisms can cooperate, but they are different objects with different cleanup rules.
 
+The [memory-entry and VM-copy structure companion](../../structures/memory-entries-and-vm-copies.md) follows typed descriptor allocation, stable port access, single-object wrappers, copy-header/entry zones, separate byte buffers and consuming versus preserving cleanup. Keep it alongside the export and mapping operations here.
+
 ## What wiring holds
 
 Wiring is a coordinated transition across a map entry, its backing object/pages and its pmap. Ordinary pageable memory can fault its contents back in later; wired memory must preserve the relevant physical pages while the wire remains. Making a mapping resident once is insufficient: future COW, remapping and reclamation must respect the wire.

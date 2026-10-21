@@ -4,6 +4,8 @@
 
 The map is the authoritative description of a virtual address range: its backing object or submap, offset, allowed access, inheritance and wiring state. Pmap implements the translations needed to access those contents. A map operation can create an interval without immediately populating hardware translations; it must also remove or restrict existing translations when the logical relationship changes. This division is stated in the [`vm_map` interface](../../../xnu/osfmk/vm/vm_map.h#L113) and visible in [`vm_map_enter`](../../../xnu/osfmk/vm/vm_map.c#L3030), [`vm_map_protect`](../../../xnu/osfmk/vm/vm_map.c#L5801) and [`vm_map_delete_handle_entry`](../../../xnu/osfmk/vm/vm_map.c#L8517).
 
+The [map and entry structure companion](../../structures/vm-maps-and-entries.md) follows zone allocation, embedded headers, packed fields, access contracts, publication, clipping and final storage release. Use it beside the range-operation walkthroughs here.
+
 ## The map and entry layouts
 
 Map policy also determines whether a later fault may recover unavailable contents. [Resilient mappings](fault-resolution.md#resilient-mappings-recover-selected-missing-contents-without-changing-the-file) explains `MAP_RESILIENT_MEDIA` versus `MAP_RESILIENT_CODESIGN`, BSD/current/max-protection admission, internal top-object requirements, and revalidation after a fault retains a failed object/offset. These flags do not replace the ordinary map permission checks.

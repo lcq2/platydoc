@@ -18,6 +18,14 @@ GROUPS = [
     ("Key structures: allocation, access and lifetime", "structures", [
         "README", "proc-and-proc-ro", "task-and-shared-ro",
         "read-only-object-updates",
+        "thread-and-thread-ro", "credentials-and-credential-storage",
+        "mac-label-storage", "ipc-spaces-and-entries", "ipc-ports-and-kobjects",
+        "vm-maps-and-entries", "vm-objects-and-backing",
+        "vm-pages-and-resident-storage", "pmap-and-translation-storage",
+        "memory-entries-and-vm-copies",
+        "file-descriptor-tables", "fileprocs-and-fileglobs",
+        "vnodes-and-vnode-identity", "ubc-and-vnode-pagers",
+        "code-signature-blob-storage",
     ]),
     ("Execution, scheduling, waits and timers", "subsystems/runtime", [
         "README", "objects-and-lifecycle", "suspension-stop-and-abort",

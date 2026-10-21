@@ -6,6 +6,8 @@ A vnode's signature state outlives the system call that supplies it. The UBC con
 
 This chapter follows that ownership transition and the cases where an old attachment is reused, revalidated, invalidated, or freed. It covers the visible XNU call sequence. AMFI policy, certificate trust, and monitor internals remain external boundaries. [Format validation](signature-format-and-blob-validation.md) covers the binary representation; [executable policy](executable-signature-policy.md) and [page integrity](page-signature-validation.md) cover the downstream decisions.
 
+For a field-by-field storage map and accessor contracts, read [code-signature blob storage](../../structures/code-signature-blob-storage.md) with [UBC and vnode pagers](../../structures/ubc-and-vnode-pagers.md). These companions explain mutable templates, protected wrappers, PAC field addresses, borrowed views, retained provider objects and the enclosing association lifetime.
+
 ## 1. The UBC object owns a list, not a process-local signature cache
 
 [`ubc_info`](../../../xnu/bsd/sys/ubc_internal.h#L171) connects a vnode to `ui_pager`, `ui_control`, and its file size. Its signing state comprises `cs_blobs`, `cs_add_gen`, and `cs_mtime`; conditional fields hold one supplemental attachment and a validation bitmap. `cs_add_gen` is a vnode-wide generation, not a counter on each slice. `cs_mtime` records the file modification time when the first regular blob was loaded. These fields are separate from per-page VM validation state.
