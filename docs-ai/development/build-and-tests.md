@@ -4,6 +4,10 @@
 
 This chapter describes XNU's own build and tests under Platydoc's `xnu/` input. Its kernel source paths and references to the root Makefile are relative to that directory. Building the documentation is a separate operation from the Platydoc project root; see the [HTML build guide](building-html.md).
 
+For instrumentation, continue with [sanitizer runtime and reporting](sanitizer-runtime-and-reporting.md) and [coverage instrumentation lifecycle](coverage-instrumentation-lifecycle.md). These connect source selection to actual runtime hooks, storage, report disposition and checked-in test assertions.
+
+The [worked ARM64 build and MIG trace](arm64-build-and-mig-walkthrough.md) applies the selection rules to one illustrative configuration and follows a Mach VM read from its declaration through typed port conversion and the local receiver. Generated contracts and missing build/tool artifacts remain explicit.
+
 ## A source tree is larger than one kernel
 
 Before following a surprising branch, determine whether it belongs to the target you are studying. The main dimensions are the kernel variant (`RELEASE`, `DEVELOPMENT`, `DEBUG`, and instrumentation variants), architecture, machine/platform configuration, and individual feature options. The build resolves these dimensions before selecting source files and producing generated headers and stubs.

@@ -24,6 +24,8 @@ The arrows identify relationships and control transfers; they do not all denote 
 
 ## Reading route
 
+The [key-structures section](../../structures/README.md) adds a storage-focused route. Start with [the task and its shared read-only data](../../structures/task-and-shared-ro.md) for allocation, references, accessors and final release, then follow [a protected field update](../../structures/read-only-object-updates.md) through the zone API and ARM64 backend.
+
 1. [Objects and lifecycle](objects-and-lifecycle.md): distinguish task, thread, processor, and processor set; trace creation and staged destruction.
 2. [Scheduling](scheduling.md): understand the common scheduler core before studying the Clutch hierarchy and Edge placement policy.
 3. [Waits, locks, and priority inheritance](waits-and-locks.md): follow an event wait and a contended mutex; learn which locks protect the transition.
@@ -42,6 +44,8 @@ The introductory pages above provide the object map. These chapters follow the i
 
 For lock implementations, continue with [reader/writer locks](reader-writer-locks.md) and [ticket and pointer locks](ticket-and-pointer-locks.md). The first distinguishes the default legacy RW representation from the newer implementation explicitly used by VM; the second follows ticket reservation, invalidation and pointer publication. Keep each primitive's acquisition, blocking and release rules separate from the mutex/turnstile protocol.
 
+For concrete wait clients, read [Mach semaphores and eventlinks](../ipc/semaphores-and-eventlinks.md): credits versus event counters, combined signal/wait ordering, timeout and association, handoff, and destruction while operations remain referenced.
+
 ## Clocks and accounting mechanisms
 
 1. [ARM64 clocks and time domains](clocks-and-time-domains.md): counter access, timebase scaling, sleep offsets, calendar/NTP state and commpage read/publication protocols.
@@ -50,6 +54,10 @@ For lock implementations, continue with [reader/writer locks](reader-writer-lock
 4. [Bank accounts and charging](../ipc/bank-accounts-and-charging.md): voucher attribute roles, shared accounts, adoption and quantum attribution, live bills and final task totals.
 
 ## Detailed execution policy
+
+The [work-interval policy and thread-group companion](work-interval-policy-and-thread-groups.md) connects workload configuration to class/priority decisions, explicit joining and group selection. A two-thread semaphore wakeup then traces conditional auto-join, blocking unwind, remote demotion and deferred storage release.
+
+Continue with [Thread-group accounting and cluster migration](thread-group-accounting-and-cluster-migration.md) to follow a resolved group into Clutch runnable counts and CPU attribution, then an Edge preference update into future placement, running-thread interrupts and queued-thread requeueing.
 
 1. [Priority, QoS, and quanta](priority-qos-and-quanta.md): effective-policy composition, base/scheduled priority, common versus Clutch decay, quantum accounting, nonurgent preemption, and stacked failsafe demotions.
 2. [Realtime deadlines and runqueues](realtime-deadlines-and-runqueues.md): policy validation/adjustment, work-interval restrictions, deadline lifetimes, conditional priority/EDF selection, backup/spill notifications, and queue ownership.
@@ -75,6 +83,7 @@ Continue into the neighboring guides for [processes and BSD](../processes/README
 
 | Depth | Sources | Coverage and limits |
 |---|---|---|
+| Deep selected work-interval policy | [`work_interval.c`](../../../xnu/osfmk/kern/work_interval.c), [`workload_config.c`](../../../xnu/osfmk/kern/workload_config.c), [`IOWorkloadConfig.cpp`](../../../xnu/iokit/Kernel/IOWorkloadConfig.cpp), [`thread_group.c`](../../../xnu/osfmk/kern/thread_group.c), scheduler/policy call sites | Configuration/default-phase copies, assignment/join ordering, effective priority, group hierarchy, wakeup auto-join, blocking/remote-demotion unwind and final storage release. Deferred-finish production, complete policy/configuration interleavings and external performance-controller behavior are not established. |
 | Deep path review | [`task.c`](../../../xnu/osfmk/kern/task.c), [`thread.c`](../../../xnu/osfmk/kern/thread.c), [`thread_act.c`](../../../xnu/osfmk/kern/thread_act.c), corresponding headers | Creation, membership, termination request/self-termination/reaping/final release. Persistent suspension, transient stop/abort and resumption have a dedicated companion; corpse, security and exception branches here are contextual. |
 | Deep path review | [`sched_prim.c`](../../../xnu/osfmk/kern/sched_prim.c), [`sched_clutch.c`](../../../xnu/osfmk/kern/sched_clutch.c), [`processor.h`](../../../xnu/osfmk/kern/processor.h), [`thread_policy.c`](../../../xnu/osfmk/kern/thread_policy.c) | Wake-to-runnable and selection/invocation/departure paths, stack shortage retry, ARM64 switch wrapper/assembly, Clutch root/bucket/thread selection and interactivity, Edge migration weight/availability and representative stealing, QoS mapping. Selected realtime and SMT policy now have focused chapters below. Every shared-resource/performance-island branch and x86 switch assembly remain partial or outside this review. |
 | Deep path review | [`priority.c`](../../../xnu/osfmk/kern/priority.c), [`thread_policy.c`](../../../xnu/osfmk/kern/thread_policy.c), [`sched_average.c`](../../../xnu/osfmk/kern/sched_average.c), [`sched_rt.c`](../../../xnu/osfmk/kern/sched_rt.c), [`sched_dualq.c`](../../../xnu/osfmk/kern/sched_dualq.c), [`sched_amp.c`](../../../xnu/osfmk/kern/sched_amp.c), [`processor.c`](../../../xnu/osfmk/kern/processor.c), selected [`work_interval.c`](../../../xnu/osfmk/kern/work_interval.c) | QoS composition/base-priority ordering, usage decay and quanta, stacked demotion, RT validation/adjustment/deadline queues/stealing, selected SMT/alternate queue policy, recommendation publication and pulled-thread migration. Full workload configuration, all policy flavors, machine topology/power hints and CPU-limit responses remain partial. |

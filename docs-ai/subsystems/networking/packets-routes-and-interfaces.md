@@ -80,6 +80,8 @@ Even a zero-reference route may remain cached while up. The address-family `rnh_
 
 For a gateway route, the original destination route and the route to its next hop can both be involved. `route_to_gwroute()` takes additional references, checks whether either entry is down, drops/reacquires locks around lookup, and rechecks that the gateway relationship did not change. Its successful nonnull output is both referenced and locked: the caller must release both forms of ownership. The original hint is preserved because the caller may still cache it. See [`route_to_gwroute()` contract and implementation](../../../xnu/bsd/net/route.c#L4204).
 
+Continue with [routing control and IPv4 ARP](routing-control-and-ipv4-arp.md) for serialized route commands, scoped lookup/cloning, mutation before report failure, deferred route events, and the exact packet ownership of neighbor queues, retries and expiration.
+
 ## Output: protocol media work can retain a packet
 
 An ordinary IPv4 output has already selected routing/interface policy before entering `dlil_output()`. DLIL first obtains a data-movement reference on the interface and finds a referenced protocol attachment for the address family. That `if_proto` supplies media-specific pre-output handling; it is different from the socket's `protosw`. The interface supplies framing, filtering, and lower output callbacks. See [`DLIL acquisition`](../../../xnu/bsd/net/dlil_output.c#L94), [`pre-output selection`](../../../xnu/bsd/net/dlil_output.c#L217), and [callback families](README.md).
@@ -142,7 +144,7 @@ At the end it releases cached routes, publishes the detached event, clears detac
 | Source area | Depth and remaining work |
 | --- | --- |
 | `mbuf.h`, `uipc_mbuf.c` | Read chain/storage layouts and copy, pullup, one-chain/list free, and external-reference release. Cache internals, all tag formats, and every packet-completion callback are outside this trace. |
-| `route_private.h`, `route.c`, `ip_output.c` | Read synchronization contracts, cached lookup/invalidation, gateway resolution, selected delete and final-release bodies. Scoped selection details, routing-socket commands, neighbor resolution, multicast, and all address-family maintenance are not fully audited. |
+| `route_private.h`, `route.c`, `ip_output.c` | Read synchronization contracts, cached lookup/invalidation, gateway resolution, selected delete and final-release bodies. The [routing/ARP companion](routing-control-and-ipv4-arp.md) extends selected scoped lookup, routing-socket commands and IPv4 neighbor lifetimes; multicast and every address-family/configuration variant remain outside these traces. |
 | `dlil.c`, `dlil_input.c`, `dlil_output.c`, `dlil_subr.c`, interface KPI | Read packet dispatch/consumption, references, attach serialization, and detach barriers/cleanup. Driver hardware rings, interrupt handling, and DMA completion are provider-specific and not established here. |
 
 The conventional mbuf path and Skywalk's packet-pool path meet at specific adapters. See [Skywalk lifecycles](skywalk-lifecycles.md) before transferring an mbuf ownership rule to channel packets.

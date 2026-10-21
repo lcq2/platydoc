@@ -6,6 +6,8 @@ The initial pass expanded all nine areas requested after the independent review.
 
 The purpose is broad, useful first-release coverage. Each companion follows concrete operations, state, ownership, decisions and failure/cleanup, with source citations, exact excerpts and editable diagrams. The remaining scopes below identify further depth and unavailable providers; they do not replace the new explanations with a planning survey.
 
+The latest [two-batch expansion](#22-executable-memory-synchronization-packet-policy-and-build-selection) adds executable-memory, semaphore/eventlink, work-interval, flow-diversion and ARM64 build/MIG companions, and deepens PF/IPsec in place. Further debugger and kperf expansion is deferred by request.
+
 ## 1. Network layer below TCP
 
 | Chapter | Mechanisms expanded |
@@ -280,13 +282,184 @@ On the IPC side, header move coordination is not a globally atomic snapshot of i
 
 The batch adds **15 diagrams and 22 exact excerpts**. Strict standalone SVG rendering and visual inspection cover the new diagrams. Selected source tests identify intended scenarios and limits, including a resilient-media COW signal-helper/comment mismatch; none was executed. Historical audit V7 now has a mechanism explanation. Remaining VM/IPC work includes unreviewed security/configuration combinations, all map/copy aliases and races, complete pager/transpose variants, legacy/watchport paths, external policy/runtime and generated MIG implementations. This is selected deep source review, not a whole-component correctness or concurrency proof. The separate power/IP-control/DTrace backlog remains unchanged; x86 and KDP remain excluded.
 
+## 19. Prioritized review: IP control, power policy and instrumentation
+
+This pass reviewed current subsystem reading routes, existing chapters' stated limits and the residual audit proposals, then inspected selected implementation bodies to choose the next work. It did not reread every line in all 299 starting Markdown pages or certify every cited source file. VM/IPC, pmap, allocation, signing, scheduling, DMA and the main Skywalk paths already have substantial mechanism explanations; repeating those routes uniformly would leave more distinct common operations unexplained. The selected input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`.
+
+### Ranked gaps and chapter placement
+
+| Rank | Gap and reason for priority | Placement and result |
+| --- | --- | --- |
+| 1 | Routing sockets mutate state used by almost every IP path, but the packet/interface chapter deliberately stopped at cached-route lifetime. IPv4 ARP pending packets, retries and deletion had no complete common-stack explanation. | Added [routing control and IPv4 ARP](../subsystems/networking/routing-control-and-ipv4-arp.md). Kept the existing packet/interface chapter focused and added a bridge. |
+| 2 | UDP/TCP depend on receiving complete datagrams and on asynchronous ICMP feedback. Common IP reassembly ownership, IPv4/IPv6 overlap differences and PMTU validation order were not explained by the separate Skywalk reassembly chapter. | Added [IP fragment reassembly and ICMP feedback](../subsystems/networking/ip-fragment-reassembly-and-icmp.md), with UDP/IPv6 links. A single companion compares the two address-family implementations and their error boundary. |
+| 3 | Sleep-transition machinery already exists, but readers could not trace the assertion/preventer/settings state that permits or delays a transition. | Added [power assertions, sleep preventers and idle policy](../subsystems/drivers/power-assertions-and-idle-policy.md). The existing sleep/wake chapter links policy inputs without duplicating transition/CPU/hibernate mechanics. |
+| 4 | Observability named DTrace without following a consumer from admitted program through an installed provider hook, recording and teardown. Its local implementation provides substantially more evidence than the overview exposed. | Added [DTrace provider and action lifecycle](../development/dtrace-provider-and-action-lifecycle.md), using a concrete ARM64 syscall provider. The observability survey remains the mechanism-selection guide. |
+| 5 | Multicast socket state, IGMP/MLD reports and IPv6 router/prefix lifetimes remain distinct from unicast neighbor resolution and route mutation. | The subsequent IPv6 batch in section 20 implements MLD/membership and router/prefix companions plus their configuration, socket and packet-path prerequisites. IPv4 multicast/IGMP remains open. |
+| 6 | PF state/NAT and IPsec security-policy/security-association lifetimes remain a dispatch survey; NECP and socket-content filtering do not explain them. | Next security/network batch: separate PF and IPsec mechanism chapters linked from policy extensions. Keep userspace key/policy providers explicit. |
+| 7 | Compiler-inserted sanitizer/coverage hooks, runtime metadata and consumer teardown have different ownership from tracing probes. | Next instrumentation batch: sanitizer/coverage companions, linked to allocation/MTE where useful. Distinguish classic/shadow/tagged/configured implementations. |
+| 8 | MPTCP and flow-divert add session/subflow or delegated-transport state above ordinary TCP/socket behavior. | Later transport companions after their common prerequisites; avoid duplicating TCP recovery. |
+| 9 | kperf action/sampler/buffer completion and remaining power/Skywalk provider/configuration matrices still have untraced combinations. | Extend current chapters when the state holder is already explained; add a companion only for an independent lifecycle. |
+| 10 | KXLD relocation/vtable linking is still partial, but runtime applicability depends on `CONFIG_KXLD` and target selection. | Lower-priority source-bound loading companion; do not present configuration-specific legacy linking as every ARM64 kernel's loading path. |
+
+The source-backed residual proposals remain in [networking A8–A11](processes-vfs-networking.md), [driver D4/D5](vm-and-drivers.md), and [diagnostics D4–D6](security-and-development.md). This ranking weighs missing operation coverage, availability of local bodies and usefulness to the current ARM64/common reading route. Missing firmware, external policy/runtime providers and generated artifacts cannot be filled by inventing their internals. x86 and KDP remain excluded.
+
+### What the first four priorities now explain
+
+Routing/ARP follows routing-socket parsing and authority, scoped route creation/deletion/change, notification and reference ownership, pending packet queues, arrival-driven ARP retry, reply completion and separate aging/deadline paths. It distinguishes a failed report from a failed mutation: route state can already have changed when a later allocation or metric operation fails.
+
+IP reassembly follows hash/queue identity, packet versus fragment-descriptor ownership, header and byte-offset transformations, admission, checksum/ECN state, overlap, reconstruction, limits and expiry. It compares IPv4 trimming with IPv6 duplicate handling and retained dirty identities. The ICMP section traces quote validation, borrowed callback parameters, PCB/socket handoff and PMTU side effects. IPv6 route-MTU changes occur before the transport's own quoted-sequence checks. Source tests are classified by their actual operations: the ICMP “fragmented payload” test supplies a truncated quotation, while the HBH regression exercises outbound fragmentation.
+
+Power policy follows kernel assertion IDs before asynchronous installation, manual description/service ownership, combined masks, the separate userspace mask and DriverKit's immediate exclusion counts. It connects those objects to service preventer sets, idle timer/stimulus decisions and coalesced aggressiveness callbacks, with ordering and return-value limitations. A published setting, issued ID or canceled timer is not itself proof of a finished power transition.
+
+DTrace follows registered providers/probes, admitted DOF/DIF, enablings and ECBs, the distinction between ENABLE and GO, ARM64 syscall entry/return, per-CPU action recording, faults/drops, consuming buffer output, STOP and final disable/cleanup. Consumer state and output copying can make progress before an error return; local hooks do not imply that userspace compilers/consumers or every provider implementation were audited.
+
+Three parallel researchers handled routing/ARP, power policy and DTrace; coordinating work handled common IP reassembly/ICMP and integration. Independent cross-reviews check the newly written mechanisms against their source, rather than treating valid links as semantic proof. The four companions add **15 diagrams and 24 exact excerpts**. Exact excerpts, source links and standalone SVG are validated without rebuilding HTML. Final measured additions and check results are in [coverage and verification](../coverage.md#documentation-checks). No kernel/network/power/tracing test is claimed as executed, and the historical inventory remains unchanged.
+
+## 20. IPv6 configuration, packet paths and lifetime
+
+The requested IPv6 batch extends the existing output/ND and common reassembly/ICMP explanations into a connected family reading route. It adds **eight pages**: an overview plus seven mechanism companions. The selected source remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`. No source update or kernel change was performed.
+
+| Placement | What the expanded explanation follows |
+| --- | --- |
+| [IPv6 guide](../subsystems/networking/ipv6.md) | Reading order, object distinctions, source map, one host operation across configuration/send/receive/teardown, and external/configuration limits. |
+| [Addresses, autoconfiguration and DAD](../subsystems/networking/ipv6-addresses-autoconfiguration-and-dad.md) | Interface/address entry points, publication versus unwind, link-local/stable/CGA/temporary generation, tentative/optimistic state, DAD nonce/counters/timers, duplicate regeneration, deadlines, expiry and purge. |
+| [Router advertisements and prefixes](../subsystems/networking/ipv6-router-advertisements-and-prefix-lifetime.md) | RA admission and partial option processing, default routers and zero-lifetime distinctions, RIO lists, route installation, L/A bits, advertiser associations, two-hour address rules, on-link/detached transitions and independent deletion. |
+| [Scopes and source selection](../subsystems/networking/ipv6-source-selection-and-scopes.md) | External/embedded/separate zones, explicit/bound/ranked source paths, ordered preferences, prefix/router lock-drop restart, policy labels, cache invalidation, borrowed routes and retained address/interface results. |
+| [Sockets and packet options](../subsystems/networking/ipv6-sockets-and-packet-options.md) | Native/mapped dispatch, scoped bind/connect and ephemeral port publication, option allocation/copy/validation, unlocked UDP output and receive controls, wanted holds, raw and datagram ICMPv6 admission. |
+| [Input and forwarding](../subsystems/networking/ipv6-input-extension-headers-and-forwarding.md) | Family/protocol registration, mbuf/offset representation, local/forward decision, Hop-by-Hop and extension dispatch, supported routing-header boundary, quoted errors, scopes, hop limit, MTU and ownership. |
+| Existing [output/ND chapter](../subsystems/networking/ipv6-output-and-neighbor-discovery.md), expanded in place | Header-copy/merge ownership, PMTU/link-MTU distinction, checksum and offload predicates, numeric three-fragment example, packet-list replacement and cleanup. Retains the end-to-end ND hold/resubmit primer. |
+| [Neighbor messages and reachability](../subsystems/networking/ipv6-neighbor-messages-and-reachability.md) | Kernel/raw ICMP audiences, NS/NA validation and cache learning, flags/override matrix, generated messages, NUD/passive reachability, route/timer ownership and redirects. |
+| [Multicast membership and MLD](../subsystems/networking/ipv6-multicast-membership-and-mld.md) | Socket versus aggregate filter state, INCLUDE/EXCLUDE counters, join/leave and partial failure, MLDv1/v2 queries/compatibility, report construction, timers, output commit/queues, receive fanout, loopback and delayed leave release. |
+
+These boundaries were chosen by state owner and operation. Address publication/DAD and received router/prefix lifetime use related objects but different admission and teardown; they justify separate chapters. Source/scope selection and socket-option interpretation deserve companions because output callers depend on their references and representation choices. The original output chapter remains the home of packet construction/fragmentation, and the existing shared reassembly chapter remains the home of fragment queues and PMTU feedback. No parallel replacement of those explanations was added.
+
+### Source-specific findings retained in the text
+
+The chapters distinguish setter acceptance from working output: this tree can store a validated type-0 routing-header option but rejects packets containing a routing header. Policy-table add/delete ioctls end in `ENOTSUP`. Ancillary option copying omits two initialized scalar policy fields, and later parse errors do not establish a universal cleanup guarantee in the inspected UDP caller. These are bounded observations of the bodies, not runtime bug reproductions.
+
+Address lifetime macros use absolute uptime deadlines despite historical duration-oriented comments. RA zero-lifetime behavior differs for eligible default routers, ineligible bookkeeping and RIO entries. Router associations, prefix objects, routes and derived addresses have independent lifetime rules. The ND option-count limit can stop parsing with success; it is not automatically malformed-input rejection. Neighbor admission failures can still reach raw observers in selected paths, while failure to copy for both consumers can favor kernel handling over observation.
+
+MLD socket filters and interface aggregates have separate commit clocks. The literal receive EXCLUDE predicate, full-state copyin error labels, leave-result handling and delayed final-report reference path are described without replacing them with a generic idealized transaction. Report state can commit without successful packet transmission. Final-leave retention is conditional on reporting state and a nonzero retransmission budget.
+
+Three parallel researchers handled configuration/RA, input/forwarding/neighbor messages, and multicast/MLD. Coordinating work handled source selection, sockets/options, output and the family guide. Independent cross-reviews checked the other authors' state, locks, ownership, failure labels and numeric examples. The batch adds **25 diagrams and 40 exact source excerpts**. Standalone SVG rendering and visual inspection cover the new diagrams without rebuilding the HTML; global link/excerpt/license results and measured counts are recorded in [coverage](../coverage.md#documentation-checks).
+
+### Remaining scope
+
+IPv4 multicast/IGMP remains the unexpanded portion of the prior multicast proposal. PF and IPsec rule/state/SA lifecycle, MPTCP/flow-divert transport overlays, and deeper tunnel/translation/proxy/configuration variants remain distinct follow-up work. DHCPv6/resolver/router software, concrete NIC/firmware behavior and external providers are not reconstructed from their kernel hooks. This expansion does not claim every IPv6 branch, every standards requirement or concurrent network behavior was tested. In-tree tests were read for their actual assertions; none was executed.
+
 ## Integration and verification scope
 
 The subsystem READMEs and existing companion chapters link the new routes. The TOC generator places the chapters beside their prerequisites; the source-reference index and searchable HTML derive from the Markdown. Original text/diagrams retain the handbook's CC BY 4.0 notice, while quoted source retains its upstream terms.
 
-The initial pass included local link/anchor and source-line bounds, exact source-excerpt comparison, strict diagram rendering and the normal book verifier. Selected independent cross-reviews covered diagnostic ownership/publication, module/parser/NVRAM boundaries, synchronous IPC dependencies and shared-region installation. The follow-up batches validate Markdown and standalone SVG without rebuilding HTML, at the user's request. The earlier follow-up reviewed descriptor/capability/suspension lifetime, copy/remap failure and geometry, Skywalk publication/readiness, and clock/accounting ownership; the later batches add the mechanisms in sections 11–18. These are source reviews, not kernel execution or a whole-file concurrency proof. Current counts and completed check results are recorded in [coverage and verification](../coverage.md).
+The initial pass included local link/anchor and source-line bounds, exact source-excerpt comparison, strict diagram rendering and the normal book verifier. Selected independent cross-reviews covered diagnostic ownership/publication, module/parser/NVRAM boundaries, synchronous IPC dependencies and shared-region installation. The follow-up batches validate Markdown and standalone SVG without rebuilding HTML, at the user's request. The earlier follow-up reviewed descriptor/capability/suspension lifetime, copy/remap failure and geometry, Skywalk publication/readiness, and clock/accounting ownership; the later batches add the mechanisms in sections 11–22. These are source reviews, not kernel execution or a whole-file concurrency proof. Current counts and completed check results are recorded in [coverage and verification](../coverage.md).
 
 The historical audit inventory was preserved. No citation ratio is presented as a percentage of XNU understood, and no source file under `xnu/` was modified.
+
+## 21. Arguments, identity, integrity, instrumentation and packet state
+
+This source-documentation expansion follows the eight requested priorities in order. It adds twelve implementation companions, retains the existing introductions, and connects them through an [ordered reading route](../reading-guide.md#argument-identity-and-lifetime-paths). The input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`. No kernel implementation changes, vulnerability research, HTML generation or kernel/runtime tests are part of this pass.
+
+| Priority | Companion | Reviewed mechanism |
+| --- | --- | --- |
+| 1 | [Command dispatch and validation](../interfaces/command-dispatch-and-validation.md) | Outer/nested ioctl copying and BPF dispatch, descriptor retention, selected fcntl state changes, sysctl OID/handler lifetime and output cursors |
+| 2 | [VM API argument validation](../subsystems/vm/api-argument-validation.md) | Unsafe wrappers, tag/range/page-size decisions, zero-length control returns, protection compatibility and named-entry admission |
+| 3 | [Concurrent-operation walkthroughs](../cross-cutting/concurrent-operation-walkthroughs.md) | VM copy/revalidation after mapping changes, IPC grower/terminator ordering, workqueue callback rearm versus exit/cancel |
+| 4 | [External-method call lifecycle](../subsystems/drivers/external-method-call-lifecycle.md) | A real local user-client service, opener/current-caller/memory-owner identities, scalar/structure arguments, selector checks, output, async references and close |
+| 5 | [Exec identity and inherited state](../subsystems/processes/exec-identity-and-inherited-state.md) | Set-ID and group predicates, MAC transition/disjointness, IPC inheritance/reset, credential publication, stdio repair and task tokens |
+| 6 | [Message integrity and descriptors](../subsystems/ipc/message-integrity-and-descriptor-authentication.md) | Exact signature inputs, early header signing, acquired-prefix cleanup, saved descriptor count, qualified pointers and native/extension relocation |
+| 6 | [ARM64 thread-state conversion](../subsystems/security/arm64-thread-state-conversion.md) | Kernel import flags versus user metadata, diversifier choice, pointer replacement/authentication, exception and sigreturn restoration, saved-state signing |
+| 7 | [Sanitizer runtime and reporting](../development/sanitizer-runtime-and-reporting.md) | Classic/TBI selection and metadata geometry, allocator hooks, quarantine/fake stacks, suppression and KASAN/UBSAN report disposition |
+| 7 | [Coverage instrumentation lifecycle](../development/coverage-instrumentation-lifecycle.md) | Compiler/runtime gates, device/mode/mapping state, per-thread attachment, record reservation, enable flags, detach and close |
+| 8 | [BPF capture and filter lifetime](../subsystems/networking/bpf-capture-and-filter-lifecycle.md) | Program validation/replacement, interface/listener lifetime, interpreter capture lengths, buffer rotation, reads and teardown |
+| 8 | [PF rules and packet state](../subsystems/networking/pf-rules-states-and-packet-ownership.md) | Rule tickets/staging/swap, retained rule/key/state objects, UDP progression, selected translation, packet ownership and expiry/unlink/free |
+| 8 | [IPsec policy and associations](../subsystems/networking/ipsec-policy-associations-and-transforms.md) | PF_KEY admission/status, policy/request/association identities, publication/expiry/reclamation, missing-SA packet ownership, IPv4 ESP transformation and authentication/replay ordering |
+
+### Findings that shape the explanations
+
+- Argument transport and operation validation are separate. The ioctl outer copy precedes fd lookup; BPF copies its pointed-to program separately. Sysctl rejects an oversized next output chunk before copying that chunk, while earlier output can remain visible. Selected fcntl callbacks run after flags have already changed.
+- VM zero-length and compatibility paths do not have one universal meaning. A sanitizer can return a control sentinel, normalize a protection request, or record telemetry about an alternative result without replacing the actual error.
+- Concurrency is documented through concrete schedules and retained state. A held object/page reference does not prove that the same map entry still exists; waking a namespace waiter does not mean all temporary storage has already been freed; cancel return values and callback quiescence answer different questions.
+- Identity and integrity depend on representation and caller-selected policy. IOKit opener identity differs from the current caller; exec's credential and inherited-IPC decisions differ; kmsg signing precedes descriptor acquisition; ARM64 conversion can replace a proposed pointer or retain an unusable authenticated result without reporting the same error as an explicit policy rejection.
+- Instrumentation has several enable and lifetime boundaries. A runtime, compiler callback, attached thread and enabled shared buffer are separate prerequisites. Coverage head reservation precedes writing its record. Report-function names and nearby comments are checked against the actual KASAN/UBSAN disposition bodies.
+- Packet control publication and lifetime continue beyond an individual call. BPF can retain a listener after tap-enable failure and recycle captured data after a copy error; PF rules can outlive active-list membership through state references, and stopped PF still uses the actual expiry predicate during purge. IPsec has distinct policy and association ownership rather than one generic packet-policy object.
+
+### Scope and verification boundaries
+
+The companions document selected source paths, exact branches, object layouts, synchronization, partial progress and cleanup. The new route does not claim every interface selector, descriptor/layout, concurrency schedule, register flavor, sanitizer compiler transformation, packet protocol/helper or product configuration is covered. Generated MIG output, AMFI/MAC providers, SPTM implementation, concrete DriverKit services, userspace packet-policy/key-management tools and hardware behavior remain external where their bodies are absent.
+
+The generic classic sanitizer backend is compared with ARM64 software TBI; this is not a new x86 exception or platform walkthrough. IPv4 UDP is the worked PF state path, classic BPF is the capture interpreter, and IPsec's selected ESP path is distinct from a proof of every cryptographic transform. Historical A11 and D5 now have concrete companions at this bounded depth; the remaining variants retain their backlog status.
+
+The twelve companions add **35 diagrams and 69 exact source excerpts**. Validation counts and final checks for this batch are recorded in [coverage and verification](../coverage.md#documentation-checks). The historical audit inventory is preserved.
+
+## 22. Executable memory, synchronization, packet policy and build selection
+
+This follow-up addresses the remaining six recommended areas after the reader deprioritized debugger attach/stop/resume and kperf. Two batches split independent mechanisms among three specialist authors and coordinating work. Five new companions and two existing chapters form the [reading route](../reading-guide.md#executable-memory-synchronization-and-packet-policy). The selected input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`.
+
+| Batch | Deliverable | Reviewed source path |
+| --- | --- | --- |
+| A | New [executable-memory policy](../subsystems/vm/executable-memory-policy.md) | MAP_JIT admission, common/mobile and macOS W+X branches, current/maximum permission, association outcomes, ARM64 faults, SPTM frame types and copy/inheritance boundaries |
+| A | New [semaphores and eventlinks](../subsystems/ipc/semaphores-and-eventlinks.md) | Credits versus paired counters, typed capability/reference lifetime, association, combined signal/wait ordering, timeout results, handoff and destruction |
+| A | New [work-interval policy and groups](../subsystems/runtime/work-interval-policy-and-thread-groups.md) | Workload loading/default-phase copies, assignment/join ordering, class and effective priority, group resolution, two-thread auto-join and unwind/deferred release |
+| A | New [flow diversion](../subsystems/networking/flow-diversion-and-provider-lifetime.md) | NECP protocol replacement, provider/token admission, PCB/group ownership, connect/results, flow credit versus control queues, receive, fallback and teardown |
+| B | Expanded [PF rules and state](../subsystems/networking/pf-rules-states-and-packet-ownership.md) | TCP directional peers, sequence/ACK/window arithmetic, worked handshake/data/close, selected loose/proxy branches, same-family NAT/checksum changes and partial progress |
+| B | Expanded [IPsec policy and associations](../subsystems/networking/ipsec-policy-associations-and-transforms.md) | IPv6 transport/tunnel stages, given request-chain ordering, packet handoff, old/new association selection and retirement, with parser/ownership boundaries |
+| B | New [ARM64 build/MIG walkthrough](../development/arm64-build-and-mig-walkthrough.md) | Illustrative target selection, MASTER/doconf/source/header decisions, Mach VM declaration and build outputs, typed conversion, local read receiver and sanitizer-check limits |
+
+The source distinctions drive the explanations. A successful VM operation need not retain its requested execute bit after association. A semaphore credit differs from an eventlink counter, and combined operations have different lock and result contracts. Workload assignment, effective scheduling policy and the resolved thread group are separate state. Flow-diversion control-queue admission differs from provider receipt or remote delivery. PF can update peer state before packet copyback fails, while an IPsec request-chain error can follow a packet handoff. Build declarations establish inputs and generation contracts without supplying missing generated bytes or external SDK tools.
+
+Independent and coordinating reviews checked each deliverable against its source, including numeric examples, mutation/error ordering and cleanup. Existing introductory routes and exact excerpts were retained. The new diagrams are editable Mermaid with strict standalone-SVG rendering and visual inspection; final navigation, link, excerpt, license and preservation checks are recorded in [coverage and verification](../coverage.md#documentation-checks).
+
+These batches add **20 diagrams and 42 exact source excerpts**.
+
+The focus remains common code and selected ARM64 paths. Deferring debugger and kperf work is a scope choice, not a universal macOS-only availability claim. External MAC/monitor/JIT-runtime policy, performance-controller behavior, flow-diversion providers, key management/crypto providers, complete SYN-proxy reachability, every configuration/interleaving and a shipping product build remain outside the reviewed paths. Tests are inspected as source evidence; no kernel build, runtime/network tests, vulnerability research or HTML generation is part of these batches. The historical audit inventory remains unchanged.
+
+## 23. Exec stacks, executable I/O and scheduler placement
+
+The reader selected the first three follow-ups from the next-depth recommendations. Three authors worked in parallel on separate companions, extending existing subjects through their next operations. The input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`. The [reading route](../reading-guide.md#exec-stacks-executable-io-and-scheduler-placement) connects each companion to its prerequisites.
+
+| Companion | Reviewed operation | Boundary retained |
+| --- | --- | --- |
+| [Exec arguments and the initial user stack](../subsystems/processes/exec-arguments-and-user-stack.md) | Incoming pointers and argument budgets, interpreter rewriting, kernel string storage, Apple entries, stack allocation/copyout and ARM64 startup state | The worked layout selects a concrete path; optional entries, other ABIs, every exec failure and dyld consumption are not exhaustively covered |
+| [Executable pages and UPL I/O](../subsystems/vm/executable-pages-and-upl-io.md) | Read/write direction, executable/debug mapping predicates, temporary copying and padding, recursive gathering, returned data offsets and deferred backing release | The example selects 16 KiB pages and ordinary I/O wiring; monitor/device enforcement and every UPL mode remain separate |
+| [Thread-group accounting and cluster migration](../subsystems/runtime/thread-group-accounting-and-cluster-migration.md) | Resolved-group counters and old-group CPU charging, preference publication, running-thread preemption requests, queued-thread draining and requeueing | External performance-controller policy, all topology/binding combinations and complete scheduler interleavings remain outside the selected paths |
+
+The chapters distinguish representations that the earlier introductions only connected briefly. Exec's caller-pointer width and new-image pointer width serve different steps. A temporary kernel mapping can disappear while a UPL activity hold still protects backing. Resolving a thread group changes accounting without queue surgery at that point; an Edge preference change separately publishes placement inputs and can request action for existing work. Source comments, local executable bodies and external contracts are kept distinct.
+
+The batch adds **eight diagrams and thirteen exact source excerpts**. Shared navigation and related chapters link to the new explanations. Documentation verification, source cross-review and diagram results are recorded in [coverage and verification](../coverage.md#documentation-checks). Historical audit measurements and the source inventory are retained.
+
+IPsec virtual-interface lifecycle, MPTCP sessions/subflows and `proc_info` inspection remain future candidates from the recommendation list. The prior debugger and kperf priorities remain deferred. This batch documents source behavior; it does not add vulnerability research, kernel changes, target runtime tests or an HTML rebuild.
+
+## 24. IPsec interfaces, MPTCP and process inspection
+
+This batch addresses the three remaining candidates from the recommendation list following section 23. Separate authors developed three companions in parallel; the [reading route](../reading-guide.md#ipsec-interfaces-mptcp-and-process-inspection) connects them to the existing interface, packet, TCP, process and descriptor explanations. The selected input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`.
+
+| Companion | Reviewed operation | Boundary retained |
+| --- | --- | --- |
+| [IPsec interface lifecycle](../subsystems/networking/ipsec-interface-lifecycle.md) | Privileged control setup, PCB/interface publication, legacy mbuf and Skywalk paths, interface-selected transforms, inbound delivery and staged disconnect | External key negotiation and service/device providers, every packet/configuration branch and all teardown interleavings remain outside the selected operation |
+| [MPTCP sessions and subflows](../subsystems/networking/mptcp-sessions-and-subflows.md) | Session/subflow publication, connection and TCP sequence spaces, data buffering and selection, reinjection, receive ordering, fallback and staged close | Peer behavior, every service-policy/option combination and actual network performance are not inferred from local source |
+| [Process inspection and snapshots](../subsystems/processes/process-inspection-and-snapshots.md) | `proc_info` selector dispatch, process identity and access checks, descriptor enumeration, typed detail lookup, references, sizing and copyout | Separate queries are not one atomic snapshot; unreviewed selectors and external MAC policy remain bounded |
+
+The explanations keep several independent events separate. Connecting an IPsec control socket establishes control/interface state rather than a generic packet-injection stream. MPTCP's connection data numbering and retained bytes have a lifetime above individual TCP subflows. A process identity comparison and a descriptor lookup stabilize different objects, and a copied list does not retain those objects for a later query.
+
+The batch adds **nine diagrams and sixteen exact source excerpts**. Shared indexes and related chapters link to the companions. Source cross-review, worked-example verification, standalone diagram inspection and final navigation/excerpt/license checks are recorded in [coverage and verification](../coverage.md#documentation-checks). Earlier measurements and the historical audit inventory are preserved.
+
+These are selected source paths, not exhaustive IPsec, multipath or process-introspection coverage. IPv4 multicast/IGMP, additional protocol/helper/configuration combinations, and external implementations remain separate backlog. Debugger attach/stop/resume and kperf retain their earlier deferred priority. No kernel changes, vulnerability research, kernel/network experiments or HTML rebuild are part of this batch.
+
+## 25. Key structures: proc, task and protected updates
+
+The reader requested a dedicated structure-oriented section, beginning with process/task allocation, access, read-only-zone usage and the writes that update protected state. The [key-structures overview](../structures/README.md) and three companions establish this route separately from the larger syscall and lifecycle walkthroughs. The input remains `xnu-12377.121.6`, commit `ac9718fb1af618d5ce8678d0dc6e8a58f252216f`.
+
+| Companion | Source operations followed | Boundary retained |
+| --- | --- | --- |
+| [The process and its protected data](../structures/proc-and-proc-ro.md) | Writable/protected field groups, combined allocation, RO template publication, current-thread and PID access, identity writes, exec replacement and BSD retirement | Selected fields and lifecycle paths; a reference, an allocation hold and a transition wait reference have distinct contracts |
+| [The task and its shared RO data](../structures/task-and-shared-ro.md) | Allocation geometry, resource initialization, task/thread/port access, RO attachment and updates, termination and final allocation-hold release | Kernel bootstrap and corpse construction differ from the ordinary shared-RO path; task references alone do not establish a live BSD process |
+| [Writing protected object fields](../structures/read-only-object-updates.md) | Concrete copy and atomic setters, macro offsets/sizes, source/destination validation, physical-aperture writes and protected clearing/free | PPL entry, non-PPL legacy ARM, SPTM and disabled enforcement remain distinct; external monitor implementation is not reconstructed |
+
+The structure study distinguishes the writable `proc_task` zone element from the separate `proc_ro` element, and named field groups from independent allocations. Ordinary `proc_get_ro()` and `task_get_ro()` access validates zone identity and a backreference without acquiring a new reference or serializing all field reads. A checked copy remains a copy; an atomic field update protects that operation rather than a whole structure transaction. Final object death, association clearing, SMR retirement and allocator-slot release occur at different points.
+
+The overview and three companions add **nine diagrams and seventeen exact source excerpts**. The new group is registered in the shared TOC/book order and linked from the handbook, architecture, reading guide, process/runtime guides and RO-zone material. Parallel authors and coordinating review trace the selected source paths; final cross-review, diagram inspection and documentation checks are recorded in [coverage and verification](../coverage.md#documentation-checks). Historical measurements and the coverage inventory remain preserved.
+
+This first study does not claim complete structural coverage of threads, credentials, VM, IPC or every process/task field. It adds no kernel changes, runtime tests, vulnerability investigation or HTML build. Further debugger/kperf expansion retains its earlier deferred priority.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

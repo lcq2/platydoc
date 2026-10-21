@@ -6,6 +6,8 @@ Continue with [connection and DriverKit lifetime](user-client-and-driverkit-life
 
 The [class dispatch and actions chapter](driverkit-dispatch-and-actions.md) follows registered method metadata, queue selection, callback target translation, interrupt consumption, cancellation boundaries, and check-in authorization.
 
+For one complete call, [external-method call lifecycle](external-method-call-lifecycle.md) connects a local test service to opener/current-caller authority, scalar and structure transport, dispatch validation, output, async ownership and close.
+
 ## A connection is an exported kernel object
 
 IOKit exports registry objects, connections, and DriverKit objects through different Mach kobject types. A user-visible integer is a name in a task's IPC space, not a C++ pointer. `iokit_lookup_object_in_space_with_port_name` translates a send right, checks the expected kobject type, retains the kobject under the port lock, and returns the associated object through the IOKit ownership bridge. Conversely, `iokit_make_send_right` obtains an object port and copies a send right into the task's IPC space. [`typed object lookup`](../../../xnu/osfmk/device/iokit_rpc.c#L141), [`iokit_make_send_right`](../../../xnu/osfmk/device/iokit_rpc.c#L310).

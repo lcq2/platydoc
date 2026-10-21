@@ -4,6 +4,8 @@
 
 An Internet protocol control block (`inpcb`) connects a BSD socket to addresses, ports, routes and protocol lookup tables. Receiving a datagram first finds this object; it does not search file descriptors or copy directly into a process. This chapter follows allocation, publication, lookup and reclamation in `xnu-12377.121.6`. TCP and UDP share the PCB machinery, while their protocol-specific timers and final cleanup differ.
 
+The [IPv6 socket companion](ipv6-sockets-and-packet-options.md) expands scoped bind/connect publication, native/mapped family flags and ephemeral port reservations; [source selection](ipv6-source-selection-and-scopes.md) follows the address and route references used around output.
+
 ## The objects and the three kinds of protection
 
 | Object/state | Role and protection |

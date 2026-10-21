@@ -2,6 +2,8 @@
 
 For the detailed creation, publication, failure, and teardown protocols, continue with [Fork, spawn, exec, exit, and wait](process-transitions.md).
 
+For the storage and access model, read [the process and its protected data](../../structures/proc-and-proc-ro.md) and [the task and its shared RO record](../../structures/task-and-shared-ro.md). They explain the combined allocation, `proc_ro` field groups, validation, checked writes and final allocation holds, including bootstrap and corpse exceptions.
+
 [Back to processes](README.md)
 
 ## Four objects, distinct responsibilities

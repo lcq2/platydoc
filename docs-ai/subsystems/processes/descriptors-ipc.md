@@ -4,6 +4,8 @@
 
 A descriptor operation first stabilizes a process-local table slot, then uses a `fileproc` and its shared `fileglob`. This chapter follows allocation, publication, replacement and draining before crossing into the owning file, socket or IPC subsystem. The same slot number can later identify a different object; a saved integer is not an object reference.
 
+[Process inspection and snapshots](process-inspection-and-snapshots.md) applies that distinction to `proc_info`: listing descriptor numbers and later retrieving a typed record are separate operations, with separate process/object lookups and result lifetimes.
+
 ## Three levels of identity
 
 ```mermaid

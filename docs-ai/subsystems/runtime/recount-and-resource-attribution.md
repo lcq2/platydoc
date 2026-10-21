@@ -130,6 +130,8 @@ Membership has its own lifetime rules. Adoption rejects duplicate, terminated or
 
 ## 6. Work-interval ownership and telemetry
 
+The [work-interval policy companion](work-interval-policy-and-thread-groups.md) follows the separate configuration, scheduling-class, group-selection and auto-join mechanisms. This section concentrates on retained interval identity and accounting storage.
+
 `struct work_interval` contains its ID, creation flags, creator identity, reference count, optional thread group, policy data, and Recount storage. Telemetry-enabled creation initializes its track array; the getter returns no tracks for absent or telemetry-disabled intervals. `recount_absorb_snap()` consults the thread's current interval when attributing a delta. Joining does not copy the thread's entire past lifetime into the interval. [Structure and telemetry selector](../../../xnu/osfmk/kern/work_interval.c#L152-L228), [creation](../../../xnu/osfmk/kern/work_interval.c#L1166-L1248).
 
 `thread_set_work_interval()` consumes one interval reference on success. Explicit operations require the current thread; auto-join operations have a different thread-lock contract. The operation checks policy/RT admission, changes the thread pointer and relevant group/policy state, then releases the old interval. A remotely running auto-joined thread can take the deferred-unjoin branch, which marks the state for a later safe transition rather than immediately detaching it. [Contract and checks](../../../xnu/osfmk/kern/work_interval.c#L825-L920), [pointer transfer and old release](../../../xnu/osfmk/kern/work_interval.c#L947-L1031).

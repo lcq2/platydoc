@@ -6,6 +6,8 @@ The hardest part of an XNU path is often what must remain true while it runs: th
 
 ## Four different guarantees
 
+The [concurrent-operation walkthroughs](concurrent-operation-walkthroughs.md) apply these distinctions to VM copying during mapping replacement, IPC table growth during namespace termination, and BSD workqueue callback teardown. Each carries the locks, references and state checks through a concrete two-participant schedule.
+
 | Guarantee | Question | Example |
 | --- | --- | --- |
 | Storage lifetime | Can this pointer still be dereferenced? | Task/thread references; `fileglob.fg_count`; an IOKit object's retained reference |

@@ -4,6 +4,8 @@
 
 The [scheduler execution chapter](scheduler-execution.md#6-departure-quantum-and-final-termination) follows the final timer drain, off-CPU transition, and `TH_TERMINATE2` reaping boundary in detail.
 
+For the task's own storage and protected state, continue with [the task and its shared read-only data](../../structures/task-and-shared-ro.md). It connects the combined process/task allocation, `bsd_info_ro`, accessors, field updates and final release to the process-side lifetime.
+
 ## Four objects to distinguish
 
 | Object | Fields worth locating first | Meaning |

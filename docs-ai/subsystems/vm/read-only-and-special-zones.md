@@ -16,6 +16,8 @@ The interface contracts are collected in [`zalloc.h`](../../../xnu/osfmk/kern/za
 
 ## 1. Read-only zone registration and geometry
 
+The [process/task structure study](../../structures/README.md) supplies concrete callers for this allocator contract. Its [protected-field update walkthrough](../../structures/read-only-object-updates.md) follows `proc_setpidversion()` and `task_ro_flags_set()` through these interfaces, distinguishing ordinary reads, checked writes, synchronization and final shared-record release.
+
 Read-only allocations use reserved zone IDs. XNU-internal zones are declared with `ZONE_INIT` and an ID from the RO range; external users have a fixed [`zone_create_ro_id_t`](../../../xnu/osfmk/kern/zalloc.h#L229) namespace. [`zone_create_ro()`](../../../xnu/osfmk/kern/zalloc.c#L9444) translates that external creation ID into `ZONE_ID__FIRST_RO_EXT + zc_ro_id` and calls `zone_create_ext()` with `ZC_READONLY` forced on. This is registration of a known allocator identity, not creation of an arbitrary mutable zone whose permissions happen to be changed later.
 
 The creation documentation requires early registration before lockdown, and reserved-slot creation cannot duplicate an existing zone or make it destructible. `zone_create_ext()` records size and alignment constants in the separately protected `zone_ro_size_params` array. RO zones use one page per chunk, require elements no larger than a page, and reject ten-percent-or-greater remainder waste. They cannot also be VM, DATA, per-CPU, or destructible zones. [`RO creation rules`](../../../xnu/osfmk/kern/zalloc.c#L9167), [`one-page geometry`](../../../xnu/osfmk/kern/zalloc.c#L9003), [`protected size parameters`](../../../xnu/osfmk/kern/zalloc.c#L515).

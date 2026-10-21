@@ -216,6 +216,8 @@ For investigating a library, follow its own signature attachment and coverage, t
 
 ## 8. VM connects a signed file interval to a monitor region
 
+For anonymous/JIT memory and subsequent protection changes, continue with [executable-memory policy](../vm/executable-memory-policy.md). That companion connects these association results to current versus maximum permissions, fault validation, and SPTM physical-frame classification.
+
 Under `CODE_SIGNING_MONITOR`, entry insertion calls `vm_map_entry_cs_associate()` before publishing the map-store slot. The caller shown in `vm_map_store.c` discards the function's integer result; the association function itself can remove execute from the entry's current and maximum protections on a real error. This is an important observable boundary: mapping construction and retaining executable permissions are not identical success conditions. [Entry insertion](../../../xnu/osfmk/vm/vm_map_store.c#L2752-L2760), [association result](../../../xnu/osfmk/vm/vm_map.c#L21185-L21242).
 
 The helper skips submaps, missing pmaps/objects and exempt address spaces. It normally acts only on executable entries, with a debugger-style protection-copy exception. Debug and JIT association use their own calls. For ordinary file backing, it:

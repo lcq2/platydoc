@@ -10,6 +10,8 @@ For log production and delivery, read [kernel logging and Firehose](kernel-loggi
 
 ## Map the question to the mechanism
 
+[Sanitizer runtime and reporting](sanitizer-runtime-and-reporting.md) traces classic shadow bytes, software TBI tags, allocator hooks, quarantine/fake stacks and KASAN/UBSAN reporting decisions. [Coverage instrumentation lifecycle](coverage-instrumentation-lifecycle.md) follows compiler callbacks, KSANCOV modes and mapped buffers, current-thread attachment, record ordering and detach/close.
+
 | Question | Mechanism | Source entry |
 | --- | --- | --- |
 | In what order did selected events occur? | kdebug event records | [kdebug.c](../../xnu/bsd/kern/kdebug.c), [kdebug.h](../../xnu/bsd/sys/kdebug.h) |
@@ -116,7 +118,7 @@ Sysctl exposes many subsystem counters and controls through a tree of named/numb
 
 ## Other instrumentation and diagnostic paths
 
-DTrace lives under [bsd/dev/dtrace](../../xnu/bsd/dev/dtrace/), with central `dtrace_probe()`, ioctl control, and initialization in [dtrace.c](../../xnu/bsd/dev/dtrace/dtrace.c), provider code, and Darwin adaptation in [dtrace_glue.c](../../xnu/bsd/dev/dtrace/dtrace_glue.c). Its compilation is selected by `config_dtrace` in [bsd/conf/files](../../xnu/bsd/conf/files). This guide locates that framework but does not audit its bytecode interpreter or every provider.
+DTrace lives under [bsd/dev/dtrace](../../xnu/bsd/dev/dtrace/), with central `dtrace_probe()`, ioctl control, and initialization in [dtrace.c](../../xnu/bsd/dev/dtrace/dtrace.c), provider code, and Darwin adaptation in [dtrace_glue.c](../../xnu/bsd/dev/dtrace/dtrace_glue.c). Its compilation is selected by `config_dtrace` in [bsd/conf/files](../../xnu/bsd/conf/files). The [provider and action lifecycle companion](dtrace-provider-and-action-lifecycle.md) follows DOF/DIF validation, ECB attachment, separate recording activation, ARM64 syscall probes and fault recovery, buffer publication/readout and synchronized teardown. It distinguishes a global probe ID from a consumer EPID and a successful action from successful userspace delivery; other providers and complete opcode/helper semantics remain outside that review.
 
 Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehose support](../../xnu/libkern/firehose/), and BSD's [message buffer/log implementation](../../xnu/bsd/kern/subr_log.c). Those are distinct paths from kdebug's numeric event records. The [logging companion](kernel-logging-and-firehose.md) follows the locally implemented producer, encoding, retry, streaming and readout paths and identifies the missing central Firehose implementation. Panic/debug entry and core-dump infrastructure are under [debug.c](../../xnu/osfmk/kern/debug.c) and [osfmk/kdp](../../xnu/osfmk/kdp/); extensible panic records are described in [extensible_paniclog.md](../../xnu/doc/debugging/extensible_paniclog.md).
 
@@ -124,7 +126,7 @@ Kernel logging includes [libkern/os/log.c](../../xnu/libkern/os/log.c), [firehos
 
 ## Sources inspected and limits
 
-The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. The companion chapters now expand selected stackshot, corpse, process-core and ARM64 panic mechanisms. The logging companion adds local producer/encoder/allocator/queue, chunk-inline, live-stream and msgbuf mechanisms; the central Firehose manager and userspace consumers remain external. DTrace and sanitizer backends remain chiefly navigation boundaries. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
+The ktrace ownership path, kdebug record path, kperf trigger/action entry, Recount structures/update/read path, BSD stackshot gate, stackshot trap, kcdata definitions, sysctl handler dispatch/lifetime, and listed debugger registrations were inspected directly. The companion chapters now expand selected stackshot, corpse, process-core and ARM64 panic mechanisms. The logging companion adds local producer/encoder/allocator/queue, chunk-inline, live-stream and msgbuf mechanisms; the central Firehose manager and userspace consumers remain external. The DTrace companion adds the common consumer lifecycle and selected ARM64 integration, while the sanitizer and coverage companions add selected backend, reporting, buffer and thread-attachment lifetimes. No live traces, counter measurements, debugger sessions, or sanitizer runs were collected.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

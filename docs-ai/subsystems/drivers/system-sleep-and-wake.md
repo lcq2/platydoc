@@ -6,6 +6,8 @@ System sleep crosses several independently synchronized mechanisms. `IOPMrootDom
 
 This chapter connects those mechanisms through the current source. It does not assume that display sleep, dark wake, CPU idle, suspend to RAM and hibernation are interchangeable. The [CPU guide](../platform/cpu-power-lifecycle.md) follows ARM64 register/context and timer restoration; [x86 sleep/resume](../platform/x86-sleep-and-resume.md) follows its separate assembly/platform path; [image creation](../platform/hibernation-image-creation.md) and [image restoration](../platform/hibernation-restore.md) explain the persistent-memory image.
 
+The [power assertions and idle-policy companion](power-assertions-and-idle-policy.md) follows the inputs that precede these transitions: assertion IDs and queued publication, DriverKit exclusion counts, service preventer sets, coalesced settings delivery and timer-driven release of root power desires.
+
 ## 1. Power state, capabilities and progress are different state
 
 | State | Role in the selected path |
@@ -279,7 +281,7 @@ During a wake without graphics, `willTellSystemCapabilityDidChange()` closes the
 
 Read paths include request queuing and demand policy; transition/capability publication and generation checks; selected preventers and emergency ordering; recipient filtering; reply cookies, allowed cancellation and response cleanup; bounded VFS sync; task suspension; hibernation preparation/final policy hooks; the non-AppleARMSMP CPU orchestrator and scheduler bracket; platform action ordering; and root-domain wake/cancellation completion.
 
-The full assertion implementation, battery/thermal policy, all AOT/run-mode and clamshell combinations, every child-PM transition, external powerd decisions, AppleARMSMP CPU implementation, physical device power sequencing, firmware and trusted image validation remain outside this chapter. [PM callback protocols](workloop-and-power-protocols.md), [CPU lifecycle](../platform/cpu-power-lifecycle.md), and the hibernation chapters carry the neighboring detailed paths. No sleep/resume workload was executed.
+The [assertion and idle-policy companion](power-assertions-and-idle-policy.md) now covers the selected assertion/preventer/settings/timer implementations. Battery/thermal policy, all AOT/run-mode and clamshell combinations, every child-PM transition, external powerd decisions, AppleARMSMP CPU implementation, physical device power sequencing, firmware and trusted image validation remain outside this chapter. [PM callback protocols](workloop-and-power-protocols.md), [CPU lifecycle](../platform/cpu-power-lifecycle.md), and the hibernation chapters carry the neighboring detailed paths. No sleep/resume workload was executed.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

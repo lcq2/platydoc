@@ -24,6 +24,10 @@ The diagram identifies relationships, not a mandatory ordering of checks for eve
 
 ## Reading routes
 
+[Executable-memory policy](../vm/executable-memory-policy.md) connects MAP_JIT admission and protection changes to monitor association, ARM64 faults and SPTM frame types. It distinguishes current permissions, maximum permissions, entry classification and the physical mapping that a later access obtains.
+
+Two operation companions connect identity and execution state: [exec identity and inherited state](../processes/exec-identity-and-inherited-state.md) follows credentials, IPC reset and token publication, while [ARM64 thread-state conversion](arm64-thread-state-conversion.md) follows kernel-selected import policy, pointer authentication, exception/signal replies and final saved-state writes. [Message integrity](../ipc/message-integrity-and-descriptor-authentication.md) explains the separate kmsg signature and descriptor-pointer mechanisms.
+
 | Page | Questions answered |
 | --- | --- |
 | [Credentials, authorization, and task rights](credentials-and-policy.md) | Where does caller identity live? How are immutable credentials replaced? How do kauth and MAC combine results? Why does a PID not itself grant task access? |

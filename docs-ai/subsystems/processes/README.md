@@ -8,6 +8,8 @@ These pages describe the supplied `xnu-12377.121.6` source snapshot. Configurati
 
 ## Read in this order
 
+For the structures behind these operations, use [the process and its protected data](../../structures/proc-and-proc-ro.md) and [the task and its shared RO data](../../structures/task-and-shared-ro.md). They follow zone allocation, validated access, field updates and the two sides of final reclamation; [the RO update walkthrough](../../structures/read-only-object-updates.md) carries those writes into the selected pmap backend.
+
 1. [Process objects and lifetime](lifecycle.md): the initial map of `proc`, `task`, `thread`, and `uthread`; continue with [Fork, spawn, exec, exit, and wait](process-transitions.md) for publication gates, failure paths, reference drains, and reaping.
 2. [System calls, signals, and exceptions](syscalls-signals.md): syscall entry and the exception bridge; continue with [Signal posting, handler entry, and sigreturn](signal-delivery-and-return.md) for target selection, AST processing, ARM64 frames, and validation.
 3. [File descriptors: allocation, replacement and close](descriptors-ipc.md): reserved slots, table growth, `fileproc`/`fileglob` ownership, constructor publication, `dup2` replacement, I/O drains, guarded operations and fileport transfer.
@@ -15,6 +17,10 @@ These pages describe the supplied `xnu-12377.121.6` source snapshot. Configurati
 5. [Pthread boundaries, workqueue service, and cancellation](pthread-workqueue-lifecycle.md): request admission, creator selection, binding, worker reuse/parking, cancellation, join wake, and teardown.
 6. [Asynchronous file I/O](async-io.md): request ownership, both worker paths, cancellation races, result consumption, and close/exec/exit drains.
 7. [Complete BSD syscall catalog](../../interfaces/bsd-syscalls/README.md): dispatch/argument/result state, every master-table slot and conditional alternative, and each active call's purpose and local mechanism. Compare the separate [Mach namespaces](../../interfaces/README.md) and [AST flavor catalog](../runtime/ast-flavors.md).
+
+For exec's identity changes, read [Exec identity and inherited state](exec-identity-and-inherited-state.md): set-ID predicates, group membership, MAC transitions, Mach inheritance resets, descriptor repair, credential publication and task tokens follow separate decisions. Continue with [Exec arguments and the initial user stack](exec-arguments-and-user-stack.md) for argument extraction, interpreter rewriting, byte budgets, Apple entries and a worked ARM64 startup layout. [ARM64 thread-state conversion](../security/arm64-thread-state-conversion.md) continues the signal-return route through pointer conversion and saved-state installation.
+
+[Process inspection and snapshots](process-inspection-and-snapshots.md) follows `proc_info` from selectors and process identity checks into descriptor lists and typed descriptor details. Its concurrent example distinguishes a retained object during one query from identity across separate queries.
 
 For local communication and terminals, continue with:
 

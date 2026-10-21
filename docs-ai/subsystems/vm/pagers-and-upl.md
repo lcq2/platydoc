@@ -6,6 +6,8 @@ A pager supplies backing behavior for VM contents. A universal page list, or UPL
 
 For the general I/O-wire gather loop, copy synchronization, absent-but-busy pages, partial completion and vector ownership, continue with [UPL gathering and completion](upl-gather-and-completion.md).
 
+[Executable pages and UPL I/O](executable-pages-and-upl-io.md) explains when mapping policy requires temporary copied backing before gathering, and how completion releases that backing after its kernel mapping has gone.
+
 For the syscall-side resident hit, missing-page read and truncation paths, continue with [file-data caching](../vfs/file-data-cache-and-read-path.md). [Page-signature validation](../security/page-signature-validation.md) explains the additional integrity state, including why signed-object UPL commits suppress caller-supplied validation bits and how COW and transforming pagers propagate selected results.
 
 ## The pager boundary is an object interface

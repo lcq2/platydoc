@@ -47,6 +47,8 @@ For a **userspace exception server**, the producer is a kernel exception RPC, bu
 
 ## What is in a message
 
+[Message integrity and descriptor authentication](message-integrity-and-descriptor-authentication.md) follows the representation changes below into header/count/trailer signing, qualified pointer storage, validation and kernel-buffer relocation.
+
 The public header is 24 bytes in userspace. Its first fields describe bits and total message size; three names describe destination, optional reply right, and voucher; the integer ID belongs to the protocol. In a kernel build, `mach_port_t` in this header can represent a port pointer, so the kernel header occupies 32 bytes. `mach_msg_user_header_t` explicitly preserves the 24-byte user format even in kernel code. [`message.h`](../../../xnu/osfmk/mach/message.h#L660).
 
 [Public header and its kernel/user size assertion](../../../xnu/osfmk/mach/message.h#L609).

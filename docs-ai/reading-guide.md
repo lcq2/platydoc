@@ -16,6 +16,8 @@ Then read `proc_task()` in [kern_proc.c](../xnu/bsd/kern/kern_proc.c#L2003) and 
 
 **Checkpoint:** explain how one process can have several schedulable threads, why a task is not a CPU execution context, and why a reference and a PID are not interchangeable ways to keep a process alive.
 
+For a deeper structure study, continue through [key structures](structures/README.md), [the process and its protected data](structures/proc-and-proc-ro.md), [the task and its shared RO data](structures/task-and-shared-ro.md), then [writing protected object fields](structures/read-only-object-updates.md). Follow one selected field from its initialization template through an accessor and an update into final cleanup. Compare the combined writable allocation with the separate RO record, and keep backend write permission, object lifetime and field synchronization distinct.
+
 ## Pass 2: follow one entry from user space
 
 Pick a small syscall from [syscalls.master](../xnu/bsd/kern/syscalls.master), locate its implementation, and inspect an architecture dispatcher: [ARM](../xnu/bsd/dev/arm/systemcalls.c) or [x86](../xnu/bsd/dev/i386/systemcalls.c). Trace argument extraction and the return convention before following the operation itself. Use the [process interface guide](subsystems/processes/README.md) to connect dispatch, `uthread`, restart behavior, and signals.
@@ -170,6 +172,63 @@ Search output is a starting point. Read enough surrounding code to see the prepr
 The [observability guide](development/observability.md) maps questions to traces, samples, counters, snapshots, and debugger macros. A macro that displays the fields you are studying can be a useful second explanation of their relationship. A subsystem test can provide a small scenario and expected result; see [build and tests](development/build-and-tests.md) for the different harnesses and their requirements.
 
 Keep three claims separate in your notes: “this body performs this step,” “this configuration selects this body,” and “this happened in a running kernel.” Source reading can establish the first, selected build artifacts help establish the second, and runtime evidence is needed for the third.
+
+## Argument, identity and lifetime paths
+
+This route builds a source-level understanding of concrete operations. Read it in the following order, using each companion's object definitions, exact branches, diagrams and failure/cleanup paths. Test references describe available source evidence, not runtime results.
+
+| Order | Reading | What the implementation explains |
+| --- | --- | --- |
+| 1 | [Command dispatch and validation](interfaces/command-dispatch-and-validation.md) | `ioctl`, `fcntl` and `sysctl` transport, object lookup, caller checks, nested arguments, handler publication and partial output |
+| 2 | [VM API argument validation](subsystems/vm/api-argument-validation.md) | Unsafe argument wrappers, range arithmetic, page-size geometry, zero-length conventions, compatibility policy and object admission |
+| 3 | [Concurrent-operation walkthroughs](cross-cutting/concurrent-operation-walkthroughs.md) | Concrete VM copy/revalidation, IPC growth/termination and workqueue callback/cancellation schedules |
+| 4 | [IOKit external-method call lifecycle](subsystems/drivers/external-method-call-lifecycle.md) | Opener versus current caller, connection and memory owners, dispatch tables, buffer representations, async completion and close |
+| 5 | [Exec identity and inherited state](subsystems/processes/exec-identity-and-inherited-state.md) | Credential changes, group-membership exceptions, MAC transitions, inherited Mach state, descriptor repair and token publication |
+| 6 | [Message integrity](subsystems/ipc/message-integrity-and-descriptor-authentication.md), then [ARM64 thread-state conversion](subsystems/security/arm64-thread-state-conversion.md) | Signed representations, conversion policy, pointer relocation/authentication, exception replies, sigreturn and installed saved state |
+| 7 | [Sanitizer runtime and reporting](development/sanitizer-runtime-and-reporting.md), then [coverage instrumentation lifecycle](development/coverage-instrumentation-lifecycle.md) | Instrumentation selection, metadata lifetime, report disposition, per-thread coverage buffers and detach/close |
+| 8 | [BPF capture/filter lifetime](subsystems/networking/bpf-capture-and-filter-lifecycle.md), [PF rules and state](subsystems/networking/pf-rules-states-and-packet-ownership.md), then [IPsec policy and associations](subsystems/networking/ipsec-policy-associations-and-transforms.md) | Capture program/buffer lifetime, published packet rules and retained state, policy/SA lookup, transforms and packet ownership |
+
+The [scope record](audits/first-release-expansion.md#21-arguments-identity-integrity-instrumentation-and-packet-state) separates completed paths from unreviewed variants and external implementations. This route documents the selected XNU snapshot; it does not prescribe vulnerability research.
+
+## Executable memory, synchronization and packet policy
+
+These companions continue the operation-based route above, concentrating on common code and selected ARM64 configurations. Each states the feature/platform guards that matter. The two batches allowed separate authors to research mechanisms in parallel; their order also gives a useful reading route.
+
+| Batch | Reading | Operation and state to follow |
+| --- | --- | --- |
+| A | [Executable-memory policy](subsystems/vm/executable-memory-policy.md) | MAP_JIT and RW→RX admission, current/maximum protection, monitor association, executable faults and SPTM frame types |
+| A | [Mach semaphores and eventlinks](subsystems/ipc/semaphores-and-eventlinks.md) | Credits versus paired counters, association, signal/wait ordering, timeout results, handoff and destruction |
+| A | [Work-interval policy and thread groups](subsystems/runtime/work-interval-policy-and-thread-groups.md) | Workload configuration, class and effective priority, group resolution, semaphore-triggered auto-join and unwind |
+| A | [Flow diversion and provider lifetime](subsystems/networking/flow-diversion-and-provider-lifetime.md) | Socket protocol replacement, provider admission, CONNECT, per-flow credit/control queues, fallback and teardown |
+| B | [PF rules, states and packet ownership](subsystems/networking/pf-rules-states-and-packet-ownership.md) | Continue from UDP into TCP peer windows, sequence/ACK decisions, selected loose/proxy handling and NAT/checksum changes |
+| B | [IPsec policy, associations and transforms](subsystems/networking/ipsec-policy-associations-and-transforms.md) | Continue from IPv4 into IPv6 transport/tunnel stages, ordered requests, packet handoff and association replacement/retirement |
+| B | [ARM64 build and MIG walkthrough](development/arm64-build-and-mig-walkthrough.md) | Concrete target selection, configuration/source/header generation, then a Mach VM request's declared conversion and local implementation |
+
+The [batch record](audits/first-release-expansion.md#22-executable-memory-synchronization-packet-policy-and-build-selection) separates these source reviews from unreviewed variants and external implementations. Further debugger attach/stop/resume and kperf expansion are deferred at the reader's request; this priority choice is not a claim that their source is universally macOS-only. No kernel build or target runtime test is implied by the worked examples.
+
+## Exec stacks, executable I/O and scheduler placement
+
+These three companions extend mechanisms already introduced above. Follow each representation change through the operation, including failures and ownership after the initiating call returns.
+
+| Start from | Continue with | Concrete operation |
+| --- | --- | --- |
+| [Executable loading](cross-cutting/executable-loading.md) and [exec identity](subsystems/processes/exec-identity-and-inherited-state.md) | [Exec arguments and the initial user stack](subsystems/processes/exec-arguments-and-user-stack.md) | Incoming argument pointers become kernel strings, rewritten interpreter arguments, Apple entries and a new ARM64 stack with initial SP/PC |
+| [Executable-memory policy](subsystems/vm/executable-memory-policy.md) and [UPL gathering](subsystems/vm/upl-gather-and-completion.md) | [Executable pages and UPL I/O](subsystems/vm/executable-pages-and-upl-io.md) | Direction and mapping policy select rejection, direct gathering or temporary copying; the UPL retains backing after the kernel mapping is removed |
+| [Work-interval groups](subsystems/runtime/work-interval-policy-and-thread-groups.md) and [Clutch/Edge](subsystems/runtime/clutch-and-edge.md) | [Thread-group accounting and cluster migration](subsystems/runtime/thread-group-accounting-and-cluster-migration.md) | A group switch transfers accounting; a separate preference change updates future placement and requests action for running or queued threads |
+
+The [batch record](audits/first-release-expansion.md#23-exec-stacks-executable-io-and-scheduler-placement) distinguishes source review from external dyld, monitor, device and performance-controller behavior. The worked layouts and schedules are illustrative; no product configuration or runtime result is inferred from them.
+
+## IPsec interfaces, MPTCP and process inspection
+
+This batch extends the packet, transport and process mechanisms with three operations whose state outlives an individual call or packet. Read the prerequisites first, then use the worked examples to follow ownership and identity through changes.
+
+| Start from | Continue with | Operation to follow |
+| --- | --- | --- |
+| [IPsec policy and transforms](subsystems/networking/ipsec-policy-associations-and-transforms.md), [interface lifetime](subsystems/networking/packets-routes-and-interfaces.md) and [Skywalk pipes](subsystems/networking/skywalk-user-and-kernel-pipes.md) | [IPsec interface lifecycle](subsystems/networking/ipsec-interface-lifecycle.md) | Control setup publishes interface state; mbuf and Skywalk paths transform/deliver packets; disconnect drains distinct users before reclamation |
+| [TCP connections](subsystems/networking/tcp-connections-and-timers.md) and [loss recovery](subsystems/networking/tcp-loss-recovery-and-congestion-control.md) | [MPTCP sessions and subflows](subsystems/networking/mptcp-sessions-and-subflows.md) | A session coordinates TCP subflows using connection-level numbering, path selection, reinjection, receive ordering and staged close |
+| [Process lifetime](subsystems/processes/lifecycle.md), [descriptor ownership](subsystems/processes/descriptors-ipc.md) and [command dispatch](interfaces/command-dispatch-and-validation.md) | [Process inspection and snapshots](subsystems/processes/process-inspection-and-snapshots.md) | Selector and identity checks admit queries; descriptor enumeration and later typed lookup retain different state while the target can change |
+
+The [batch record](audits/first-release-expansion.md#24-ipsec-interfaces-mptcp-and-process-inspection) records selected implementation paths and external boundaries. These chapters explain source behavior and illustrative schedules; they do not report a kernel or network experiment.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

@@ -48,6 +48,8 @@ This is a dependency map, not a strict stack. For example, a device interrupt en
 
 ## The objects to learn first
 
+The [key-structures section](structures/README.md) follows these declarations into allocation, accessors, checked updates and final release. Its first study covers `proc`, `task` and their protected `proc_ro` data, including ordinary creation, kernel bootstrap and corpse differences.
+
 | Object | Responsibility | Principal source |
 | --- | --- | --- |
 | `proc` | BSD process identity, lifecycle, descriptor state, signal state, process relationships | [proc_internal.h](../xnu/bsd/sys/proc_internal.h) |

@@ -1,6 +1,6 @@
 # IPv6 output, next-hop resolution and neighbor lifetime
 
-[Networking](README.md) · [UDP](udp-send-receive-and-errors.md) · [Routes and interface lifetime](packets-routes-and-interfaces.md)
+[IPv6](ipv6.md) · [Networking](README.md) · [UDP](udp-send-receive-and-errors.md) · [Routes and interface lifetime](packets-routes-and-interfaces.md)
 
 Choosing a route does not mean that the next hop's link-layer address is known. IPv6 output selects and validates the route/interface, applies packet policy and fragmentation decisions, then transfers packet ownership to neighbor discovery. Neighbor discovery can send immediately, retain a packet list while resolving an address, or discard it. This chapter traces that boundary and its asynchronous completion in `xnu-12377.121.6`.
 
@@ -27,9 +27,38 @@ A native IPv6 UDP send uses [`in6_selectsrc()`](../../../xnu/bsd/netinet6/in6_sr
 
 The outgoing interface must agree with the source/destination zones, except the specified loopback/local cases. `origifp` preserves the relevant original interface for scope and loopback handling; it is not always the same object as the interface used to transmit. See [scope checks](../../../xnu/bsd/netinet6/ip6_output.c#L1264-L1337). Policy or IPsec tunnel processing can also change the route/address context; the full policy engine is covered separately from this output trace.
 
+## Extension headers become an owned mbuf chain
+
+Output copies the borrowed `ip6_pktopts` header bytes into new mbufs; it does not splice the PCB's allocations into the packet. `ip6_exthdrs` records pointers to these detached headers while they are assembled. `ip6_copyexthdr()` uses nonblocking mbuf/cluster allocation and rejects a header exceeding its cluster bound. See [construction](../../../xnu/bsd/netinet6/ip6_output.c#L550-L595), [scratch layout](../../../xnu/bsd/netinet6/ip6_var.h#L183-L204) and [copy allocation](../../../xnu/bsd/netinet6/ip6_output.c#L2015-L2041).
+
+Two lengths serve different purposes. `optlen` counts extension headers between IPv6 and the upper-layer payload. `unfragpartlen` includes the base IPv6 header and extensions that precede a Fragment header; final-destination options are counted in `optlen` but excluded from this unfragmentable prefix. Splitting the base header from payload permits insertion and IPsec transformation. See [lengths and split](../../../xnu/bsd/netinet6/ip6_output.c#L749-L792).
+
+The builder inserts final-destination options, then hop-by-hop, pre-routing destination and routing headers, rewriting preceding `Next Header` fields. `m_next` links data pieces of one packet. Once `exthdrs.merged` is set, the scratch pointers alias the packet chain and cannot be freed individually. [`ip6_output.c:863–868`](../../../xnu/bsd/netinet6/ip6_output.c#L863-L868):
+
+<!-- source-excerpt: ../../../xnu/bsd/netinet6/ip6_output.c#L863-L868 -->
+```c
+	MAKE_CHAIN(exthdrs.ip6e_hbh, mprev, nexthdrp, IPPROTO_HOPOPTS);
+	MAKE_CHAIN(exthdrs.ip6e_dest1, mprev, nexthdrp, IPPROTO_DSTOPTS);
+	MAKE_CHAIN(exthdrs.ip6e_rthdr, mprev, nexthdrp, IPPROTO_ROUTING);
+
+	/* It is no longer safe to free the pointers in exthdrs. */
+	exthdrs.merged = TRUE;
+```
+
+```mermaid
+flowchart TD
+    O["Borrowed packet options"] -->|copy bytes| H["Detached extension mbufs"]
+    P["Transport packet"] -->|split IPv6 header| B["Header and payload chain"]
+    H -->|rewrite Next Header and m_next| M["Merged packet chain"]
+    B --> M
+    M -->|merged flag| F["Packet owns all header mbufs"]
+```
+
+The historical composition machinery is broader than supported transmission: any routing header triggers `EINVAL` after the IPsec stage. Its accepted setter format does not make type-0 routing operational. Jumbo-payload handling inserts a jumbo option and sets `ip6_plen = 0`; that representation later prohibits ordinary fragmentation. See [jumbo insertion](../../../xnu/bsd/netinet6/ip6_output.c#L793-L812), [routing-header rejection](../../../xnu/bsd/netinet6/ip6_output.c#L996-L1001) and [socket-option decisions](ipv6-sockets-and-packet-options.md#important-option-decisions).
+
 ## MTU, checksum and fragments are explicit decisions
 
-[`ip6_getpmtu()`](../../../xnu/bsd/netinet6/ip6_output.c#L2352) resolves the applicable path MTU. [`ip6_fragment_packet()`](../../../xnu/bsd/netinet6/ip6_output.c#L1754) then considers per-packet do-not-fragment flags, forwarding, packet length, link/path MTU and supported checksum/segmentation offload. Forwarded packets are forced into the nonfragmenting branch. The selected behavior is not simply “fragment every packet larger than the route MTU.”
+[`ip6_getpmtu()`](../../../xnu/bsd/netinet6/ip6_output.c#L2352) resolves the applicable path MTU. [`ip6_fragment_packet()`](../../../xnu/bsd/netinet6/ip6_output.c#L1754) then considers per-packet do-not-fragment flags, forwarding, packet length, link/path MTU and supported checksum/segmentation offload. Forwarded packets are forced into the nonfragmenting branch. The bypass also includes supported TSO and `CSUM_FRAGMENT_IPV6` hardware fragmentation. The selected behavior is not simply “fragment every packet larger than the route MTU.”
 
 [`bsd/netinet6/ip6_output.c:1780–1789`](../../../xnu/bsd/netinet6/ip6_output.c#L1780-L1789):
 
@@ -50,6 +79,65 @@ The outgoing interface must agree with the source/destination zones, except the 
 A nonfragmenting packet larger than the link MTU returns `EMSGSIZE`. Otherwise the implementation can finish output checksums and pass through, or construct a new `m_nextpkt` list of fragments through `ip6_do_fragmentation()`. Packet-chain linkage and each packet's `m_next` data-fragment linkage have different meanings. The original packet can be replaced/consumed during fragmentation, so the caller passes its address (`&m`) and uses the returned representation.
 
 After filtering, checksum and fragmentation work, `ip6_output_list()` gathers completed packets and calls `nd6_output_list()`. It deliberately falls through to reference cleanup even on error because ND consumes the send chain in both outcomes. See [handoff](../../../xnu/bsd/netinet6/ip6_output.c#L1580-L1689). IP output cannot then free that chain again.
+
+### Path MTU, link MTU and minimum-MTU policy
+
+`ip6_getpmtu()` can distinguish a next-hop route from the final destination's PMTU route. It validates/rebuilds that cache, reads `rt_rmx.rmx_mtu`, and clamps a zero or excessive value to `IN6_LINKMTU(ifp)`. If `RTV_MTU` does not lock the route MTU, the corrected value is written back. These performance-path accesses intentionally omit the ordinary route/ND-info locks. With only an interface it uses that interface's MTU; with neither route nor interface it returns `EHOSTUNREACH`. See [the helper](../../../xnu/bsd/netinet6/ip6_output.c#L2352-L2420).
+
+Minimum-MTU policy is another step: an explicit flag or `IP6PO_MINMTU_ALL` caps the selected value at 1280, and multicast uses that cap unless disabled. This differs from prohibiting fragmentation. The `dontfrag` rejection compares length against **link MTU**; a packet above path MTU but within link MTU can follow the nonfragmenting branch and receive later network feedback. Forwarded packets force `dontfrag` and discard inappropriate inherited partial-checksum transmit state. See [policy cap](../../../xnu/bsd/netinet6/ip6_output.c#L1444-L1470), [decision](../../../xnu/bsd/netinet6/ip6_output.c#L1754-L1825) and [ICMPv6 feedback](ip-fragment-reassembly-and-icmp.md).
+
+### Checksums describe unfinished work
+
+UDP/TCP can seed the transport checksum and record delayed work in `m_pkthdr.csum_flags`/`csum_data`. `ip6_output_checksum()` compares requested work with `if_hwassist`. Disabling transmit offload causes software completion; extension headers also force completion of this delayed transport work in software. Without extensions, partial offload can specify start/stuff offsets; the partial-offload branch requires packet length within MTU, and UDP additionally needs zero-inversion capability on both the interface and packet metadata. See [the full decision](../../../xnu/bsd/netinet6/ip6_output.c#L4303-L4374).
+
+For plain IPv6/UDP, that partial-offload representation starts at the 40-byte IPv6 boundary and places the checksum at that start plus the UDP checksum-field offset. These are packet offsets, not DMA addresses. Before software fragmentation, `in6_delayed_cksum_offset()` completes the checksum over the original datagram, so the fragments carry portions of already checksummed data. See [pre-fragment completion](../../../xnu/bsd/netinet6/ip6_output.c#L1918-L1920) and [delayed checksum calculation](../../../xnu/bsd/netinet6/ip6_output.c#L2071-L2174). Device execution remains a provider boundary.
+
+### Software fragmentation replaces one packet with a list
+
+`ip6_do_fragmentation()` rejects an outstanding TSO packet, MTU below 1280 and jumbo payload. It clamps excessive MTU to `IPV6_MAXPACKET`, checks that the unfragmentable prefix, 8-byte Fragment header and at least 8 payload bytes fit, then subtracts and aligns the data budget. The guard precedes unsigned subtraction. [`ip6_output.c:1894–1904`](../../../xnu/bsd/netinet6/ip6_output.c#L1894-L1904):
+
+<!-- source-excerpt: ../../../xnu/bsd/netinet6/ip6_output.c#L1894-L1904 -->
+```c
+#define IPV6_FRAG_UNIT  8       /* fragment offset granularity (octets) */
+		if ((hlen + sizeof(struct ip6_frag) + IPV6_FRAG_UNIT) > mtu) {
+			in6_ifstat_inc(ifp, ifs6_out_fragfail);
+			return EMSGSIZE;
+		}
+
+		len = (mtu - hlen - sizeof(struct ip6_frag)) & ~(IPV6_FRAG_UNIT - 1);
+		if (len < IPV6_FRAG_UNIT) {
+			in6_ifstat_inc(ifp, ifs6_out_fragfail);
+			return EMSGSIZE;
+		}
+```
+
+The last unfragmentable header's `Next Header` becomes `IPPROTO_FRAGMENT`; each new Fragment header preserves the previous next protocol. Each iteration allocates a packet-header mbuf, copies unfragmentable headers, writes offset/more-fragments/identification, copies the corresponding data portion, and transfers classifier/PF/NECP metadata. `m_next` describes one fragment's pieces; `m_nextpkt` links complete fragments. All fragments share the identification passed to this operation. See [construction](../../../xnu/bsd/netinet6/ip6_output.c#L1916-L2001).
+
+Worked example, **illustrative values**: native UDP, 3000 application bytes, no extension headers or offload, MTU 1500, fragmentation allowed. The original is `40 + 8 + 3000 = 3048` bytes. The fragmentable part is 3008 bytes, including UDP. The data budget is `(1500 - 40 - 8) & ~7 = 1448` bytes.
+
+| Fragment | Byte offset within fragmentable part | Encoded offset units | Fragment data | Whole packet | More flag |
+| --- | ---: | ---: | ---: | ---: | --- |
+| First | 0 | 0 | 1448 | 1496 | Set |
+| Second | 1448 | 181 | 1448 | 1496 | Set |
+| Third | 2896 | 362 | 112 | 160 | Clear |
+
+Only the first fragment starts with the UDP header. The [Fragment header layout](../../../xnu/bsd/netinet/ip6.h#L279-L293) uses the low three bits for two reserved bits and the More flag, giving the 8-byte-unit offset interpretation above. [Reassembly](ip-fragment-reassembly-and-icmp.md) restores the upper-layer datagram before UDP delivery.
+
+```mermaid
+flowchart TD
+    O["Original: IPv6 plus 3008 fragmentable bytes"] -->|successful replacement| A["Fragment 1: bytes 0 to 1447"]
+    A -->|m_nextpkt| B["Fragment 2: bytes 1448 to 2895"]
+    B -->|m_nextpkt| C["Fragment 3: bytes 2896 to 3007"]
+    A -->|m_next| D["Mbuf pieces of fragment 1"]
+```
+
+Construction failure frees all newly created fragments; the original remains owned by the caller's error path. Its header may already have changed, so it is not a pristine retry buffer. Success frees the original and replaces `*mptr` with the fragment list. No fragment is submitted to the interface from this loop. See [failure and replacement](../../../xnu/bsd/netinet6/ip6_output.c#L1995-L2011).
+
+### Packet-list cleanup has three owners
+
+`ip6_output_list()` tracks remaining `inputchain`, current `m` and completed `sendchain`. A fragmented `m` can contain several packets, so gathering walks to its last `m_nextpkt`. The next input resets extension/IPsec scratch state, including `merged`. The normal path hands the gathered chain to ND after processing the list; ND consumes it on both outcomes. See [gather and handoff](../../../xnu/bsd/netinet6/ip6_output.c#L1598-L1651).
+
+Before merging, `freehdrs` releases detached header allocations. Its guards panic if asked to separately free a merged header. After merging the packet owns those headers. The `bad` path frees remaining inputs, gathered outputs and the current packet, then `done` releases local routes, addresses, interfaces and conditional policy references. See [cleanup](../../../xnu/bsd/netinet6/ip6_output.c#L1653-L1731).
 
 ## Neighbor lookup can change which route is held
 
@@ -124,7 +212,7 @@ The final path resets retries, removes `ln_hold` from the record before sending,
 		}
 ```
 
-[`nd6_ns_input()`](../../../xnu/bsd/netinet6/nd6_nbr.c#L262) is the corresponding solicitation receive entry, including address validation, local-target/DAD/proxy decisions and advertisement generation. These handlers share ND state but are not a substitute for a complete SLAAC/router-advertisement explanation.
+[`nd6_ns_input()`](../../../xnu/bsd/netinet6/nd6_nbr.c#L262) is the corresponding solicitation receive entry, including address validation, local-target/DAD/proxy decisions and advertisement generation. The [neighbor-message companion](ipv6-neighbor-messages-and-reachability.md) expands the NS/NA flags, cache-learning predicates, NUD and redirects; [address/DAD](ipv6-addresses-autoconfiguration-and-dad.md) and [RA/prefix lifetime](ipv6-router-advertisements-and-prefix-lifetime.md) follow their separate state changes.
 
 ## Timer transitions, failed resolution and teardown
 
@@ -144,7 +232,7 @@ The timer code takes route references before dropping locks for packet generatio
 
 ## Scope of this reconstruction
 
-This path explains packet ownership, route/scope/MTU decisions, ND resolution and asynchronous reclamation. Complete source-address ranking, DAD, router/prefix lifetimes, redirects, multicast membership and IPv6 input reassembly remain distinct mechanisms. External routers, hardware neighbor offloads and device providers are not reconstructed from these call sites. [Neighbor lookup tests](../../../xnu/tests/net/nd6lookup.c) provide an in-tree follow-up route; no network test was executed for this chapter.
+This path explains packet ownership, route/scope/MTU decisions, ND resolution and asynchronous reclamation. The [IP reassembly and ICMP companion](ip-fragment-reassembly-and-icmp.md) follows incoming fragments, dirty-queue lifetime and quoted-header PMTU feedback. The expanded [IPv6 guide](ipv6.md) connects source-address ranking, DAD, router/prefix lifetimes, input/forwarding, redirects and multicast membership to their detailed companions. External routers, hardware neighbor offloads and device providers are not reconstructed from these call sites. [Neighbor lookup tests](../../../xnu/tests/net/nd6lookup.c) provide an in-tree follow-up route; no network test was executed for this chapter.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

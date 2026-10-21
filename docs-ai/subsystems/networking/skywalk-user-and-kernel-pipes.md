@@ -6,6 +6,8 @@ A Skywalk **user pipe** transports packets between two user-facing adapters by e
 
 These are packet channels, separate from [BSD byte-stream pipes and UNIX sockets](../processes/pipes-and-unix-socket-rights.md). Neither pipe domain intrinsically performs IP routing, transport reliability, encryption or flowswitch classification. A provider can connect a kernel pipe to such machinery, but that behavior comes from its callback bodies.
 
+[IPsec interface lifecycle](ipsec-interface-lifecycle.md) follows another concrete consumer through interface control, netif/kernel-pipe packet movement, transforms and disconnect barriers. It distinguishes those provider operations from the generic pipe protocol explained here.
+
 ## 1. Endpoints, rings and memory are different objects
 
 | Object or identity | User pipe | Kernel pipe |

@@ -60,6 +60,8 @@ The shared structures are [`sysent`](../../xnu/bsd/sys/sysent.h#L45), [`mach_tra
 
 ## Multiplexed and generated interfaces
 
+The [command-dispatch companion](command-dispatch-and-validation.md) follows `ioctl`, selected `fcntl` commands and dynamic `sysctl` handlers through argument copying, object retention, access checks, endpoint calls and output. Its BPF request example distinguishes the outer ABI structure from the separately copied instruction array.
+
 Several calls select another operation through an argument: `ioctl` requests, `fcntl` commands, `sysctl` OIDs, Mach information/state flavors, voucher recipes, and IOKit external-method selectors. Their top-level catalog entries identify the local dispatch and relevant structures. A concrete driver's private selector or dynamically registered OID is not a new syscall number, and an absent driver cannot be reconstructed by enumerating the common entry.
 
 MIG `.defs` files describe messages and conversions; generated server C is mostly a build artifact. IOKit also uses generated `.iig` interfaces and a separate DriverKit transport. Continue with [user-client and DriverKit dispatch](../subsystems/drivers/driverkit-dispatch-and-actions.md), [MIG server ownership](../subsystems/ipc/kernel-rpc-and-exceptions.md), and the message catalog's build/provenance explanation.

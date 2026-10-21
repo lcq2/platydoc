@@ -4,6 +4,8 @@
 
 UDP connects the socket record interface to IP packets without a TCP-style connection state machine or reliable retransmission queue. A successful send means the local output path accepted the operation; a receive becomes visible only after demultiplexing, policy and socket-buffer admission. This chapter follows the IPv4 implementation in `xnu-12377.121.6` and the distinct IPv6 entry points.
 
+For the expanded IPv6 path, continue with [IPv6 sockets and options](ipv6-sockets-and-packet-options.md), [source selection](ipv6-source-selection-and-scopes.md) and [multicast/MLD](ipv6-multicast-membership-and-mld.md). They trace the native/mapped split, scoped tuple matching, option ownership and receive filters in detail.
+
 ## Endpoint state and entry points
 
 [`udp_attach()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2386) allocates Internet-PCB state and reserves socket buffers; [`udp_bind()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2415) and [`udp_connect()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2453) publish local and foreign tuples through the shared PCB layer. UDP's per-socket lock is the PCB mutex: [`udp_lock()`/`udp_unlock()`](../../../xnu/bsd/netinet/udp_usrreq.c#L2750-L2807) optionally adjust `so_usecount` around it. `udbinfo` owns UDP's shared PCB lookup state, whereas each socket owns its receive buffer and pending error.
@@ -110,7 +112,7 @@ The UDP caller increments its failed-admission counter when append returns zero;
 | ICMP-derived asynchronous error | [`udp_ctlinput()`](../../../xnu/bsd/netinet/udp_usrreq.c#L1038) uses quoted headers/ports for lookup and lifetime handoff. [`udp_notify()`](../../../xnu/bsd/netinet/udp_usrreq.c#L1030) sets `so_error` and wakes readers/writers. |
 | Path-MTU notification for an NECP-associated endpoint | The [`PRC_MSGSIZE` branch](../../../xnu/bsd/netinet/udp_usrreq.c#L1095-L1108) can notify NECP instead of also setting `so_error`. |
 
-A send success therefore cannot predict receiver admission, ICMP generation or later delivery. Conversely, an error notification can arrive after the original send call returned.
+Follow [IP reassembly and ICMP feedback](ip-fragment-reassembly-and-icmp.md#receiving-icmp-quoted-headers-become-transport-control-input) for the input quote parser, borrowed callback parameters and domain-to-socket lock handoff. A send success therefore cannot predict receiver admission, ICMP generation or later delivery. Conversely, an error notification can arrive after the original send call returned.
 
 ## IPv6 and configuration boundaries
 

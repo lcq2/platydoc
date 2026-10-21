@@ -6,6 +6,8 @@ A process transition changes several independently protected objects: the PID-vi
 
 ## 1. Four forms of exclusion
 
+[Exec identity and inherited state](exec-identity-and-inherited-state.md) expands the credential, group-membership, MAC, IPC-reset, stdio and task-token decisions within the exec path below.
+
 The following mechanisms answer different questions.
 
 | Mechanism | What it protects or delays | Source |

@@ -10,9 +10,13 @@ For worked operations spanning other subsystems, use [a mapped file through an A
 
 ## Detailed reading route
 
+For concrete clients of the allocator, the [key-structures section](../../structures/README.md) follows `proc` and `task` from their combined allocation into a separate protected record. [Writing protected object fields](../../structures/read-only-object-updates.md) connects their update helpers to the RO-zone validation and ARM64 alias-write paths described below.
+
 | Question | Guide |
 | --- | --- |
 | What happens during anonymous/file `mmap`, a first write, COW, `mprotect`, and `munmap`? | [Mapping walkthroughs](mapping-walkthroughs.md) |
+| How do API addresses, lengths and protection masks become checked arguments? | [VM argument validation](api-argument-validation.md): wrapper types, page arithmetic, zero-size policies, compatibility rewriting and target-map authority |
+| How does memory acquire or lose execute permission? | [Executable-memory policy](executable-memory-policy.md): MAP_JIT admission, mobile/macOS branches, protection changes, monitor association, ARM64 faults and SPTM frame classification |
 | How are ranges found, reserved, split, protected, copied, and removed? | [Virtual address maps](virtual-address-maps.md): entry representation, B+tree storage, interlock/range/entry locks, submaps and APIs |
 | Where do contents live, and what keeps them alive? | [Objects and resident pages](objects-and-pages.md): delayed-copy preservation/versioning, collapse versus bypass, resident/compressed backing, page states and object teardown |
 | How does a fault obtain contents and safely install a translation? | [Fault resolution](fault-resolution.md): fast/slow cases, COW, pager/compressor work, object/offset and copy-version revalidation, resilient-media recovery and pmap retries |
@@ -23,11 +27,13 @@ For worked operations spanning other subsystems, use [a mapped file through an A
 | How does the x86 backend differ? | [x86_64 pmap](pmap-x86.md): four-level tables, PV lists, root views, PCIDs, shootdowns and EPT boundaries |
 | How does a file/device pager supply or preserve pages? | [Pagers and UPLs](pagers-and-upl.md): object-control interfaces, vnode/UBC, page-in/writeback and completion |
 | What survives a UPL gather, partial completion or vector error? | [UPL gathering and completion](upl-gather-and-completion.md): busy/absent/wired pages, delayed page work, access blocking, commit/abort ranges, vector coordinates and child ownership |
+| What happens when an I/O request addresses executable memory? | [Executable pages and UPL I/O](executable-pages-and-upl-io.md): direction-dependent admission, temporary copying, byte/page coordinates and backing lifetime after the kernel mapping is removed |
 | How do ordinary reads share file pages with mappings, and what invalidates those pages? | [File-data caching](../vfs/file-data-cache-and-read-path.md): resident hits, missing runs, read-ahead, truncation and UBC lifetime |
 | How do cached file pages become eligible for executable mappings? | [Page-signature validation](../security/page-signature-validation.md): offset/hash translation, validation/taint/NX masks, reuse, modification and monitor enforcement |
 | How are pages wired or ranges exported to another task? | [Wiring and memory entries](wiring-and-memory-entries.md): wire counts, map copies, named capabilities and transfer ownership |
 | What happens when a Mach message carries memory and rights and a later stage fails? | [Complex message conversion](../ipc/complex-message-copyin-and-copyout.md): owned VM copies, receiver alignment, port-array acquisition, partial publication and failed-send compensation |
 | How does a copy replace existing bytes, and how can a remap cross page-size boundaries? | [Copy-overwrite and remapping](copy-overwrite-and-remap.md): object substitution, physical-page revalidation, partial progress, source extraction and 4 KiB/16 KiB adjustment |
+| What happens when copying overlaps replacement of its destination mapping? | [Concurrent-operation walkthroughs](../../cross-cutting/concurrent-operation-walkthroughs.md): retained pages, current-entry preflight, copy-version checks and completed-prefix accounting |
 | How are physical pages recovered while logical mappings survive? | [Reclamation and pressure](reclaim-and-pressure.md): disconnect, worker ownership, compression, swap and process policy |
 | How does memory pressure select a process, freeze its contents, and later resume it? | [Memorystatus and freezer](memorystatus-and-freezer.md): health/actions, referenced candidates, task/map/object freeze, budgets, packed segments and distinct frozen states |
 | How do kernel allocators select storage, isolate types, and release backing? | [Kernel allocation](kernel-allocation.md): index for zone caches, kalloc routing, compiler type metadata, heap/zone assignment, kmem guards and specialized allocators |
@@ -136,6 +142,7 @@ Read these as interface families; argument types, helper names, fast paths, and 
 
 | Area | Inspection | What the documentation supports / limits |
 |---|---|---|
+| Executable memory | Selected BSD admission, VM protection/association, fault policy and ARM64/SPTM classification | MAP_JIT, mobile/macOS W+X distinctions, RW→RX outcomes, copied/remapped authority and 16 KiB examples; external MAC/monitor/JIT-runtime behavior remains bounded |
 | Maps and ranges | Deep: `vm_map_xnu.h`, map-store/range-lock implementation, selected allocate/map/protect/remove/fork/remap paths and `kern_mman.c` boundaries | Entry representation, B+tree/hole lookup, lock preparation/restart, submaps and permission changes; no proof of every balancing or concurrent range operation |
 | Objects and pages | Deep: `vm_object_xnu.h`, `vm_page.h`, allocation/lookup/reference/activity/termination in `vm_object.c` and `vm_resident.c` | Delayed-copy preservation/versioning, collapse/bypass proofs and resident/compressor/pager ownership, page states and deferred teardown; specialized objects/configurations remain bounded |
 | Faults | Deep selected `vm_fault.c` paths: map/submap lookup, resident/COW/zero-fill/compressor/pager work, try-lock relookup and nonblocking pmap insertion retry | Common success/failure/concurrency paths; code-signing and MTE conditions are identified without claiming every policy branch |

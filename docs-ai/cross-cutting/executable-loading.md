@@ -89,6 +89,8 @@ flowchart LR
 
 [`activate_exec_state()`](../../xnu/bsd/kern/kern_exec.c#L877) updates task bitness/header state, initializes the thread, applies saved thread-state flavors with `thread_setstatus()`, and sets the entry point. The surrounding activator invokes `create_unix_stack()` and `exec_copyout_strings()` to prepare stack contents and arguments. Final execution still depends on the process/task handoff and return gates described in [lifecycle](../subsystems/processes/lifecycle.md).
 
+For argument construction after image mapping, continue with [Exec arguments and the initial user stack](../subsystems/processes/exec-arguments-and-user-stack.md). It follows string extraction and interpreter rewriting through the Apple vector, stack copyout and ARM64 SP/PC installation, including partial and late failure.
+
 ## Reading and verification limits
 
 The inspected path includes map creation, parser bounds/pass dispatch, segment mapping, page-zero/zero-fill handling, `LC_MAIN`, dynamic-linker result transfer, signature-cache entry handling, and activation entry. It does not audit every Mach-O command, encrypted-image path, architecture grading rule, Rosetta branch, signature parser, or dynamic linker implementation. No executable was loaded or kernel booted as part of this documentation work.

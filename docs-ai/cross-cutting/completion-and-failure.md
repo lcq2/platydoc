@@ -8,6 +8,8 @@ This chapter connects the concrete protocols in the subsystem guides. Each examp
 
 ## The questions to ask at every handoff
 
+For the concurrent execution behind selected completion boundaries, follow the [VM, IPC and workqueue walkthroughs](concurrent-operation-walkthroughs.md). They distinguish partial copy progress, a grower's successful return into a failed allocation retry, and cancellation from callback completion.
+
 | Question | Concrete examples |
 | --- | --- |
 | Has the caller surrendered ownership? | Socket `pru_send` consumes mbufs; a successfully sent Mach kmsg belongs to delivery; a UPL completion flag transfers page-release work. |

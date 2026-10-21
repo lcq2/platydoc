@@ -4,6 +4,8 @@
 
 TCP has several state machines at once: the wire protocol in `tcpcb.t_state`, socket connection/half-close flags, listener queues, buffered sequence data, and asynchronous timer/output ownership. A transition to `ESTABLISHED` is not the same event as publishing an accepted fd; closing that fd is not the same event as freeing the PCB. This guide traces those boundaries through the current implementation rather than treating the standard TCP state diagram as a complete kernel design. See [`tcpcb`](../../../xnu/bsd/netinet/tcp_var.h#L422), [`socket`](../../../xnu/bsd/sys/socketvar.h#L131), and [`tcp_usrreqs`](../../../xnu/bsd/netinet/tcp_usrreq.c#L1412).
 
+For the multipath connection above these TCP subflows, read [MPTCP sessions and subflows](mptcp-sessions-and-subflows.md). It distinguishes connection-level data sequence numbers and acknowledgments from each subflow's TCP state, then follows reinjection, ordered delivery and cleanup.
+
 ## One connection and its synchronization
 
 | Record | Fields or role |

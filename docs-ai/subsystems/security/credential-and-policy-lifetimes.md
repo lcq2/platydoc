@@ -6,6 +6,8 @@ Authorization operates on identity and policy objects whose lifetimes can exceed
 
 ## 1. A credential is a shared value with two kinds of holdings
 
+For the concrete exec caller, continue with [exec identity and inherited state](../processes/exec-identity-and-inherited-state.md). It distinguishes the operation's context credential, the published process credential and the later task-token update.
+
 `ucred` contains POSIX identity, a MAC-label pointer, and audit-session association. `cr_posix` includes effective/real/saved UID, group information, group-resolution UID, and flags. Group membership is not always resolved from the inline group array: `CRF_NOMEMBERD` and `cr_gmuid` affect external membership resolution. [Credential representation](../../../xnu/bsd/sys/ucred.h#L146).
 
 The allocation lives in a read-only zone. Writable lifetime metadata lives separately:

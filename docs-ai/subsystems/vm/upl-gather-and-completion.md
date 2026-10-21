@@ -4,6 +4,8 @@
 
 A UPL is both a description of physical backing and a set of unfinished VM operations. Its hardest paths occur when gathering faults or waits after acquiring some pages, when completion covers only part of a range, and when one vector joins UPLs from unrelated objects. This chapter follows those paths in `xnu-12377.121.6`, separating the ordinary I/O-wire case from file-cache page-in, physical device memory and access-blocking redirection. The examples use ARM64 with 16 KiB VM pages; byte offsets, page indexes and physical page numbers remain distinct.
 
+[Executable pages and UPL I/O](executable-pages-and-upl-io.md) follows the earlier admission step that can redirect a request to temporary kernel backing before this gather/completion machinery runs.
+
 ## The state that must survive a lock drop
 
 The [private UPL header and flags](../../../xnu/osfmk/vm/vm_pageout_xnu.h#L206-L282) describe several independent obligations:

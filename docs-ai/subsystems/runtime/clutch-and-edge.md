@@ -212,6 +212,8 @@ The outer search performs a cheap atomic eligibility peek, takes the donor's pro
 
 ## Sources inspected and limits
 
+[Thread-group accounting and cluster migration](thread-group-accounting-and-cluster-migration.md) extends this route through resolved-group changes and Edge preference publication, including separate running-thread and queued-thread responses. It documents those selected recommendation-change paths; the broader limits below still apply.
+
 The deepest reviewed paths are insertion/removal and hierarchy traversal, root deadlines/warp/starvation state, bucket priority and interactivity accounting, preferred-cluster selection, migration permission/weight/availability, and representative steal selection. Lock annotations and the current-thread comparisons were checked against their bodies. The chapter also follows the accurate-placement lock handoff into the common scheduler.
 
 Performance-island topology construction, all shared-resource policies, every recommendation-change migration path, full real-time balancing, and scheduler-tick aging are contextual or partial reviews. Tables are source defaults and examples are conceptual. No scheduling workload was run, no latency guarantee was measured, and no fairness proof is claimed. For a useful next source exercise, follow one `SCHED_TAILQ` insertion through `sched_clutch_thread_insert()`, then compare `SCHED_CLUTCH_TRAVERSE_CHECK_PREEMPT` with `SCHED_CLUTCH_TRAVERSE_REMOVE_CONSIDER_CURRENT` in the hierarchy walker. [`sched_clutch.c`](../../../xnu/osfmk/kern/sched_clutch.c#L2778-L2850), [`hierarchy walker`](../../../xnu/osfmk/kern/sched_clutch.c#L2977-L3046).

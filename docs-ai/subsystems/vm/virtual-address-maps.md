@@ -171,6 +171,8 @@ A changed timestamp causes relookup even if a saved pointer happens to have the 
 
 ## API entry points and sanitization
 
+The [argument-validation companion](api-argument-validation.md) follows these helpers through actual API callers, with 16 KiB arithmetic examples, zero-size return rules, protection-pair rewriting and the separate map/capability checks.
+
 Public VM arguments use opaque `_ut` types for unchecked addresses, sizes, protections and inheritance. Sanitizers validate and unwrap arithmetic before internal routines operate on it, including overflow introduced by rounding. API-specific compatibility logic can rewrite errors or request immediate successful return without performing the operation. This is why an apparently simple zero-size or out-of-range case must be read at its actual API boundary. The original [sanitization document](../../../xnu/doc/vm/sanitize.md) describes this design; see also [`mach_vm_allocate_kernel_sanitize`](../../../xnu/osfmk/vm/vm_kern.c#L1375).
 
 | Request | Implementation route in this checkout |
@@ -264,6 +266,8 @@ Fault lookup therefore returns both the map containing the resolved entry and `r
 Writing to a COW constant-submap region requires changing the parent relationship, not modifying sealed child entries. [`vm_map_entry_resolve_submap_cow`](../../../xnu/osfmk/vm/vm_map_lock.c#L641) computes the intersecting child object interval, requests a strategic copy, clips/unnests a bounded region around the address, and converts that parent region to direct object backing. It preserves relevant child attributes and protections subject to policy. The helper runs with exclusive parent-entry ownership and without the map interlock because strategic copying can block. Pmap unnest granularity can exceed one fault page; the code bounds it by the applicable mapped object interval.
 
 ## Protection changes are coordinated with future faults
+
+The [executable-memory companion](executable-memory-policy.md) follows MAP_JIT and RW→RX requests through admission, entry permissions, monitor association and later ARM64 faults. It separates common/mobile policy from macOS compatibility and checks the actual pmap hook bodies behind the JIT guard.
 
 [`vm_map_protect`](../../../xnu/osfmk/vm/vm_map.c#L5801) sanitizes the range and protection, installs a preflight callback, then takes an exclusive atomic range lock. Holes or disallowed entries fail before the normal protection-update walk. Preflight checks maximum protection, protected/JIT/TPRO mappings, write/execute restrictions and execution lockdown with build-specific exceptions. `VM_PROT_COPY` is special: it requests a private remap/replacement before applying ordinary protection changes. It is not simply a hardware permission bit. See [`vm_map_protect_preflight`](../../../xnu/osfmk/vm/vm_map.c#L5700).
 
