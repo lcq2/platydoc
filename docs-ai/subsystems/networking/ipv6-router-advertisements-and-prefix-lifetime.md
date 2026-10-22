@@ -4,6 +4,8 @@
 
 Receiving a Router Advertisement (RA) can change an interface's ND parameters, default-router candidates, more-specific gateway routes, on-link prefixes and autoconfigured addresses. Those are different objects with different lifetimes. This chapter follows the actual sequence in `xnu-12377.121.6`, including changes that remain after a later option is rejected. It complements the packet/neighbor chapter: an `nd_defrouter` is not the neighbor-cache entry or the `rtentry` used for a particular transmitted packet.
 
+Inspect the live [`nd_defrouter`](../../structures/layout-browser.md?declaration=nd_defrouter), [`nd_prefix`](../../structures/layout-browser.md?declaration=nd_prefix) layouts for the selected source configuration.
+
 ## State is split between routers, prefixes, addresses and routes
 
 | Object | Identity and contents | Lifetime relationship |

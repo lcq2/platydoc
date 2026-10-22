@@ -6,6 +6,8 @@ An `ipc_kmsg` is the kernel's message container. Its allocation can hold message
 
 Read [message representations](../subsystems/ipc/message-path.md), [send and receive](../subsystems/ipc/message-send-receive.md), [complex-message copyin and copyout](../subsystems/ipc/complex-message-copyin-and-copyout.md), and [message integrity](../subsystems/ipc/message-integrity-and-descriptor-authentication.md) for the surrounding algorithms. Here the questions are narrower: which allocation contains a field, which representation makes an accessor valid, who owns the resources at that point, and which cleanup releases them.
 
+Inspect the live [`ipc_kmsg`](layout-browser.md?declaration=ipc_kmsg) layout for the selected source profile.
+
 ## 1. A fixed container with four storage layouts
 
 The `ipc kmsgs` zone supplies one **256-byte `struct ipc_kmsg`**, with caching and clear-on-free flags. It is writable storage; neither a read-only zone nor an immutable message object. Pointer-authentication annotations on selected pointers and the message signature are separate mechanisms. The zone and variable-size typed allocation family are defined together in [ipc_kmsg.c:176–184](../../xnu/osfmk/ipc/ipc_kmsg.c#L176-L184):

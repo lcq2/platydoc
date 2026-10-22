@@ -17,6 +17,16 @@ from doc_license import LICENSE_URL, NOTICE, with_license_notice
 
 
 class SourcePreviewTests(unittest.TestCase):
+    def test_nested_authored_layout_query_and_fragment_survive_conversion(self):
+        target = {"file": DOCS / "structures/layout-browser.md", "url": "structures/layout-browser.html"}
+        page = {"file": DOCS / "subsystems/runtime/recount-and-resource-attribution.md",
+                "path": "subsystems/runtime/recount-and-resource-attribution.md",
+                "url": "subsystems/runtime/recount-and-resource-attribution.html", "title": "Recount"}
+        citation = Node("a", {"href": "../../structures/layout-browser.md?declaration=recount_track#workspace"})
+        Book([target], Path("/unused-output"), Path("/unused-cache")).convert_link(citation, page)
+        self.assertEqual(citation.attrs["href"], "../../structures/layout-browser.html?declaration=recount_track#workspace")
+        self.assertNotIn("data-source", citation.attrs)
+
     def test_markdown_heading_citation_previews_that_section(self):
         target = SOURCE_ROOT / "doc/allocators/api-basics.md"
         page = {"file": DOCS / "subsystems/vm/kernel-allocation.md",

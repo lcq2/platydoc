@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-2.0-only -->
+<html lang="en"><head><meta charset="utf-8"><title>Offline XNU layout runtime</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="layout-proof.css">
+</head><body><h1>Offline XNU structure layouts</h1>
+<p>Clang analyzes the selected profile locally in a worker. Compiler and header assets are bundled here; no server or network connection is required.</p>
+<p>Source: <strong>xnu-12377.121.6</strong>. Four ARM64 Darwin analysis profiles cover release/development and T8103/VMAPPLE. These are source analysis contexts, not identified shipping-kernel ABIs. Upstream Clang does not establish support for Apple-private compiler features.</p>
+<section id="explorer" aria-labelledby="explorer-title"><h2 id="explorer-title">Layout browser preview</h2>
+<p>Offsets are hexadecimal bytes from the root structure; bit-fields retain their bit remainder. Open ⓘ for local offsets and source. Expanded types and selected array elements are layout previews, not verbatim C source.</p>
+<div class="controls"><label>Profile<br><select id="layout-profile"></select></label><label>Structure<br><select id="layout-record"><option value="task">task</option><option value="recount_track">recount_track</option></select></label></div>
+<details><summary>Preprocessor configuration</summary>
+<p>Enter object-like <code>#define NAME value</code> or <code>#undef NAME</code> directives, one per line. Headers may redefine them; inspect the effective configuration below. Manual edits are what-if analyses and newly activated branches can require headers absent from the selected bundle.</p>
+<label for="layout-directives">Overrides (optional)</label><textarea id="layout-directives" rows="4" spellcheck="false" placeholder="#define CONFIG_TASK_SUSPEND_STATS 0"></textarea>
+<button id="layout-apply" type="button">Apply configuration</button> <button id="layout-reset" type="button">Reset to profile</button>
+<details><summary>Requested directives, effective values and target features</summary><div id="layout-config"></div></details>
+</details>
+<p><button id="layout-cancel" type="button">Cancel analysis</button></p>
+<p id="layout-status" role="status">Loading selected profile…</p><pre id="layout-error" role="alert"></pre><div id="layout-meta" hidden></div>
+<label for="layout-search">Find a field or field path</label><input id="layout-search" type="search" placeholder="task.ref_count">
+<div class="layout-columns" aria-hidden="true">Root offset <span>Declaration</span><span>Size (bytes)</span></div><div id="layout-tree"></div></section>
+<details><summary>Runtime measurements</summary><p>Persistent storage is not required. Wasm buffer capacity is distinct from live allocation or browser process memory.</p><pre id="metrics"></pre></details>
+<p><a href="manifest.json">Package manifest</a> · <a href="runtime-manifest.json">Runtime assets and profiles</a> · <a href="native-validation.json">Native verification provenance</a></p>
+<p>Platydoc software: <a href="licenses/Platydoc-GPL-2.0-only.txt">GPL-2.0-only</a>. Copied headers retain their original notices. See <a href="licenses/XNU-APPLE_LICENSE.txt">XNU</a>, <a href="licenses/LLVM-LICENSE.txt">LLVM</a> and <a href="licenses/Emscripten-LICENSE.txt">Emscripten</a> terms.</p>
+<script src="runtime-manifest.js"></script><script src="layout-codec.js"></script><script src="layout-runtime.js"></script><script src="contracts.js"></script><script src="dependencies.js"></script><script src="proof_runtime.js"></script>
+</body></html>

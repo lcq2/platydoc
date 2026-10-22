@@ -16,7 +16,7 @@ function implementation(name) {
 }
 const fold = source.match(/^\s*const fold = .+;$/m)?.[0];
 assert.ok(fold, 'Cannot locate production normalization helper');
-const names = ['bookURL', 'searchable', 'queryParts', 'highlight', 'excerpt', 'renderResults', 'runSearch', 'base64Bytes', 'gunzip', 'unpack', 'sourceModel', 'sourceLine', 'sourceBytes', 'renderSource', 'loadFullSource', 'renderChapterNav'];
+const names = ['bookURL', 'searchable', 'queryParts', 'highlight', 'excerpt', 'renderResults', 'runSearch', 'base64Bytes', 'gunzip', 'unpack', 'sourceModel', 'sourceLine', 'sourceBytes', 'renderSource', 'loadFullSource', 'renderChapterNav', 'isStaticCodeBlock'];
 const code = `${fold}\n${names.map(implementation).join('\n')}`;
 
 // Minimal DOM surface for behavior checks. No HTML parser is provided: search rendering
@@ -97,7 +97,7 @@ function harness(rows = [], options = {}) {
     async function getSource() { return sourceFixture; }
     globalThis.subject = {
       bookURL, searchable, queryParts, highlight, excerpt, runSearch,
-      sourceModel, sourceLine, sourceBytes, gunzip, unpack, renderChapterNav,
+      sourceModel, sourceLine, sourceBytes, gunzip, unpack, renderChapterNav, isStaticCodeBlock,
       async fullSource(data, element) { sourceFixture = data; await loadFullSource(element); },
       searchResults, searchStatus, searchPagination, sourceCode, sourceMeta, previous, next,
       setQuery(value) { searchInput.value = value; },
@@ -347,4 +347,20 @@ test('shared navigation builds active parts and keeps project-relative URLs and 
   assert.equal(links[1].href, 'https://example.github.io/xnu-docs/_sources/osfmk/kern/ast.c.html');
   assert.match(container.textContent, /Runtime <core>/);
   assert.equal(ui.bookURL('../escape'), null);
+});
+
+test('static code Copy enhancement leaves the interactive explorer and source viewers untouched', () => {
+  const ui = harness();
+  const pre = new Element('pre');
+  pre.matches = () => false;
+  pre.closest = () => null;
+  pre.parentElement = new Element('div');
+  assert.equal(ui.isStaticCodeBlock(pre), true, 'Ordinary authored code keeps Copy controls');
+  pre.closest = selector => selector === '#structure-layout-explorer' ? new Element('section') : null;
+  assert.equal(ui.isStaticCodeBlock(pre), false, 'Dynamic layout diagnostics/directives must not acquire wrappers or Copy overlays');
+  pre.closest = selector => selector === '.source-browser' ? new Element('main') : null;
+  assert.equal(ui.isStaticCodeBlock(pre), false);
+  pre.closest = () => null;
+  pre.matches = selector => selector === '[data-source-full]';
+  assert.equal(ui.isStaticCodeBlock(pre), false);
 });

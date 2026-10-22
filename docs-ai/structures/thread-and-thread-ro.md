@@ -6,6 +6,8 @@ A thread combines execution state, BSD syscall state and protected links to the 
 
 Use [runtime objects](../subsystems/runtime/objects-and-lifecycle.md) for the larger lifecycle, [task/thread capabilities](../subsystems/security/task-and-thread-capabilities.md) for admission policy, and [suspension and stopping](../subsystems/runtime/suspension-stop-and-abort.md) for execution control. This chapter keeps a thread pointer, a thread reference, a scheduler hold and a thread-port right distinct.
 
+Inspect the live [`thread`](layout-browser.md?declaration=thread), [`thread_ro`](layout-browser.md?declaration=thread_ro), [`uthread`](layout-browser.md?declaration=uthread), [`machine_thread`](layout-browser.md?declaration=machine_thread) and [`arm_saved_state64`](layout-browser.md?declaration=arm_saved_state64) layouts for the selected source profile.
+
 ## 1. Three structures, two allocations and several additional resources
 
 The `threads` zone supplies an element whose requested size is `sizeof(struct thread) + roundup(uthread_size, _Alignof(struct thread))` when BSD support is compiled in. `uthread_size` is the BSD compilation unit's `sizeof(struct uthread)`. The rounding contributes to the total allocation size; the BSD extension itself starts immediately after `sizeof(struct thread)`, as the accessors below establish. [Zone construction](../../xnu/osfmk/kern/thread.c#L256-L269), [BSD size](../../xnu/bsd/kern/kern_fork.c#L173-L174).
@@ -42,6 +44,8 @@ flowchart TD
 The first two edges describe layout; the others describe pointers. `thread_ro` additionally stores `tro_owner`, pointing back to the thread. Its task association is kept alive by a task reference acquired later in successful construction. The credential fields each own a reference, even when both point to the same credential. The process pointers are associations, not independent process references acquired by the accessors. [RO declaration](../../xnu/osfmk/kern/thread.h#L176-L211), [credential initialization](../../xnu/bsd/kern/kern_fork.c#L1343-L1370), [task reference](../../xnu/osfmk/kern/thread.c#L1434-L1437).
 
 The diagram does not enumerate every subordinate allocation. A thread can separately own a kernel stack, timer calls, ledgers, a turnstile, IPC ports, I/O accounting, debug state and architecture-specific register storage. On ARM64, `machine_thread_create()` allocates `arm_context_t` from `user_ss_zone` for a non-kernel task. `machine.contextData` owns that context, while `upcb` and `uNeon` point to fields within it; their saved-state flavors depend on the task's data width. Kernel threads instead initialize those three pointers to null. [ARM64 allocation and aliases](../../xnu/osfmk/arm64/pcb.c#L574-L649).
+
+The 64-bit register record stores `x[29]`, `fp`, `lr`, `sp`, `pc`, status and exception information, plus `jophash` when `HAS_APPLE_PAC` is enabled. Its offsets are relative to the saved-state record. The embedded machine structure holds the pointers used to reach allocated context storage. Compare the [ARM64 machine fields](../../xnu/osfmk/arm/thread.h#L105-L128) with the [saved-state declaration](../../xnu/osfmk/mach/arm/thread_status.h#L416-L430).
 
 An illustrative address walk, with no assumed numeric structure sizes, is:
 

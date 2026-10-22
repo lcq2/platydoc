@@ -6,6 +6,8 @@ A file descriptor is an index into one process's `filedesc`. The table contains 
 
 The operation-oriented [descriptors and local IPC](../subsystems/processes/descriptors-ipc.md) chapter follows open, duplication, reads and transfers. This companion explains the storage behind those operations. Use [process inspection](../subsystems/processes/process-inspection-and-snapshots.md) for the separate question of what an exported descriptor listing actually promises.
 
+Inspect the live [`filedesc`](layout-browser.md?declaration=filedesc) layout for the selected source profile.
+
 ## 1. An embedded header owns two movable arrays
 
 `struct proc` embeds `struct filedesc p_fd`; there is no independently allocated or reference-counted `filedesc` object in this layout. The writable proc allocation provides the header's storage. `fd_ofiles` and `fd_ofileflags` point to two separate heap allocations: an array of `struct fileproc *`, and an equally indexed byte array. The `fileproc` records are separate again, so growing either array does not move them. [Proc field](../../xnu/bsd/sys/proc_internal.h#L310-L315), [filedesc layout](../../xnu/bsd/sys/filedesc.h#L121-L159), [array replacement](../../xnu/bsd/kern/kern_descrip.c#L1291-L1301).

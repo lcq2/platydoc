@@ -4,6 +4,8 @@
 
 An IPv6 multicast join changes several independently owned objects. A socket records the group and its source filter. The interface acquires a shared group record and, where required, a link-layer multicast address. MLD computes what this host should report to the link's multicast routers, queues those reports, and retains enough state to retransmit even after the last socket leaves. Receiving a multicast packet then makes a separate decision for each candidate socket. This chapter follows those operations in `xnu-12377.121.6`, including the places where the implementation is more specific than its comments.
 
+Inspect the live [`ip6_moptions`](../../structures/layout-browser.md?declaration=ip6_moptions), [`in6_multi`](../../structures/layout-browser.md?declaration=in6_multi), [`in6_mfilter`](../../structures/layout-browser.md?declaration=in6_mfilter), [`mld_ifinfo`](../../structures/layout-browser.md?declaration=mld_ifinfo) layouts for the selected source configuration.
+
 ## Three meanings of membership
 
 Keep these three questions separate:

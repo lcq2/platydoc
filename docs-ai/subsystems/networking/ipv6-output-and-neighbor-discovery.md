@@ -4,6 +4,8 @@
 
 Choosing a route does not mean that the next hop's link-layer address is known. IPv6 output selects and validates the route/interface, applies packet policy and fragmentation decisions, then transfers packet ownership to neighbor discovery. Neighbor discovery can send immediately, retain a packet list while resolving an address, or discard it. This chapter traces that boundary and its asynchronous completion in `xnu-12377.121.6`.
 
+Inspect the live [`route_in6`](../../structures/layout-browser.md?declaration=route_in6), [`ip6_exthdrs`](../../structures/layout-browser.md?declaration=ip6_exthdrs), [`ip6_out_args`](../../structures/layout-browser.md?declaration=ip6_out_args) layouts for the selected source configuration.
+
 ## Addresses, routes and neighbor records
 
 | Object | State used along the path |

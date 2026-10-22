@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-2.0-only -->
+<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structure layouts · XNU Source Handbook</title>
+<link rel="stylesheet" href="book.css"><link rel="stylesheet" href="mockup.css"></head>
+<body class="layout-design">
+<a class="skip-link" href="#main">Skip to layout explorer</a>
+<header class="book-header">
+<button id="nav-toggle" class="nav-toggle" type="button" aria-label="Toggle chapters" aria-expanded="false">☰</button>
+<a class="book-brand" data-book="index.html" href="#"><span class="brand-mark">X</span><span>XNU <strong>Source Handbook</strong></span></a>
+<nav class="header-links" aria-label="Book tools"><a data-book="table-of-contents.html" href="#">Contents</a><a data-book="concept-index.html" href="#">A–Z index</a></nav>
+<span class="edition">SOURCE EDITION · 12377.121.6</span>
+<button id="theme-toggle" type="button" aria-label="Switch to dark theme">◐ <span>Theme</span></button>
+</header>
+<aside id="chapter-nav" class="chapter-nav" aria-label="Chapters">
+<div class="nav-label">THE HANDBOOK</div>
+<a class="nav-overview" data-book="reading-guide.html" href="#">Reading guide <span>↗</span></a>
+<div class="nav-section">KERNEL FOUNDATIONS</div>
+<a data-book="architecture.html" href="#">Architecture &amp; execution</a>
+<a data-book="subsystems/runtime/README.html" href="#">Runtime &amp; accounting</a>
+<a data-book="subsystems/processes/README.html" href="#">Processes &amp; tasks</a>
+<div class="nav-section">STRUCTURES &amp; REPRESENTATION</div>
+<a class="nav-child" data-book="structures/task-and-shared-ro.html" href="#">Task &amp; shared read-only state</a>
+<a class="nav-child" data-book="subsystems/runtime/recount-and-resource-attribution.html" href="#">Recount &amp; resource attribution</a>
+<a class="nav-active" href="#main" aria-current="page"><span class="nav-active-mark">⌘</span> Structure layouts <span class="new-tag">PREVIEW</span></a>
+<div class="nav-subtree"><a class="active" href="#workspace">Explore a structure</a><a href="#configuration">Configuration</a><a href="#source-note">Source &amp; interpretation</a></div>
+<div class="nav-section">REFERENCE</div>
+<a data-book="interfaces/README.html" href="#">Kernel interfaces</a>
+<a data-book="source-index.html" href="#">Source-reference index</a>
+<div class="nav-foot"><strong>Read the code. Follow the state.</strong><span>Local source, explanations and tools.</span></div>
+</aside>
+<main id="main" class="book-main">
+<div class="breadcrumbs"><a data-book="index.html" href="#">Handbook</a><span>/</span><span>Structures</span><span>/</span><span>Layout explorer</span></div>
+<div class="chapter-label">STRUCTURES &amp; REPRESENTATION</div>
+<div class="title-line"><h1>Structure layouts</h1><span class="preview-label"><i></i> Design preview · recorded layouts</span></div>
+<p class="intro">Follow a field through embedded structures and arrays. See where it lives, how much space it occupies, and which source configuration shapes its layout.</p>
+<section id="workspace" class="layout-workspace" aria-label="Structure layout explorer">
+<div class="workspace-heading"><div><span class="eyebrow">EXPLORE A STRUCTURE</span><label class="visually-hidden" for="root-select">Structure</label><select id="root-select"><option value="recount_track">recount_track</option><option value="task">task</option></select></div><div class="layout-stats"><span><small>SIZEOF</small><strong id="size-value">—</strong></span><span><small>ALIGNMENT</small><strong id="align-value">—</strong></span></div></div>
+<div id="configuration" class="configuration-strip"><label class="profile-label"><span>Configuration</span><select id="profile-select" aria-label="Source configuration"></select></label><div class="flag-options"><label class="flag"><input id="cpi-toggle" type="checkbox" checked><span class="switch"></span><span>CPI metrics</span></label><label class="flag"><input id="energy-toggle" type="checkbox" checked><span class="switch"></span><span>Energy</span></label></div><details id="config-details"><summary>Directives <span>↗</span></summary><div class="config-popover"><strong>Requested preprocessor directives</strong><pre id="directives"></pre><p id="config-limitation"></p><small>Saved compiler results; this design preview does not run Clang.</small></div></details></div>
+<div class="layout-toolbar"><label class="field-search"><span aria-hidden="true">⌕</span><input id="field-search" type="search" placeholder="Find a field or path…" aria-label="Find a field or field path"><kbd>/</kbd></label><div class="number-format" role="group" aria-label="Offset format"><button id="hex-button" type="button" aria-pressed="true">Hex</button><button id="decimal-button" type="button" aria-pressed="false">Dec</button></div><button id="expand-all" class="text-button" type="button">Expand all</button><button id="collapse-all" class="text-button" type="button">Collapse</button></div>
+<div class="declaration-columns" aria-hidden="true"><span>ROOT OFFSET</span><span>DECLARATION</span><span>SIZE</span></div>
+<div id="layout-tree" class="layout-tree" aria-label="C-style structure layout"></div>
+<div class="workspace-footer"><span><i class="legend-square"></i> Embedded storage</span><span>Offsets from the root object · <span id="byte-format">hexadecimal bytes</span></span></div>
+</section>
+<p id="source-note" class="source-note"><span>↳</span><span>Expanded declarations are layout previews. Pointers end at the pointer value; they do not add the pointed-to object’s storage.</span></p>
+<div class="related-reading"><span>READ WITH THE SOURCE</span><a id="chapter-link" href="#">Recount &amp; resource attribution <span>→</span></a></div>
+<footer class="mockup-footer"><span id="source-edition">XNU source snapshot</span><span><a href="LICENSE-software.txt">Software · GPL</a> · <a href="LICENSE-docs.txt">Text · CC BY</a> · <a href="LICENSE-xnu.txt">XNU terms</a></span></footer>
+</main>
+<aside id="field-inspector" class="field-inspector" aria-label="Selected field">
+<div class="inspector-eyebrow">SELECTED FIELD</div><h2 id="selected-name">rm_cycles</h2><div id="selected-type" class="inspector-type"></div>
+<div id="selected-path" class="selected-path"></div>
+<div class="offset-highlight"><span>OFFSET FROM ROOT</span><strong id="selected-root">—</strong><small id="selected-root-decimal"></small></div>
+<dl class="field-facts"><div><dt>Local offset</dt><dd id="selected-local">—</dd></div><div><dt>Field size</dt><dd id="selected-size">—</dd></div><div><dt>Alignment</dt><dd id="selected-align">—</dd></div></dl>
+<div class="inspector-section"><h3>Path to this field</h3><ol id="path-steps"></ol></div>
+<div class="inspector-section"><h3>Source declaration</h3><a id="selected-source" href="#">Open source <span>↗</span></a><small id="source-location"></small></div>
+<div class="inspector-note"><span aria-hidden="true">ⓘ</span><p id="field-note">This offset includes the selected array element. Change the index to inspect another element.</p></div>
+</aside>
+<div id="announce" class="visually-hidden" role="status" aria-live="polite"></div>
+<script src="recorded-data.js"></script><script src="mockup.js"></script>
+</body></html>

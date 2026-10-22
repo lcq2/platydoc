@@ -6,6 +6,8 @@ A credential answers which identity an operation uses. It is not simply the UID 
 
 Read [credential publication and policy lifetimes](../subsystems/security/credential-and-policy-lifetimes.md) for the surrounding authorization algorithms, kauth listeners and MAC registration. The focus here is the concrete object graph, the meaning of each reference, and how to recognize the storage contract at a source call site. [Writing protected fields](read-only-object-updates.md) supplies the common RO mutation backend; it should not be inferred from a credential API's name.
 
+Inspect the live [`ucred`](layout-browser.md?declaration=ucred), [`posix_cred`](layout-browser.md?declaration=posix_cred) layouts for the selected source profile.
+
 ## 1. Three representations with different storage
 
 `kauth_cred_t` is a pointer to `struct ucred`. `posix_cred_t` points at the `cr_posix` member embedded inside that object; this path does not allocate a separate POSIX credential. `ucred_rw` is a separate allocation, reached through `cr_rw`, with a backlink `crw_cred`. The private kernel layout replaces an older public declaration of list links with these private pointer fields. [Types and layout](../../xnu/bsd/sys/ucred.h#L146-L193), [writable companion](../../xnu/bsd/kern/kern_credential.c#L3295-L3306).

@@ -4,7 +4,11 @@
 
 Recount turns differences between execution-counter snapshots into thread, task, processor, work-interval and coalition statistics. Its central operation is addition of a measured delta to several owners. The owners have different topologies and lifetimes; a consistent read of one track does not freeze the whole machine. This chapter traces ARM64/common implementation and selected reporting/teardown paths in `xnu-12377.121.6`.
 
+Inspect the live [`recount_usage`](../../structures/layout-browser.md?declaration=recount_usage), [`recount_metrics`](../../structures/layout-browser.md?declaration=recount_metrics), [`recount_thread`](../../structures/layout-browser.md?declaration=recount_thread), [`recount_task`](../../structures/layout-browser.md?declaration=recount_task) layouts for the selected source profile.
+
 ## 1. Objects and where their counters live
+
+[Inspect the Recount track layout](../../structures/layout-browser.md?declaration=recount_track) in the offline HTML handbook to compare sizes and offsets with different cycle/instruction and energy flags.
 
 A `recount_track` contains `rt_sync` and `rt_usage`. Each usage holds metrics indexed by execution level: Mach ticks, plus instructions/cycles when configured. Energy is a separate `ru_energy_nj` field because its producer samples out of band. A `recount_plan` describes the array topology; the plan is needed whenever indexing, reading, rolling up or destroying an array. [Definitions](../../../xnu/osfmk/kern/recount.h#L64-L160).
 

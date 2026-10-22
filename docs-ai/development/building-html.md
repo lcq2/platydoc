@@ -37,6 +37,27 @@ The first build highlights referenced source files and renders diagrams. Later b
 - The full-file viewer renders every line, so browser Find, selection and printing work across the file. **Download raw file** recreates its exact original bytes, including tabs, line endings and final-newline state. The chapter's **Markdown source** link opens the same viewer for the editable input.
 - Click a diagram to enlarge it. The original Mermaid source remains available below it; the SVG is also a standalone file.
 - Use the theme button for light/dark reading and the browser's print command for a print-oriented chapter layout.
+- Open [Structure layouts](../structures/layout-browser.md), or an **Inspect the layout** link in a supported chapter, to select a source configuration and inspect sizes, nested offsets and conditional fields. Analysis runs in a local WebAssembly worker; the extracted ZIP includes its compiler and header inputs.
+
+## Structure layout inputs
+
+The layout browser uses separately prepared, pinned compiler artifacts. An ordinary book build does not download a toolchain or rebuild LLVM. The iOS catalog uses `.docs-cache/layouts/structure-runtime/` for the verified offline runtime/header package, `.docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine` for the matching native analysis executable, and `.docs-cache/layouts/milestone8-configs/` for generated configuration headers and their provenance. The [layout tooling instructions](../tools/layouts/README.txt) describe the compiler, configuration, header-bundle and verification workflow used to prepare these artifacts.
+
+The book builder checks the pinned compiler/runtime identities, configuration inputs and XNU source inventory before using them. Missing or stale inputs stop the build with a diagnostic. After an intentional source, compiler or profile change, regenerate and validate the corresponding artifacts and update their pins through that workflow; editing a checksum alone does not validate a new configuration.
+
+To use the same validated artifacts from another local directory:
+
+```sh
+python3 make_docs.py --layout-runtime /path/to/verified-runtime --layout-native /path/to/layout-engine --layout-configs /path/to/xnu-configs
+```
+
+The catalog generator uses the native executable to produce common-profile layout metadata and explicit declaration-to-chapter bindings. It caches those results under the complete compilation context. These build-time results support the catalog and link validation; opening the explorer still computes the selected layout locally in its WebAssembly worker. Changing a flag triggers a new analysis rather than treating a saved common profile as the modified result.
+
+The generated book includes all compiler, resource-header, XNU-header and runtime assets required by the supplied profiles, along with their provenance and upstream notices. Source/header/configuration changes invalidate their identities, including added source paths that could change include resolution. The output verifier checks the layout package as well as the ordinary chapter/source assets; the offline ZIP includes the same required inputs. Browser readers need neither the native executable nor the original XNU checkout.
+
+The authored [structure inventory](../tools/layouts/profiles/structure-catalog.json) binds each surveyed root to exact source declarations and chapter headings. The [iOS profile specification](../tools/layouts/profiles/ios-catalog.json) defines the four base configurations and their separate header contexts. Adding a root requires reviewing its header closure, surveying each configuration, checking complete native/WebAssembly agreement and recording unavailable cases before packaging and updating `artifact-ios.lock.json`. The generated coverage table includes failure reasons; a chapter mention alone does not advertise a supported layout.
+
+Every supplied iOS context targets ARM64e with PAC features enabled. An explicit entry-source macro removes `__ptrauth(...)` qualifiers for storage analysis while preserving conditional fields. These are upstream-compiler source analyses, not a representation of Apple-private compiler behavior or proof of a shipped kernel's ABI. The [reader guide](../structures/layout-browser.md#choose-the-preprocessing-configuration) explains effective directives, what-if configurations and the Recount cycle/instruction and energy controls. Historical pilot artifacts and their separate `artifact.lock.json` remain available for regression checks.
 
 ## Updating Markdown and source
 
@@ -81,6 +102,7 @@ python3 make_docs.py --output /tmp/xnu-book --cache /tmp/xnu-book-cache --jobs 4
 | [book/concepts.py](../tools/book/concepts.py) | Alphabetical concept/symbol/interface extraction and occurrence links. |
 | [book/diagrams.py](../tools/book/diagrams.py) | Diagram rendering, content-addressed cache and renderer selection. |
 | [book/verify.py](../tools/book/verify.py) | Generated local links, HTML anchors, assets and SVG verification. |
+| [layouts/catalog.py](../tools/layouts/catalog.py) | Pinned compiler/header validation, common-profile catalog/cache, explicit chapter bindings, explorer packaging and layout-package verification. |
 | [book.css](../tools/book/assets/book.css), [book.js](../tools/book/assets/book.js) | Responsive book layout, themes, search, source/diagram dialogs and reading controls. |
 | [build_toc.py](../tools/build_toc.py) | Reading-area and chapter order shared by the Markdown TOC and HTML sidebar. |
 

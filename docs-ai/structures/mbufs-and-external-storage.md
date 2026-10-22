@@ -6,6 +6,8 @@ An mbuf is a mutable descriptor for a range of packet bytes. It may contain thos
 
 Read [mbuf allocation, caches and pressure](../subsystems/networking/mbuf-allocation-caches-and-pressure.md) for the MCACHE class/slab/worker algorithms and [packets, routes and interfaces](../subsystems/networking/packets-routes-and-interfaces.md) for packet movement. Here the central questions are which allocation a pointer names, whether a byte range is contiguous and writable, and what the next operation consumes.
 
+Inspect the live [`m_ext`](layout-browser.md?declaration=m_ext), [`ext_ref`](layout-browser.md?declaration=ext_ref) layouts for the selected source profile.
+
 ## 1. Separate the descriptor, its byte view and its backing
 
 The common header contains two links, a current data address, a fragment length, a type and flags. `m_next` links fragments within a chain; `m_nextpkt` links packet or record heads according to the owning queue. Neither link increments a backing reference. Packet queues and socket-buffer records impose additional rules on those links. [Header](../../xnu/bsd/sys/mbuf.h#L134-L152), [record ownership](socket-buffers-and-record-queues.md).

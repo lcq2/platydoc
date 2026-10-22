@@ -20,6 +20,8 @@ IPv6 in XNU is a family of cooperating mechanisms: interface addresses and their
 
 The output chapter retains a short ND lifetime trace so a send can be read end to end. The neighbor chapter supplies the detailed message/state decisions; the configuration chapters supply DAD and advertised prefix/router behavior. This separation avoids mixing three different reasons for receiving an ICMPv6 packet.
 
+The [structure layout browser](../../structures/layout-browser.md?declaration=ip6_hdr) includes IPv6 address and packet headers, socket options, route caches, neighbor discovery and multicast records. Each companion below links its supported structures directly. The browser reports field offsets in the selected C declaration; for packet headers, interpreting multi-byte values also requires the protocol’s byte order.
+
 ## Objects that must not be conflated
 
 | Object | Owns or represents | Does not establish by itself |

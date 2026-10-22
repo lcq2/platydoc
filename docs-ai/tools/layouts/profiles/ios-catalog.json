@@ -1,0 +1,427 @@
+{
+  "schema": 1,
+  "source_release": "xnu-12377.121.6",
+  "source_commit": "ac9718fb1af618d5ce8678d0dc6e8a58f252216f",
+  "scope": "iPhoneOS source-generated ARM64e C header-analysis contexts on pinned upstream Clang with pointer authentication, without a supplied SDK/deployment version or Apple-private compiler/bounds-safety ABI claim. Each family is a separate original-header translation unit.",
+  "target": "arm64e-apple-ios",
+  "language": "gnu17",
+  "blocks": true,
+  "kernel_mode": true,
+  "include_dirs": [
+    "/inputs/generated/",
+    "/inputs/xnu/osfmk/",
+    "/inputs/exports/bsd/",
+    "/inputs/exports/osfmk/",
+    "/inputs/xnu/bsd/",
+    "/inputs/xnu/libkern/",
+    "/inputs/xnu/pexpert/",
+    "/inputs/xnu/iokit/",
+    "/inputs/exports/san/",
+    "/inputs/xnu/",
+    "/inputs/xnu/EXTERNAL_HEADERS/",
+    "/inputs/xnu/osfmk/libsa/",
+    "/inputs/clang-resource/"
+  ],
+  "forced_includes": [
+    "/inputs/generated/meta_features.h"
+  ],
+  "base_macros": {
+    "APPLE": "1",
+    "KERNEL": "1",
+    "KERNEL_PRIVATE": "1",
+    "XNU_KERNEL_PRIVATE": "1",
+    "PRIVATE": "1",
+    "__MACHO__": "1",
+    "volatile": "__volatile",
+    "XNU_KERN_EVENT_DATA_IS_VLA": "1",
+    "MACH_KERNEL": "1",
+    "MACH_KERNEL_PRIVATE": "1",
+    "arm64": "1",
+    "ARM64": "1",
+    "__ARM64__": "1",
+    "LP64": "1",
+    "PAGE_SIZE_FIXED": "1",
+    "ARM_LARGE_MEMORY": null,
+    "ARM_LARGE_MEMORY_KERNONLY": null,
+    "VM_KERNEL_LINK_ADDRESS": "0xfffffff007004000",
+    "__API__": "v4",
+    "XNU_PLATFORM_MacOSX": null,
+    "XNU_TARGET_OS_IOS": "1",
+    "XNU_TARGET_OS_OSX": null,
+    "XNU_PLATFORM_iPhoneOS": "1"
+  },
+  "observe_macros": [
+    "APPLEARM64",
+    "ARM_LARGE_MEMORY",
+    "ARM_LARGE_MEMORY_KERNONLY",
+    "BOUND_CHECKS",
+    "BSD_BUILD",
+    "BSD_KERNEL_PRIVATE",
+    "CONFIG_PERVASIVE_CPI",
+    "CONFIG_PERVASIVE_ENERGY",
+    "CONFIG_SPTM",
+    "CONFIG_TASK_SUSPEND_STATS",
+    "CONFIG_VNGUARD",
+    "DEBUG",
+    "DEVELOPMENT",
+    "DRIVER_PRIVATE",
+    "HAS_APPLE_PAC",
+    "HAS_MCORE",
+    "KERNEL_BUILD",
+    "MACH_ASSERT",
+    "MAC_MAX_SLOTS",
+    "NCONFIG_SPTM",
+    "NDEBUG",
+    "NDEVELOPMENT",
+    "OS_REFCNT_DEBUG",
+    "PLATYDOC_PTRAUTH_CALLS",
+    "PLATYDOC_PTRAUTH_INTRINSICS",
+    "PLATYDOC_PTRAUTH_QUALIFIER",
+    "RECOUNT_SECURE_METRICS",
+    "RECOUNT_THREAD_BASED_LEVEL",
+    "VMAPPLE",
+    "XNU_MONITOR",
+    "XNU_TARGET_OS_IOS",
+    "XNU_TARGET_OS_OSX",
+    "_KERNEL_BUILD",
+    "__APPLE_CC__",
+    "__ARM64_PMAP_SUBPAGE_L1__",
+    "__ARM_16K_PG__",
+    "__ARM_ARCH",
+    "__ARM_FEATURE_AES",
+    "__ARM_FEATURE_ATOMICS",
+    "__ARM_FEATURE_BF16",
+    "__ARM_FEATURE_BTI_DEFAULT",
+    "__ARM_FEATURE_COMPLEX",
+    "__ARM_FEATURE_CRC32",
+    "__ARM_FEATURE_CRYPTO",
+    "__ARM_FEATURE_DOTPROD",
+    "__ARM_FEATURE_FP16_FML",
+    "__ARM_FEATURE_FP16_SCALAR_ARITHMETIC",
+    "__ARM_FEATURE_FP16_VECTOR_ARITHMETIC",
+    "__ARM_FEATURE_JCVT",
+    "__ARM_FEATURE_PACG",
+    "__ARM_FEATURE_PAC_DEFAULT",
+    "__ARM_FEATURE_PAUTH",
+    "__ARM_FEATURE_QRDMX",
+    "__ARM_FEATURE_RCPC",
+    "__ARM_FEATURE_SHA2",
+    "__ARM_FEATURE_SHA3",
+    "__ARM_FEATURE_SHA512",
+    "__ARM_FEATURE_SME",
+    "__ARM_FEATURE_SME2",
+    "__ARM_NEON",
+    "__ARM_NEON_FP",
+    "__BLOCKS__",
+    "__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__",
+    "__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__",
+    "__GNUC_MINOR__",
+    "__GNUC_PATCHLEVEL__",
+    "__GNUC__",
+    "__LP64__",
+    "__PTRAUTH_INTRINSICS__",
+    "__STDC_HOSTED__",
+    "__arm64__",
+    "__arm64e__",
+    "__has_ptrcheck",
+    "__ptrauth"
+  ],
+  "boards": {
+    "t8103": {
+      "target_cpu": "apple-a14",
+      "target_features": [],
+      "board_macro": "ARM64_BOARD_CONFIG_T8103"
+    },
+    "vmapple": {
+      "target_features": [],
+      "board_macro": "ARM64_BOARD_CONFIG_VMAPPLE",
+      "target_arch": "armv8.5a+sme2"
+    }
+  },
+  "configurations": [
+    "release-t8103",
+    "development-t8103",
+    "release-vmapple",
+    "development-vmapple"
+  ],
+  "exports": [
+    {
+      "makefile": "osfmk/libsa/Makefile",
+      "directory": "osfmk/libsa",
+      "component": "osfmk"
+    },
+    {
+      "makefile": "san/memory/Makefile",
+      "directory": "san/memory",
+      "component": "san"
+    },
+    {
+      "makefile": "san/coverage/Makefile",
+      "directory": "san/coverage",
+      "component": "san"
+    }
+  ],
+  "evidence": [
+    "makedefs/MakeInc.def",
+    "makedefs/MakeInc.rule",
+    "osfmk/conf/Makefile.template",
+    "osfmk/Makefile",
+    "osfmk/libsa/Makefile",
+    "san/memory/Makefile",
+    "san/coverage/Makefile",
+    "config/MASTER",
+    "config/MASTER.arm64.MacOSX",
+    "pexpert/pexpert/arm64/board_config.h",
+    "config/MASTER.arm64.iPhoneOS",
+    "bsd/conf/Makefile.template",
+    "bsd/skywalk/Makefile",
+    "bsd/skywalk/core/Makefile",
+    "bsd/skywalk/channel/Makefile",
+    "bsd/skywalk/mem/Makefile",
+    "bsd/skywalk/nexus/Makefile",
+    "bsd/skywalk/packet/Makefile",
+    "bsd/skywalk/namespace/Makefile",
+    "bsd/netinet6/in6.c",
+    "bsd/netinet6/nd6.c",
+    "bsd/netinet6/mld6.c"
+  ],
+  "flag_policy": {
+    "language": "GNU17 is an explicit analysis choice matching the pinned Clang20 C default; XNU MakeInc.def does not prescribe a C -std value.",
+    "included": "Pinned source -mkernel semantics and explicit iPhoneOS deployment platform macros; small ARM64 memory/link flags from MakeInc.def438-472. BSD component contexts use bsd/conf/Makefile.template flags instead of MACH_KERNEL_PRIVATE. Global source -Wno-unknown-warning-option is represented by an explicit diagnostic pragma in the hashed analysis entry; no header or attribute is stripped.",
+    "excluded": "No Apple bounds-safety compiler mode, SDK/deployment version or Apple-private ABI claim. Real upstream arm64e ptrauth intrinsics/calls remain enabled in every supported profile. The explicitly authorized analysis-entry #define __ptrauth(...) erases only qualifier annotations; original header bytes and all PAC-conditional fields remain present. Code generation, optimization, instrumentation, signing and runtime authentication semantics are outside this syntax/layout analysis.",
+    "target": "Versionless arm64e-apple-ios with genuine upstream PAC feature switches enabled; no SDKVERSION/deployment minimum supplied or spoofed. LLVM20 raw qualifier support is absent, so the visible layout-only variadic __ptrauth macro removes annotations without disabling feature guards or omitting fields. No Apple-private or shipping-device ABI claim."
+  },
+  "platform": "iPhoneOS",
+  "inventory": "profiles/structure-catalog.json",
+  "diagnostic_preamble": "#define __ptrauth(...)\n#pragma clang diagnostic ignored \"-Wunknown-warning-option\"\n#if __has_feature(ptrauth_intrinsics)\n#define PLATYDOC_PTRAUTH_INTRINSICS 1\n#else\n#define PLATYDOC_PTRAUTH_INTRINSICS 0\n#endif\n#if __has_feature(ptrauth_calls)\n#define PLATYDOC_PTRAUTH_CALLS 1\n#else\n#define PLATYDOC_PTRAUTH_CALLS 0\n#endif\n#if __has_feature(ptrauth_qualifier)\n#define PLATYDOC_PTRAUTH_QUALIFIER 1\n#else\n#define PLATYDOC_PTRAUTH_QUALIFIER 0\n#endif\n",
+  "bsd_macros": {
+    "DRIVER_PRIVATE": "1",
+    "_KERNEL_BUILD": "1",
+    "KERNEL_BUILD": "1",
+    "MACH_KERNEL": "1",
+    "BSD_BUILD": "1",
+    "BSD_KERNEL_PRIVATE": "1",
+    "MACH_KERNEL_PRIVATE": null
+  },
+  "additional_exports": [
+    "bsd/skywalk/Makefile",
+    "bsd/skywalk/core/Makefile",
+    "bsd/skywalk/channel/Makefile",
+    "bsd/skywalk/mem/Makefile",
+    "bsd/skywalk/nexus/Makefile",
+    "bsd/skywalk/packet/Makefile",
+    "bsd/skywalk/namespace/Makefile"
+  ],
+  "contexts": {
+    "kernel": {
+      "component": "osfmk",
+      "headers": [
+        "kern/recount.h",
+        "kern/task.h"
+      ],
+      "records": [
+        "task",
+        "recount_track",
+        "recount_usage",
+        "recount_metrics",
+        "recount_thread",
+        "recount_task"
+      ]
+    },
+    "vm": {
+      "component": "osfmk",
+      "headers": [
+        "vm/vm_map.h",
+        "vm/vm_map_xnu.h",
+        "vm/vm_map_internal.h",
+        "vm/vm_object_xnu.h",
+        "vm/vm_page.h",
+        "vm/pmap.h"
+      ],
+      "records": [
+        "_vm_map",
+        "vm_map_entry",
+        "vm_object",
+        "vm_page",
+        "vm_named_entry",
+        "vm_map_copy",
+        "pmap"
+      ]
+    },
+    "bsd": {
+      "component": "bsd",
+      "headers": [
+        "kern/task.h",
+        "sys/proc_internal.h"
+      ],
+      "records": [
+        "proc_ro",
+        "proc_ro_data",
+        "task_ro_data"
+      ]
+    },
+    "ipc": {
+      "component": "osfmk",
+      "headers": [
+        "ipc/ipc_space.h",
+        "ipc/ipc_entry.h",
+        "ipc/ipc_port.h",
+        "ipc/ipc_kmsg.h"
+      ],
+      "records": [
+        "ipc_entry",
+        "ipc_kmsg"
+      ]
+    },
+    "sockbuf": {
+      "component": "bsd",
+      "headers": [
+        "sys/socketvar.h"
+      ],
+      "records": [
+        "sockbuf"
+      ]
+    },
+    "mbuf": {
+      "component": "bsd",
+      "headers": [
+        "sys/param.h",
+        "sys/mbuf.h"
+      ],
+      "records": [
+        "m_ext",
+        "ext_ref"
+      ]
+    },
+    "thread": {
+      "component": "osfmk",
+      "headers": [
+        "kern/thread.h"
+      ],
+      "records": [
+        "thread",
+        "thread_ro",
+        "machine_thread",
+        "arm_saved_state64"
+      ]
+    },
+    "uthread": {
+      "component": "bsd",
+      "headers": [
+        "sys/proc_internal.h",
+        "sys/user.h"
+      ],
+      "records": [
+        "uthread"
+      ]
+    },
+    "credentials": {
+      "component": "bsd",
+      "headers": [
+        "sys/ucred.h"
+      ],
+      "records": [
+        "ucred",
+        "posix_cred"
+      ]
+    },
+    "files": {
+      "component": "bsd",
+      "headers": [
+        "sys/filedesc.h",
+        "sys/file_internal.h"
+      ],
+      "records": [
+        "filedesc",
+        "fileglob"
+      ]
+    },
+    "security": {
+      "component": "bsd",
+      "headers": [
+        "security/_label.h"
+      ],
+      "records": [
+        "label"
+      ]
+    },
+    "ipv6-wire": {
+      "component": "bsd",
+      "headers": [
+        "netinet/in.h",
+        "netinet/ip6.h"
+      ],
+      "records": [
+        "in6_addr",
+        "sockaddr_in6",
+        "ip6_hdr",
+        "ip6_hbh",
+        "ip6_dest",
+        "ip6_rthdr",
+        "ip6_frag"
+      ]
+    },
+    "ipv6-options": {
+      "component": "bsd",
+      "headers": [
+        "netinet/in.h",
+        "netinet6/ip6_var.h"
+      ],
+      "records": [
+        "ip6_pktopts",
+        "ip6_exthdrs",
+        "ip6_out_args",
+        "ip6q",
+        "ip6_moptions"
+      ]
+    },
+    "ipv6-address": {
+      "component": "bsd",
+      "headers": [
+        "net/if.h",
+        "netinet/in.h",
+        "netinet6/in6_var.h"
+      ],
+      "records": [
+        "route_in6",
+        "in6_multi",
+        "in6_mfilter"
+      ]
+    },
+    "ipv6-neighbor": {
+      "component": "bsd",
+      "headers": [
+        "net/if.h",
+        "netinet/in.h",
+        "netinet6/in6_var.h",
+        "netinet6/nd6.h"
+      ],
+      "records": [
+        "nd_ifinfo",
+        "nd_defrouter",
+        "nd_prefix",
+        "llinfo_nd6"
+      ]
+    },
+    "ipv6-mld": {
+      "component": "bsd",
+      "headers": [
+        "net/if.h",
+        "netinet/in.h",
+        "netinet6/in6_var.h",
+        "netinet6/mld6_var.h"
+      ],
+      "records": [
+        "mld_ifinfo"
+      ]
+    }
+  },
+  "ptrauth_intrinsics": true,
+  "ptrauth_calls": true,
+  "layout_compatibility": {
+    "directive": "#define __ptrauth(...)",
+    "scope": "analysis-entry before original headers",
+    "purpose": "Explicitly authorized layout-only removal of pointer-authentication type qualifiers; real compiler ptrauth_calls and ptrauth_intrinsics stay enabled and all PAC-conditional fields remain parsed.",
+    "effect": "Empty variadic function macro, not a compiler feature or instruction/code-generation implementation."
+  }
+}

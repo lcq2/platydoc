@@ -6,6 +6,8 @@ An ordinary BSD process in `xnu-12377.121.6` occupies two allocations: a writabl
 
 [Thread and thread_ro](thread-and-thread-ro.md) follows the protected process associations reached from current execution. [Credential storage](credentials-and-credential-storage.md) follows the `p_ucred` pointer into its own RO allocation, writable lifetime bookkeeping, replacement and retirement.
 
+Inspect the live [`proc_ro`](layout-browser.md?declaration=proc_ro), [`proc_ro_data`](layout-browser.md?declaration=proc_ro_data) layouts for the selected source profile.
+
 ## 1. Read the fields by role and protection
 
 `struct proc` is the mutable BSD state. Its embedded objects, pointers and flags have different synchronization rules; `proc_lock()` is not a lock for everything reachable from the process. The declaration's shorthand means PL = process mutex, LL = process-list lock, PUCL = credential-publication mutex, PSL = process spin lock and PGL = process-group lock. These annotations are a starting point; the corresponding operation establishes whether a caller needs a lock, an atomic access or a stronger transition protocol. [Lock legend](../../xnu/bsd/sys/proc_internal.h#L99-L110), [lock wrappers](../../xnu/bsd/kern/kern_fork.c#L1238-L1291).

@@ -10,6 +10,7 @@ from html.parser import HTMLParser
 import json
 from pathlib import Path
 import re
+import subprocess
 from urllib.parse import unquote, urlsplit
 import xml.etree.ElementTree as ET
 import zlib
@@ -632,6 +633,13 @@ def verify_generated(output_dir):
         if not target.is_file():
             error(source, f"missing local target: {raw}", line)
             continue
+        if target == root / "structures/layout-browser.html" and url.query:
+            try:
+                catalog = _json(_local_file(root, "layouts/catalog.json").read_text(encoding="utf-8"))
+                from layouts.catalog import validate_selection_query
+                validate_selection_query(url.query, catalog)
+            except (ValueError, OSError, KeyError, TypeError) as exc:
+                error(source, str(exc), line)
         fragment = unquote(url.fragment)
         if not fragment:
             continue
@@ -647,6 +655,17 @@ def verify_generated(output_dir):
 
     if not counts["html_files"]:
         errors.append("No generated HTML files were found.")
+    layout_manifest = root / "layouts/manifest.json"
+    build_manifest = root / "build-manifest.json"
+    layout_reference = _json(build_manifest.read_text(encoding="utf-8")).get("layouts") if build_manifest.is_file() else None
+    if layout_manifest.exists() or layout_reference is not None:
+        try:
+            if not layout_reference or layout_reference.get("path") != "layouts/manifest.json" or hashlib.sha256(_local_file(root, "layouts/manifest.json").read_bytes()).hexdigest() != layout_reference.get("sha256"):
+                raise ValueError("Book layout manifest reference is missing or stale")
+            from layouts.catalog import verify as verify_layouts
+            counts.update(verify_layouts(root))
+        except (ValueError, OSError, KeyError, TypeError, subprocess.SubprocessError) as exc:
+            error(layout_manifest, str(exc))
     # The extracted copy omits the ZIP itself and replaces marked download
     # controls. Verify distributed archives against all remaining bytes.
     from .offline import ARCHIVE_NAME, verify_archive

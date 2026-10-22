@@ -291,16 +291,34 @@ The book is local by default. Do not introduce hosting, publication, account req
 
 Choose checks appropriate to the change:
 
+Keep routine validation minimal. Structure-catalog additions have a 20-minute
+working budget: review the changed declarations, run native/Wasm smoke checks
+for affected header contexts, and inspect one representative size/nested offset.
+Use a second configuration only when the change involves conditional fields.
+Do not rerun whole-catalog geometry audits, archive audits, browser matrices or
+unchanged compiler/runtime suites for a catalog addition. Run one focused browser
+check only when UI/binding code changes or a concrete integration issue needs it.
+Record analyzer/compiler blockers separately so they do not delay supported
+additions. No finite suite proves that nothing is broken; report the evidence
+actually checked without expanding validation to chase that guarantee.
+
+Full regression suites are opt-in for changes to the corresponding compiler,
+runtime or build infrastructure, or on explicit request. Choose relevant tests
+within those suites first. A successful build already validates its output;
+do not repeat `--check`, independently rehash the ZIP, or rebuild solely for a
+second reviewer. Reviewers reuse existing evidence and inspect the diff.
+
 | Change | Required evidence |
 | --- | --- |
 | Authored Markdown or source excerpts | Relevant source review, regenerated navigation if needed, `check_links.py` with zero errors. |
 | BSD/Mach catalog inputs or extractor | Regenerate affected output, run its `--check`, inspect the resulting catalog and run handbook checks. |
 | MIG input/profile/extractor | Source-only discovery, full collection when source changed, inspect inventories/summary/output diffs, then handbook checks. Metadata-only `--render-only` requires unchanged inventories. |
 | New/changed diagram | Strict SVG rendering and inspection of the result, not merely a balanced Markdown fence. |
-| HTML generator/index/source-preview logic | Python and JavaScript regression checks, successful full build and relevant browser interaction checks where available. |
+| Structure catalog additions | Changed-context native/Wasm smoke checks and a representative size/nested offset; see `docs-ai/tools/layouts/README.txt`. |
+| HTML generator/index/source-preview logic | Relevant focused Python/JavaScript tests and one affected browser interaction; full build when output generation changes or explicitly requested. |
 | New XNU release | The release procedure above, updated scope/provenance and explicit accounting of areas not revalidated. |
 
-Regression commands:
+Optional broad regression commands (not the routine checklist):
 
 ```sh
 python3 -B -m unittest discover -s docs-ai/tools/book/tests -v
@@ -315,7 +333,7 @@ python3 make_docs.py --check
 
 `--check` validates the existing HTML/anchors/assets/SVG; it does not rebuild or prove freshness against current Markdown. A normal build already performs generated-output validation. `check_links.py` checks local paths, line bounds, headings, fences, reachability and exact marked excerpts; it does not verify semantic claims, resolve every C configuration, fetch external references or render diagrams.
 
-For browser changes, inspect representative nested chapters, long interface tables, light/dark themes and narrow layouts. Exercise search for a symbol and phrase, index filtering, source-popup range/context controls, full-file line navigation and diagram enlargement using local files. The JavaScript regression tests use a small DOM fixture; they are not a browser rendering test. If browser launch is blocked, report that limit and use the available static/logic/SVG checks without claiming visual verification.
+For browser changes, exercise the affected interaction on one representative page using local files. Add theme, narrow-layout, HTTPS or fallback checks only when the change touches those paths. The JavaScript regression tests use a small DOM fixture; they are not a browser rendering test. If browser launch is blocked, report that limit and use the available static/logic/SVG checks without claiming visual verification.
 
 Do not build or boot the kernel merely to validate documentation. Source analysis, static documentation checks, browser checks and kernel runtime tests are different evidence and must be reported separately.
 

@@ -6,6 +6,8 @@ Each socket embeds two `sockbuf` headers. They own linked mbuf records and accou
 
 The existing [socket I/O chapter](../subsystems/networking/socket-lifecycle-and-io.md) explains whole send/receive operations. Here the questions are narrower: which pointer names a record, when a queue owns an mbuf, which counters change when bytes move, and what remains safe while a syscall drops the socket mutex. See [content filtering](../subsystems/networking/socket-content-filtering.md) for queues that retain data outside `so_snd` and `so_rcv`.
 
+Inspect the live [`sockbuf`](layout-browser.md?declaration=sockbuf) layout for the selected source profile.
+
 ## 1. Embedded headers, separately allocated records
 
 `struct sockbuf` is declared within `struct socket`, with two instances named `so_rcv` and `so_snd`. The socket's zeroed allocation provides both headers; there is no separate sockbuf zone or independent sockbuf reference count on this path. Construction sets each `sb_so` back-pointer and marks the receive instance with `SB_RECV`. Reserving a buffer later changes limits, not the location of either header. [Layout](../../xnu/bsd/sys/socketvar.h#L167-L192), [socket allocation](../../xnu/bsd/kern/uipc_socket.c#L453-L467), [back-pointers](../../xnu/bsd/kern/uipc_socket.c#L590-L593), [reservation](../../xnu/bsd/kern/uipc_socket2.c#L806-L825).

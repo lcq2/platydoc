@@ -6,6 +6,8 @@ A `vm_map` owns the description of an address space. Its `vm_map_entry` records 
 
 The operation-oriented [virtual address maps](../subsystems/vm/virtual-address-maps.md) chapter explains placement, protection and range APIs. Use [argument validation](../subsystems/vm/api-argument-validation.md) for user input, [fault resolution](../subsystems/vm/fault-resolution.md) for contents and translations, and [memory entries and map copies](memory-entries-and-vm-copies.md) for exported capabilities and transfer containers. Here the main questions are what a field represents, who owns a reference, and when a pointer remains usable.
 
+Inspect the live [`vm_map`](layout-browser.md?declaration=vm_map), [`vm_map_entry`](layout-browser.md?declaration=vm_map_entry) layouts for the selected source profile.
+
 ## 1. The map is a container, an entry is a range record
 
 `vm_map_t` refers to `struct _vm_map`. It embeds a `vm_map_header` and a B+tree root, but its individual entries and tree nodes are separate allocations. An ordinary entry identifies a half-open virtual interval `[vme_start, vme_end)`, an object and an object offset. A submap entry instead identifies another map and an offset in that map. Neither case embeds a physical page or a page-table entry. [Map declaration](../../xnu/osfmk/vm/vm_map_xnu.h#L594-L720), [entry declaration](../../xnu/osfmk/vm/vm_map_xnu.h#L320-L445).

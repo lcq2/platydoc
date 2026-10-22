@@ -8,7 +8,11 @@ This chapter follows `xnu-12377.121.6`: ordinary process-associated tasks, corps
 
 Continue through [thread and thread_ro](thread-and-thread-ro.md) for the thread's task association, [IPC spaces and entries](ipc-spaces-and-entries.md) for `itk_space`, and [ports and kobjects](ipc-ports-and-kobjects.md) for the task's exported capability objects and referenced conversion.
 
+Inspect the live [`task_ro_data`](layout-browser.md?declaration=task_ro_data) layout for the selected source profile.
+
 ## 1. Writable task state and the protected companion
+
+[Inspect the task layout](layout-browser.md?declaration=task) in the offline HTML handbook to select a configuration and follow nested field offsets. These offsets describe the task object itself; the combined process/task allocation is explained below.
 
 `struct task` begins with its mutex and reference count. Neither the whole structure nor all of its security-related state is in a read-only zone. Its `bsd_info_ro` member points to `struct proc_ro`; the latter contains a `task_data` group declared with the type name `task_ro_data`. That group is part of the RO allocation, not a separately allocated `task_ro`. [Task declaration](../../xnu/osfmk/kern/task.h#L266-L350), [RO pointer](../../xnu/osfmk/kern/task.h#L374-L383), [protected layout](../../xnu/bsd/sys/proc_ro.h#L69-L97).
 

@@ -4,6 +4,8 @@ Neighbor Discovery turns an IPv6 next hop on a particular interface into usable 
 
 Return to [IPv6](ipv6.md) and [networking](README.md). The [output chapter](ipv6-output-and-neighbor-discovery.md) explains initial route selection, deferred output and held-packet ownership. This companion follows received NS/NA messages, the transitions they cause, the asynchronous NUD worker and redirects. [Address configuration and DAD](ipv6-addresses-autoconfiguration-and-dad.md) owns duplicate-address detection; [router advertisements and prefix lifetime](ipv6-router-advertisements-and-prefix-lifetime.md) owns RA/default-router/prefix decisions. [Input and forwarding](ipv6-input-extension-headers-and-forwarding.md) explains how packets reach these handlers.
 
+Inspect the live [`nd_ifinfo`](../../structures/layout-browser.md?declaration=nd_ifinfo), [`llinfo_nd6`](../../structures/layout-browser.md?declaration=llinfo_nd6) layouts for the selected source configuration.
+
 ## Cache representation: address, route, link-layer bytes and state
 
 | Object or field | What it represents |

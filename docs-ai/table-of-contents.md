@@ -56,6 +56,11 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
 ## 2. Key structures: allocation, access and lifetime
 
 - [Key structures: allocation, access and lifetime](structures/README.md)
+- [Structure layouts](structures/layout-browser.md)
+  - [Find a field and its offset](structures/layout-browser.md#find-a-field-and-its-offset)
+  - [Choose the preprocessing configuration](structures/layout-browser.md#choose-the-preprocessing-configuration)
+  - [Compare and reopen a selection](structures/layout-browser.md#compare-and-reopen-a-selection)
+  - [Scope and source evidence](structures/layout-browser.md#scope-and-source-evidence)
 - [The process and its protected data](structures/proc-and-proc-ro.md)
   - [1. Read the fields by role and protection](structures/proc-and-proc-ro.md#1-read-the-fields-by-role-and-protection)
   - [2. One writable allocation contains both process and task](structures/proc-and-proc-ro.md#2-one-writable-allocation-contains-both-process-and-task)
@@ -3160,6 +3165,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
 - [Building and maintaining the HTML handbook](development/building-html.md)
   - [Build and open](development/building-html.md#build-and-open)
   - [Reading tools](development/building-html.md#reading-tools)
+  - [Structure layout inputs](development/building-html.md#structure-layout-inputs)
   - [Updating Markdown and source](development/building-html.md#updating-markdown-and-source)
   - [Build components](development/building-html.md#build-components)
   - [Offline ZIP packaging](development/building-html.md#offline-zip-packaging)
@@ -3236,7 +3242,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Chapter-by-chapter disposition](audits/security-and-development.md#chapter-by-chapter-disposition)
   - [Boundaries and verification](audits/security-and-development.md#boundaries-and-verification)
 
-Listed: 357 pages, excluding this contents page.
+Listed: 358 pages, excluding this contents page.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

@@ -196,8 +196,12 @@
       focused?.focus({ preventScroll: true });
       return copied;
     }
+    function isStaticCodeBlock(pre) {
+      return !pre.closest('#structure-layout-explorer') && !pre.matches('[data-source-full]') &&
+        !pre.closest('.source-browser') && !$('.source-line', pre) && !pre.parentElement.classList.contains('code-block');
+    }
     if (content) $$('pre', content).forEach(pre => {
-      if (pre.matches('[data-source-full]') || pre.closest('.source-browser') || $('.source-line', pre) || pre.parentElement.classList.contains('code-block')) return;
+      if (!isStaticCodeBlock(pre)) return;
       const wrapper = document.createElement('div');
       wrapper.className = 'code-block';
       pre.before(wrapper);

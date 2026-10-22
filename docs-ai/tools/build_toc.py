@@ -16,7 +16,7 @@ GROUPS = [
         "coverage-audit", "expansion-audit", "coverage", "glossary", "source-index",
     ]),
     ("Key structures: allocation, access and lifetime", "structures", [
-        "README", "proc-and-proc-ro", "task-and-shared-ro",
+        "README", "layout-browser", "proc-and-proc-ro", "task-and-shared-ro",
         "read-only-object-updates",
         "thread-and-thread-ro", "credentials-and-credential-storage",
         "mac-label-storage", "ipc-spaces-and-entries", "ipc-ports-and-kobjects",

@@ -6,6 +6,8 @@ A task's `ipc_space` turns a user-visible Mach port name into rights to an IPC o
 
 Use this chapter as a field-and-access companion to [names and rights](../subsystems/ipc/names-and-rights.md). The latter develops right accounting and reverse hashing; [port lifecycle](../subsystems/ipc/ports-and-rights-lifecycle.md) follows transfers and notifications. The distinction that matters throughout is **a name selects a right in one space; the entry pointer itself is not a capability or an independently retained object**. [Entry representation](../../xnu/osfmk/ipc/ipc_entry.h#L109-L158), [locked lookup contract](../../xnu/osfmk/ipc/ipc_entry.c#L151-L183).
 
+Inspect the live [`ipc_entry`](layout-browser.md?declaration=ipc_entry) layout for the selected source profile.
+
 ## 1. Three allocations, three meanings of ownership
 
 ```mermaid

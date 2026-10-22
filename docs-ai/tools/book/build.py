@@ -361,7 +361,7 @@ class Book:
                                "data-source": record["path"], "data-start": str(start),
                                "data-end": str(end), "data-source-payload": record["payload"],
                                "title": f"Preview {record['path']}, line {start}"})
-        node.attrs[attribute] = relative(dest, page["url"]) + fragment
+        node.attrs[attribute] = relative(dest, page["url"]) + (("?" + url.query) if url.query else "") + fragment
 
     def prepare(self):
         for page in self.pages:
@@ -649,6 +649,12 @@ def main():
                         help="Source-highlighting workers (default: up to 4)")
     parser.add_argument("--check",action="store_true",
                         help="Validate an already generated book without rebuilding")
+    parser.add_argument("--layout-runtime", type=Path, default=ROOT/".docs-cache/layouts/structure-runtime",
+                        help="Provisioned pinned offline layout runtime (never downloaded by book generation)")
+    parser.add_argument("--layout-native", type=Path, default=ROOT/".docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine",
+                        help="Provisioned pinned native layout frontend")
+    parser.add_argument("--layout-configs", type=Path, default=ROOT/".docs-cache/layouts/milestone8-configs",
+                        help="Generated XNU configuration files matching the pinned runtime provenance")
     args = parser.parse_args()
     output,cache = args.output.resolve(),args.cache.resolve()
     if args.check:
@@ -669,6 +675,8 @@ def main():
         parser.error("Refusing to replace an unmarked, nonempty output directory")
     require_source()
     check_dependencies()
+    from layouts.catalog import provisioned as check_layout_inputs
+    check_layout_inputs(args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
     started=time.monotonic()
     if args.refresh_catalogs:
         log("Refreshing declaration catalogs against local XNU source…")
@@ -714,6 +722,9 @@ def main():
     script_data(staging/"assets"/"search-index.js", "XNU_SEARCH", book.search)
     book.render_sources(args.jobs)
     book.copy_downloads()
+    from layouts.catalog import integrate as integrate_layouts
+    log("Generating the pinned layout catalog, header bundles and explorer…")
+    layouts = integrate_layouts(staging, cache, args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
     write(staging/DOWNLOAD_PAGE, download_page(pages))
     import pygments
     renderers = Counter(ET.parse(staging/path).getroot().get("data-renderer","unknown")
@@ -728,6 +739,7 @@ def main():
               "diagrams":len(book.diagrams),"sources":len(book.sources),
               "concepts":count,"search_sections":len(book.search),
               "source_format":"gzip-base64-pygments-tokens-v2",
+              "layouts":layouts,
               "offline_archive":{"file":ARCHIVE_NAME,"root":ARCHIVE_ROOT},
               "diagram_renderers":dict(sorted(renderers.items())),
               "pygments_version":pygments.__version__,
@@ -756,7 +768,8 @@ def main():
              'The documentation license does not relicense XNU, copied source excerpts, source-viewer contents '
              'or bundled third-party materials: those retain their respective licenses and notices. '
              'Original Platydoc Markdown shown in the source viewer remains CC BY 4.0.</p><ul>' +
-             "".join(f'<li><a href="{url}">{name}</a></li>' for name,url in notice_links.items()) + '</ul>')
+             "".join(f'<li><a href="{url}">{name}</a></li>' for name,url in notice_links.items()) +
+             "".join(f'<li><a href="{html.escape(notice["path"],quote=True)}">Layout runtime: {html.escape(notice["name"])}</a></li>' for notice in layouts["notices"]) + '</ul>')
     write(staging/"build-info.html",shell("Build and provenance",content,"build-info.html",
           nav=nav_html(pages,"build-info.html"),chapter="BUILD REFERENCE"))
     log("Packaging the complete offline handbook ZIP…")

@@ -6,6 +6,8 @@ A `pmap` connects an address space to the tables that CPUs walk. Understanding i
 
 Read [ARM64 pmap](../subsystems/vm/pmap-arm64.md) for the overall translation model, [translation walkthroughs](../subsystems/vm/pmap-translation-walkthroughs.md) for numeric PTE decoding, and [mapping lifecycle](../subsystems/vm/pmap-mapping-lifecycle.md) for complete insertion/removal algorithms. Here the recurring questions are: which bytes does this pointer address, who owns them, what keeps them accessible, and which operation eventually makes them reusable? The separate [x86 pmap chapter](../subsystems/vm/pmap-x86.md) covers that backend.
 
+Inspect the live [`pmap`](layout-browser.md?declaration=pmap) layout for the selected source profile.
+
 ## 1. Start with the objects, not just the root address
 
 A VM map describes allowed regions and backing objects. Its `pmap` supplies machine translations; the mapping policy and resident contents are not stored inside `struct pmap`. `vm_map_create_with_page_shift()` assigns its supplied pmap pointer to the new map; that assignment does not itself call `pmap_reference()`. Map destruction first deletes entries and disposes their detached resources, then releases the map's pmap through `pmap_destroy()`. Follow the caller's ownership transfer instead of assuming that every pointer assignment adds a reference. [Map construction](../../xnu/osfmk/vm/vm_map.c#L2174-L2235), [map destruction](../../xnu/osfmk/vm/vm_map.c#L2397-L2435).

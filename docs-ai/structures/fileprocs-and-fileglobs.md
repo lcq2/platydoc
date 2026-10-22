@@ -6,6 +6,8 @@ A settled descriptor-table slot points to a `fileproc`. That record holds per-de
 
 The existing [descriptor operations](../subsystems/processes/descriptors-ipc.md) chapter traces the syscall algorithms. The emphasis here is representation and ownership: why duplication allocates another fileproc, why I/O retention does not increment the fileglob count, how a guard changes a union's interpretation, and why closing a descriptor is different from closing the endpoint.
 
+Inspect the live [`fileglob`](layout-browser.md?declaration=fileglob) layout for the selected source profile.
+
 ## 1. The sharing graph has several independent lifetimes
 
 An ordinary descriptor slot owns a fileproc's base reference. A fileproc owns one shared fileglob reference. The fileglob holds a referenced credential and an endpoint association selected by its operations table. The endpoint may be a vnode, socket, pipe, shared-memory object or another supported type; its own reference/close protocol belongs to that type. [Fileproc and fileglob declarations](../../xnu/bsd/sys/file_internal.h#L111-L194), [fileglob credential reference](../../xnu/bsd/kern/kern_descrip.c#L175-L191), [fileops](../../xnu/bsd/sys/file_internal.h#L162-L175).

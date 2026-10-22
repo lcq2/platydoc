@@ -6,6 +6,8 @@ A named memory entry gives a Mach client a bounded view of memory; a `vm_map_cop
 
 The [wiring and memory-entry chapter](../subsystems/vm/wiring-and-memory-entries.md) explains the surrounding export/map operations; [copy-overwrite and remapping](../subsystems/vm/copy-overwrite-and-remap.md) follows destination mutation and mixed page sizes. Here the focus is the actual allocation graph, access contracts and ownership of each container. A port name, a named-entry pointer, a copy pointer, an object offset and a mapped virtual address are separate representations.
 
+Inspect the live [`vm_named_entry`](layout-browser.md?declaration=vm_named_entry), [`vm_map_copy`](layout-browser.md?declaration=vm_map_copy) layouts for the selected source profile.
+
 ## 1. A named entry is a port-owned descriptor
 
 `struct vm_named_entry` has a mutex but no separate reference-count member. Its backing union contains either `vm_map_t map` or `vm_map_copy_t copy`. In particular, `is_object` means a single object **wrapped in a one-entry copy**, not a direct object pointer in that union. [Complete layout](../../xnu/osfmk/vm/vm_map_xnu.h#L104-L124).

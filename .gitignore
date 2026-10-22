@@ -4,3 +4,4 @@
 /docs-ai-html.previous/
 __pycache__/
 *.py[cod]
+.vscode

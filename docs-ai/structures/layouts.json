@@ -1,0 +1,520 @@
+{
+  "contract": "platydoc.layout-chapters",
+  "version": 1,
+  "source": {
+    "release": "xnu-12377.121.6",
+    "revision": "ac9718fb1af618d5ce8678d0dc6e8a58f252216f"
+  },
+  "entries": [
+    {
+      "source_path": "xnu/osfmk/kern/task.h",
+      "source_sha256": "102b0b08628f94dbea11ed2577a3d13c5b3ee97aaf1f528bdfd5965e3640abc9",
+      "offset_bytes": 8426,
+      "kind": "struct",
+      "display_name": "task",
+      "chapters": [
+        "structures/task-and-shared-ro.md#1-writable-task-state-and-the-protected-companion"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/recount.h",
+      "source_sha256": "cf4258ee00a273d7799a60b713db1cd61a659e422dbfac1eaa6214d8de5c6868",
+      "offset_bytes": 5205,
+      "kind": "struct",
+      "display_name": "recount_track",
+      "chapters": [
+        "subsystems/runtime/recount-and-resource-attribution.md#1-objects-and-where-their-counters-live"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/recount.h",
+      "source_sha256": "cf4258ee00a273d7799a60b713db1cd61a659e422dbfac1eaa6214d8de5c6868",
+      "offset_bytes": 5409,
+      "kind": "struct",
+      "display_name": "recount_usage",
+      "chapters": [
+        "subsystems/runtime/recount-and-resource-attribution.md#1-objects-and-where-their-counters-live"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/recount.h",
+      "source_sha256": "cf4258ee00a273d7799a60b713db1cd61a659e422dbfac1eaa6214d8de5c6868",
+      "offset_bytes": 5434,
+      "kind": "struct",
+      "display_name": "recount_metrics",
+      "chapters": [
+        "subsystems/runtime/recount-and-resource-attribution.md#1-objects-and-where-their-counters-live"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/recount.h",
+      "source_sha256": "cf4258ee00a273d7799a60b713db1cd61a659e422dbfac1eaa6214d8de5c6868",
+      "offset_bytes": 10555,
+      "kind": "struct",
+      "display_name": "recount_thread",
+      "chapters": [
+        "subsystems/runtime/recount-and-resource-attribution.md#1-objects-and-where-their-counters-live"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/recount.h",
+      "source_sha256": "cf4258ee00a273d7799a60b713db1cd61a659e422dbfac1eaa6214d8de5c6868",
+      "offset_bytes": 11700,
+      "kind": "struct",
+      "display_name": "recount_task",
+      "chapters": [
+        "subsystems/runtime/recount-and-resource-attribution.md#1-objects-and-where-their-counters-live"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/proc_ro.h",
+      "source_sha256": "45aaf2d2dcadfa617eba7b1ef900cec12b0b8b6d502ce39acd4d768941f4c65a",
+      "offset_bytes": 2365,
+      "kind": "struct",
+      "display_name": "proc_ro",
+      "chapters": [
+        "structures/proc-and-proc-ro.md#1-read-the-fields-by-role-and-protection"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/proc_ro.h",
+      "source_sha256": "45aaf2d2dcadfa617eba7b1ef900cec12b0b8b6d502ce39acd4d768941f4c65a",
+      "offset_bytes": 2442,
+      "kind": "struct",
+      "display_name": "proc_ro_data",
+      "chapters": [
+        "structures/proc-and-proc-ro.md#1-read-the-fields-by-role-and-protection"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/proc_ro.h",
+      "source_sha256": "45aaf2d2dcadfa617eba7b1ef900cec12b0b8b6d502ce39acd4d768941f4c65a",
+      "offset_bytes": 3233,
+      "kind": "struct",
+      "display_name": "task_ro_data",
+      "chapters": [
+        "structures/task-and-shared-ro.md#1-writable-task-state-and-the-protected-companion"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/thread.h",
+      "source_sha256": "8ec270cc709f96ec8cdbc81ffb16396b015d7c8dafb58494dca2c13f86197650",
+      "offset_bytes": 12737,
+      "kind": "struct",
+      "display_name": "thread",
+      "chapters": [
+        "structures/thread-and-thread-ro.md#1-three-structures-two-allocations-and-several-additional-resources"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/thread.h",
+      "source_sha256": "8ec270cc709f96ec8cdbc81ffb16396b015d7c8dafb58494dca2c13f86197650",
+      "offset_bytes": 5962,
+      "kind": "struct",
+      "display_name": "thread_ro",
+      "chapters": [
+        "structures/thread-and-thread-ro.md#1-three-structures-two-allocations-and-several-additional-resources"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/user.h",
+      "source_sha256": "d536d9aeb0735585542a8305f315309bc6892cd2672389215d9bf64acfc769cc",
+      "offset_bytes": 4736,
+      "kind": "struct",
+      "display_name": "uthread",
+      "chapters": [
+        "structures/thread-and-thread-ro.md#1-three-structures-two-allocations-and-several-additional-resources"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/ucred.h",
+      "source_sha256": "25b62ef73d2cc2c58c5081e4fea84906d4bffeff428d60f9111ed67c280a6f0b",
+      "offset_bytes": 5700,
+      "kind": "struct",
+      "display_name": "ucred",
+      "chapters": [
+        "structures/credentials-and-credential-storage.md#1-three-representations-with-different-storage"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/ucred.h",
+      "source_sha256": "25b62ef73d2cc2c58c5081e4fea84906d4bffeff428d60f9111ed67c280a6f0b",
+      "offset_bytes": 5964,
+      "kind": "struct",
+      "display_name": "posix_cred",
+      "chapters": [
+        "structures/credentials-and-credential-storage.md#1-three-representations-with-different-storage"
+      ]
+    },
+    {
+      "source_path": "xnu/security/_label.h",
+      "source_sha256": "c572bbc0324d222e7c10682cb0b0c18658a910eca7864d9d2f56ed24619910d6",
+      "offset_bytes": 3741,
+      "kind": "struct",
+      "display_name": "label",
+      "chapters": [
+        "structures/mac-label-storage.md#1-the-label-contains-a-pointer-address-and-policy-slots"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/ipc/ipc_entry.h",
+      "source_sha256": "cb21e4f38aa882bef3ad2a8de169353004f3ed03c963b13cd2739f8561d19427",
+      "offset_bytes": 3856,
+      "kind": "struct",
+      "display_name": "ipc_entry",
+      "chapters": [
+        "structures/ipc-spaces-and-entries.md#1-three-allocations-three-meanings-of-ownership"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/ipc/ipc_kmsg.h",
+      "source_sha256": "8b63571f3cf2983c10dd833354e64c9ec8b3ea7ab17dcc0b6a34a710918c9c6e",
+      "offset_bytes": 5186,
+      "kind": "struct",
+      "display_name": "ipc_kmsg",
+      "chapters": [
+        "structures/ipc-kmsgs-and-message-storage.md#1-a-fixed-container-with-four-storage-layouts"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_map_xnu.h",
+      "source_sha256": "eafbafb64f0b12257103e0a5762ec3f01cf5d0b3aca24a7a8af3b749eb953f99",
+      "offset_bytes": 20257,
+      "kind": "struct",
+      "display_name": "vm_map",
+      "chapters": [
+        "structures/vm-maps-and-entries.md#1-the-map-is-a-container-an-entry-is-a-range-record"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_map_xnu.h",
+      "source_sha256": "eafbafb64f0b12257103e0a5762ec3f01cf5d0b3aca24a7a8af3b749eb953f99",
+      "offset_bytes": 11683,
+      "kind": "struct",
+      "display_name": "vm_map_entry",
+      "chapters": [
+        "structures/vm-maps-and-entries.md#1-the-map-is-a-container-an-entry-is-a-range-record"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_object_xnu.h",
+      "source_sha256": "534592b4811a8d5a4d73c4972aa319afd77bf84e6cc75ef79ad6b3757caefc1a",
+      "offset_bytes": 4412,
+      "kind": "struct",
+      "display_name": "vm_object",
+      "chapters": [
+        "structures/vm-objects-and-backing.md#the-object-is-metadata-not-its-contents"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_page.h",
+      "source_sha256": "619b00b1834dd87e9fdd9c0658cc35b8a273933b8ce3ba006ad5b867c3cfc902",
+      "offset_bytes": 11310,
+      "kind": "struct",
+      "display_name": "vm_page",
+      "chapters": [
+        "structures/vm-pages-and-resident-storage.md#four-different-identities-surround-one-resident-page"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_map_xnu.h",
+      "source_sha256": "eafbafb64f0b12257103e0a5762ec3f01cf5d0b3aca24a7a8af3b749eb953f99",
+      "offset_bytes": 3716,
+      "kind": "struct",
+      "display_name": "vm_named_entry",
+      "chapters": [
+        "structures/memory-entries-and-vm-copies.md#1-a-named-entry-is-a-port-owned-descriptor"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/vm_map_xnu.h",
+      "source_sha256": "eafbafb64f0b12257103e0a5762ec3f01cf5d0b3aca24a7a8af3b749eb953f99",
+      "offset_bytes": 28463,
+      "kind": "struct",
+      "display_name": "vm_map_copy",
+      "chapters": [
+        "structures/memory-entries-and-vm-copies.md#1-a-named-entry-is-a-port-owned-descriptor"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/arm/pmap/pmap.h",
+      "source_sha256": "90eb47769ca63b300cb4f589c6121a2bb1553c0f704b10c5af2e042cc4d8bc55",
+      "offset_bytes": 11375,
+      "kind": "struct",
+      "display_name": "pmap",
+      "chapters": [
+        "structures/pmap-and-translation-storage.md#1-start-with-the-objects-not-just-the-root-address"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/filedesc.h",
+      "source_sha256": "1593e0373a7ce07fb9684aa8f7df5b0f03bf13a5b9c858071503623b4a0d81c7",
+      "offset_bytes": 5152,
+      "kind": "struct",
+      "display_name": "filedesc",
+      "chapters": [
+        "structures/file-descriptor-tables.md#1-an-embedded-header-owns-two-movable-arrays"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/file_internal.h",
+      "source_sha256": "b1898582da217112a7c966b2b124525cfeab60f2a66a57c2809fcb7af7da29d3",
+      "offset_bytes": 7068,
+      "kind": "struct",
+      "display_name": "fileglob",
+      "chapters": [
+        "structures/fileprocs-and-fileglobs.md#1-the-sharing-graph-has-several-independent-lifetimes"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/socketvar.h",
+      "source_sha256": "6082a29193debba902067a7b94ea31a7fa7bede97a325d1778b88ba533077536",
+      "offset_bytes": 6963,
+      "kind": "struct",
+      "display_name": "sockbuf",
+      "chapters": [
+        "structures/socket-buffers-and-record-queues.md#1-embedded-headers-separately-allocated-records"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/mbuf.h",
+      "source_sha256": "75f60ef4ec1d4ce44ea4263c9e9412d174c2b45c7571a9d469ca895831240a0f",
+      "offset_bytes": 25575,
+      "kind": "struct",
+      "display_name": "m_ext",
+      "chapters": [
+        "structures/mbufs-and-external-storage.md#1-separate-the-descriptor-its-byte-view-and-its-backing"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/mbuf.h",
+      "source_sha256": "75f60ef4ec1d4ce44ea4263c9e9412d174c2b45c7571a9d469ca895831240a0f",
+      "offset_bytes": 25917,
+      "kind": "struct",
+      "display_name": "ext_ref",
+      "chapters": [
+        "structures/mbufs-and-external-storage.md#1-separate-the-descriptor-its-byte-view-and-its-backing"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/arm/thread.h",
+      "source_sha256": "577387330636febfb4618a0b6ae38bef0c6506ed7ac0ebb1137235336b77799b",
+      "offset_bytes": 3351,
+      "kind": "struct",
+      "display_name": "machine_thread",
+      "chapters": [
+        "structures/thread-and-thread-ro.md#1-three-structures-two-allocations-and-several-additional-resources"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/mach/arm/thread_status.h",
+      "source_sha256": "60434026c659eebe0137ad2dd6536637e7330cf355958f580afe95bc34a82e95",
+      "offset_bytes": 14471,
+      "kind": "struct",
+      "display_name": "arm_saved_state64",
+      "chapters": [
+        "structures/thread-and-thread-ro.md#1-three-structures-two-allocations-and-several-additional-resources"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6.h",
+      "source_sha256": "46a5395540f036a472601adceb7fc2f1cb62b29c3043613edb70011ebdedbd54",
+      "offset_bytes": 6940,
+      "kind": "struct",
+      "display_name": "in6_addr",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6.h",
+      "source_sha256": "46a5395540f036a472601adceb7fc2f1cb62b29c3043613edb70011ebdedbd54",
+      "offset_bytes": 7533,
+      "kind": "struct",
+      "display_name": "sockaddr_in6",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/ip6.h",
+      "source_sha256": "86fd0f4ff3732c5050b37cafa3935ec57d8c1f8811c704173e60f3b13c2e4e07",
+      "offset_bytes": 5135,
+      "kind": "struct",
+      "display_name": "ip6_hdr",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/ip6.h",
+      "source_sha256": "86fd0f4ff3732c5050b37cafa3935ec57d8c1f8811c704173e60f3b13c2e4e07",
+      "offset_bytes": 7109,
+      "kind": "struct",
+      "display_name": "ip6_hbh",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/ip6.h",
+      "source_sha256": "86fd0f4ff3732c5050b37cafa3935ec57d8c1f8811c704173e60f3b13c2e4e07",
+      "offset_bytes": 7389,
+      "kind": "struct",
+      "display_name": "ip6_dest",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/ip6.h",
+      "source_sha256": "86fd0f4ff3732c5050b37cafa3935ec57d8c1f8811c704173e60f3b13c2e4e07",
+      "offset_bytes": 9900,
+      "kind": "struct",
+      "display_name": "ip6_rthdr",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/ip6.h",
+      "source_sha256": "86fd0f4ff3732c5050b37cafa3935ec57d8c1f8811c704173e60f3b13c2e4e07",
+      "offset_bytes": 10636,
+      "kind": "struct",
+      "display_name": "ip6_frag",
+      "chapters": [
+        "subsystems/networking/ipv6-input-extension-headers-and-forwarding.md#entry-and-the-objects-carried-through-input"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/ip6_var.h",
+      "source_sha256": "a2d91bc8cc4e1de84a042e80382de5769b9fbbc08edc8e7ef0f9058e68b779ba",
+      "offset_bytes": 8590,
+      "kind": "struct",
+      "display_name": "ip6_pktopts",
+      "chapters": [
+        "subsystems/networking/ipv6-sockets-and-packet-options.md#protocol-registration-chooses-the-callback-family"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/ip6_var.h",
+      "source_sha256": "a2d91bc8cc4e1de84a042e80382de5769b9fbbc08edc8e7ef0f9058e68b779ba",
+      "offset_bytes": 7820,
+      "kind": "struct",
+      "display_name": "ip6_exthdrs",
+      "chapters": [
+        "subsystems/networking/ipv6-output-and-neighbor-discovery.md#extension-headers-become-an-owned-mbuf-chain"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/ip6_var.h",
+      "source_sha256": "a2d91bc8cc4e1de84a042e80382de5769b9fbbc08edc8e7ef0f9058e68b779ba",
+      "offset_bytes": 17428,
+      "kind": "struct",
+      "display_name": "ip6_out_args",
+      "chapters": [
+        "subsystems/networking/ipv6-output-and-neighbor-discovery.md#addresses-routes-and-neighbor-records"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/ip6_var.h",
+      "source_sha256": "a2d91bc8cc4e1de84a042e80382de5769b9fbbc08edc8e7ef0f9058e68b779ba",
+      "offset_bytes": 5205,
+      "kind": "struct",
+      "display_name": "ip6q",
+      "chapters": [
+        "subsystems/networking/ip-fragment-reassembly-and-icmp.md#queue-identity-and-the-objects-that-own-bytes"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/ip6_var.h",
+      "source_sha256": "a2d91bc8cc4e1de84a042e80382de5769b9fbbc08edc8e7ef0f9058e68b779ba",
+      "offset_bytes": 5840,
+      "kind": "struct",
+      "display_name": "ip6_moptions",
+      "chapters": [
+        "subsystems/networking/ipv6-multicast-membership-and-mld.md#three-meanings-of-membership"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6_private.h",
+      "source_sha256": "d1786ae5d55794fe0f5389fa051fd7eed6e66228a6ca1ee1b20b6cdee3d1bc50",
+      "offset_bytes": 6166,
+      "kind": "struct",
+      "display_name": "route_in6",
+      "chapters": [
+        "subsystems/networking/ipv6-output-and-neighbor-discovery.md#addresses-routes-and-neighbor-records"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6_var.h",
+      "source_sha256": "9beb06e1d427bc10b3a303b85f81d8a3a39922aaf516ee503a8818b421f92142",
+      "offset_bytes": 38223,
+      "kind": "struct",
+      "display_name": "in6_multi",
+      "chapters": [
+        "subsystems/networking/ipv6-multicast-membership-and-mld.md#three-meanings-of-membership"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6_var.h",
+      "source_sha256": "9beb06e1d427bc10b3a303b85f81d8a3a39922aaf516ee503a8818b421f92142",
+      "offset_bytes": 36251,
+      "kind": "struct",
+      "display_name": "in6_mfilter",
+      "chapters": [
+        "subsystems/networking/ipv6-multicast-membership-and-mld.md#three-meanings-of-membership"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/nd6_var.h",
+      "source_sha256": "1eb3379beeb7d892265865b03718b95c83649d22b3e12f79562d525eb676a66a",
+      "offset_bytes": 3067,
+      "kind": "struct",
+      "display_name": "nd_ifinfo",
+      "chapters": [
+        "subsystems/networking/ipv6-neighbor-messages-and-reachability.md#cache-representation-address-route-link-layer-bytes-and-state"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/nd6.h",
+      "source_sha256": "4f387e079c57762c0b3239d21ffbcdcaedf0cfd89c20b5d4a2d8215eb0f239e1",
+      "offset_bytes": 16845,
+      "kind": "struct",
+      "display_name": "nd_defrouter",
+      "chapters": [
+        "subsystems/networking/ipv6-router-advertisements-and-prefix-lifetime.md#state-is-split-between-routers-prefixes-addresses-and-routes"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/nd6.h",
+      "source_sha256": "4f387e079c57762c0b3239d21ffbcdcaedf0cfd89c20b5d4a2d8215eb0f239e1",
+      "offset_bytes": 20111,
+      "kind": "struct",
+      "display_name": "nd_prefix",
+      "chapters": [
+        "subsystems/networking/ipv6-router-advertisements-and-prefix-lifetime.md#state-is-split-between-routers-prefixes-addresses-and-routes"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/nd6.h",
+      "source_sha256": "4f387e079c57762c0b3239d21ffbcdcaedf0cfd89c20b5d4a2d8215eb0f239e1",
+      "offset_bytes": 3459,
+      "kind": "struct",
+      "display_name": "llinfo_nd6",
+      "chapters": [
+        "subsystems/networking/ipv6-neighbor-messages-and-reachability.md#cache-representation-address-route-link-layer-bytes-and-state"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/mld6_var.h",
+      "source_sha256": "523d8e478c072e1d4dcf7c453b39f3bf574673159756b3f8cb329fbc02f73bb0",
+      "offset_bytes": 7386,
+      "kind": "struct",
+      "display_name": "mld_ifinfo",
+      "chapters": [
+        "subsystems/networking/ipv6-multicast-membership-and-mld.md#three-meanings-of-membership"
+      ]
+    }
+  ]
+}

@@ -4,6 +4,8 @@ An `AF_INET6` socket reaches IPv6 through a shared Internet PCB, protocol-specif
 
 Parent routes: [IPv6](ipv6.md), [networking](README.md). Read [Internet PCB lifetime](internet-pcbs-ports-and-lifetime.md) and [UDP](udp-send-receive-and-errors.md) for shared mechanisms; [source selection and scopes](ipv6-source-selection-and-scopes.md), [output](ipv6-output-and-neighbor-discovery.md) and [multicast](ipv6-multicast-membership-and-mld.md) cover the IPv6-specific continuations.
 
+Inspect the live [`ip6_pktopts`](../../structures/layout-browser.md?declaration=ip6_pktopts) layouts for the selected source configuration.
+
 ## Protocol registration chooses the callback family
 
 [`inet6sw`](../../../xnu/bsd/netinet6/in6_proto.c#L164-L267) registers separate `SOCK_DGRAM/IPPROTO_UDP`, `SOCK_STREAM/IPPROTO_TCP`, raw IPv6, raw ICMPv6 and datagram ICMPv6 entries. UDP uses `udp6_usrreqs`, `udp6_input` and `udp_ctloutput`; the [control-output wrapper](../../../xnu/bsd/netinet/udp_usrreq.c#L1137-L1161) delegates applicable IPv6 option levels to `ip6_ctloutput`; TCP has its own IPv6 request/input wrappers around the common TCP machinery. Extension-header entries in the same table are input dispatch entries with `nousrreqs`, not evidence that every header type is a usable application socket protocol.

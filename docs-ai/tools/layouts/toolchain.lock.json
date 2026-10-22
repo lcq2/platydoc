@@ -1,0 +1,15 @@
+{
+  "llvm": {
+    "version": "20.1.8",
+    "revision": "87f0227cb60147a26a1eeb4fb06e3b505e9c7261",
+    "archive_url": "https://codeload.github.com/llvm/llvm-project/tar.gz/87f0227cb60147a26a1eeb4fb06e3b505e9c7261",
+    "archive_sha256": "ccd2521c73309446f3811ec78e5702e92c5fdf259ec4a82b067f7121da29db05"
+  },
+  "emscripten": {
+    "version": "6.0.13",
+    "emsdk_revision": "35659964bc2762fffec0d257997fb61475f765b7",
+    "emsdk_archive_url": "https://codeload.github.com/emscripten-core/emsdk/tar.gz/35659964bc2762fffec0d257997fb61475f765b7",
+    "emsdk_archive_sha256": "e3ef5e4a46753aecc700ec72f81abda6d0601a262c5afe2669323ce2721a22b8",
+    "sdk_release": "eb132757325583b787fe9414b09afea9442b72ad"
+  }
+}

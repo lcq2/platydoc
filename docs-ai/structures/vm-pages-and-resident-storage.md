@@ -4,6 +4,8 @@ A `vm_page` is a descriptor for resident-page state. Its address identifies meta
 
 For full operations, follow [fault resolution](../subsystems/vm/fault-resolution.md), [reclaim and pressure](../subsystems/vm/reclaim-and-pressure.md), [UPL gathering and completion](../subsystems/vm/upl-gather-and-completion.md), and [MTE page lifecycle](../subsystems/vm/mte-tag-storage-and-page-lifecycle.md). This page concentrates on the descriptors and the guarantees those operations must establish.
 
+Inspect the live [`vm_page`](layout-browser.md?declaration=vm_page) layout for the selected source profile.
+
 ## Four different identities surround one resident page
 
 | Expression or value | What it denotes | What must already be established |

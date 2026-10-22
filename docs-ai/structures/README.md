@@ -4,6 +4,10 @@ This section follows a kernel structure from the allocator that supplies its sto
 
 [Handbook home](../README.md) · [Architecture](../architecture.md) · [Reading guide](../reading-guide.md)
 
+Use the [structure layout browser](layout-browser.md) to inspect sizes and nested field offsets in the HTML handbook. Its coverage table identifies available structures and explains unavailable ones for each supplied iOS ARM64e configuration. Preprocessing directives are inspectable and editable; the structure chapters explain storage and lifetime beyond the browser's finite inventory.
+
+Direct layout routes include [thread machine state](layout-browser.md?declaration=machine_thread), [ARM64 saved registers](layout-browser.md?declaration=arm_saved_state64) and [IPv6 packet headers](layout-browser.md?declaration=ip6_hdr). The [IPv6 guide](../subsystems/networking/ipv6.md) connects the packet layouts to socket options, routes, neighbor discovery and multicast state.
+
 ## Start with the process and task pair
 
 | Read | Questions answered |

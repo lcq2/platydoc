@@ -6,6 +6,8 @@ Return to [networking](README.md). Read [packet storage and interface delivery](
 
 The [IPv6 family guide](ipv6.md) connects these queues to [input/extension dispatch](ipv6-input-extension-headers-and-forwarding.md), [output fragmentation](ipv6-output-and-neighbor-discovery.md#software-fragmentation-replaces-one-packet-with-a-list), and the separate [ND/redirect](ipv6-neighbor-messages-and-reachability.md) and [MLD](ipv6-multicast-membership-and-mld.md) control paths.
 
+Inspect the live [`ip6q`](../../structures/layout-browser.md?declaration=ip6q) layouts for the selected source configuration.
+
 ## Entry, delivery and the meaning of an incomplete result
 
 IPv4 makes the local-destination decision before entering `ip_reass()`. The `ours` branch of `ip_input_second_pass()` checks fragment offset/flags, requires a single packet rather than a batched `m_nextpkt` list, and replaces its mbuf with the reassembly result. A null result means the caller no longer owns the input: the fragment may be queued or already freed. A completed result has an IP header again; input recomputes its header length, subtracts that length from `ip_len` for the upper-layer convention, and dispatches through `ip_input_dispatch_chain()`. Forwarded traffic follows `ip_forward()` instead of this local reassembly branch. See [destination and reassembly selection](../../../xnu/bsd/netinet/ip_input.c#L1598-L1639) and [upper-layer handoff](../../../xnu/bsd/netinet/ip_input.c#L1657-L1668).

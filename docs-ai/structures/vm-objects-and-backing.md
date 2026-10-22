@@ -4,6 +4,8 @@ A `vm_object` gives contents an offset namespace, a lifetime and a backing polic
 
 The existing [objects and pages chapter](../subsystems/vm/objects-and-pages.md) explains copy and collapse algorithms. Here the emphasis is recognizing which pointer, offset, lock and lifetime obligation a source expression uses.
 
+Inspect the live [`vm_object`](layout-browser.md?declaration=vm_object) layout for the selected source profile.
+
 ## The object is metadata, not its contents
 
 The central definition is [`struct vm_object`](../../xnu/osfmk/vm/vm_object_xnu.h#L136-L205). Its `memq` links resident descriptors; its `pager` identifies a provider; its `shadow` can lead to another object's contents. Neither resident pages nor a pager must exist when the object is created. A map entry can also defer creating an anonymous object until it is needed; follow that map-side publication in [maps and entries](vm-maps-and-entries.md).

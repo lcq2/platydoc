@@ -6,6 +6,8 @@ A MAC label is a small protected container through which the framework associate
 
 The [policy-lifetime chapter](../subsystems/security/credential-and-policy-lifetimes.md) explains policy registration, callback iteration and decision aggregation. Here the question is what memory those callbacks receive and which part of that state each framework operation actually owns. Policy modules outside the checkout remain external implementations.
 
+Inspect the live [`label`](layout-browser.md?declaration=label) layout for the selected source profile.
+
 ## 1. The label contains a pointer address and policy slots
 
 The declaration is intentionally small. [Layout and sentinels — `_label.h`, lines 82–89](../../xnu/security/_label.h#L82-L89).
