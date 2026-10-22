@@ -1,8 +1,0 @@
-{
-  "format": "platydoc.prepared-layouts",
-  "version": 1,
-  "archive_sha256": "907be6c6edfc6bd98dd313974894b111e135013869c30952134f5aca66c63c4b",
-  "archive_bytes": 66624887,
-  "producer_manifest_sha256": "6d435b98f262607b3db712967eef9e53bf21ddb2c163a2f3ac112d6e3c03c647",
-  "note": "Exact files exported from a previously prepared book. Embedded producer provenance is preserved unchanged."
-}

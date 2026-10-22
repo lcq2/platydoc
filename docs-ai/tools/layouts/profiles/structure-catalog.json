@@ -325,7 +325,7 @@
       "group": "credentials",
       "component": "bsd",
       "headers": [
-        "sys/ucred.h"
+        "kern/kern_credential.c"
       ],
       "source_candidates": [
         {
@@ -744,9 +744,9 @@
       "key": "vnode_pager",
       "record": "vnode_pager",
       "group": "pager",
-      "component": "bsd",
+      "component": "osfmk",
       "headers": [
-        "vm/vnode_pager.h"
+        "vm/bsd_vm.c"
       ],
       "source_candidates": [
         {
@@ -971,8 +971,7 @@
       "group": "thread-group",
       "component": "osfmk",
       "headers": [
-        "kern/thread.h",
-        "kern/thread_group.h"
+        "kern/thread_group.c"
       ],
       "source_candidates": [
         {

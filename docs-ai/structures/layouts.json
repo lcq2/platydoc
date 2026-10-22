@@ -515,6 +515,156 @@
       "chapters": [
         "subsystems/networking/ipv6-multicast-membership-and-mld.md#three-meanings-of-membership"
       ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/proc_internal.h",
+      "source_sha256": "ce91da98eee5a61856756781c2738a23278d7ac285fe85febca77def961d80af",
+      "offset_bytes": 10606,
+      "kind": "struct",
+      "display_name": "proc",
+      "chapters": [
+        "structures/proc-and-proc-ro.md#1-read-the-fields-by-role-and-protection"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/ipc/ipc_space.h",
+      "source_sha256": "dbd0d9d4e90aa8fcb59a7a5e75ba188e771e387eacd1b98d6d26f515e6d69bc2",
+      "offset_bytes": 6463,
+      "kind": "struct",
+      "display_name": "ipc_space",
+      "chapters": [
+        "structures/ipc-spaces-and-entries.md#1-three-allocations-three-meanings-of-ownership"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/ipc/ipc_port.h",
+      "source_sha256": "fcbf45d2f0c3f60615022a204805a71d1373306211d0fecd35f267c1e0465132",
+      "offset_bytes": 3927,
+      "kind": "struct",
+      "display_name": "ipc_port",
+      "chapters": [
+        "structures/ipc-ports-and-kobjects.md#1-start-with-the-object-header-and-its-containing-allocation"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/file_internal.h",
+      "source_sha256": "b1898582da217112a7c966b2b124525cfeab60f2a66a57c2809fcb7af7da29d3",
+      "offset_bytes": 4456,
+      "kind": "struct",
+      "display_name": "fileproc",
+      "chapters": [
+        "structures/fileprocs-and-fileglobs.md#1-the-sharing-graph-has-several-independent-lifetimes"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/vnode_internal.h",
+      "source_sha256": "068d72e791caad22a9ff5a657219fe526e7554e64dff35cfce9d4f4451c55e9c",
+      "offset_bytes": 6363,
+      "kind": "struct",
+      "display_name": "vnode",
+      "chapters": [
+        "structures/vnodes-and-vnode-identity.md#1-the-allocation-and-the-objects-attached-to-it"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/socketvar.h",
+      "source_sha256": "6082a29193debba902067a7b94ea31a7fa7bede97a325d1778b88ba533077536",
+      "offset_bytes": 5059,
+      "kind": "struct",
+      "display_name": "socket",
+      "chapters": [
+        "structures/sockets-and-protocol-attachments.md#1-one-allocation-several-separately-owned-associations"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/in_pcb.h",
+      "source_sha256": "db33f303e62f8837b4fac84884356702415bd14dbbac6ab497755a58837c39f4",
+      "offset_bytes": 6165,
+      "kind": "struct",
+      "display_name": "inpcb",
+      "chapters": [
+        "structures/internet-pcbs-and-transport-storage.md#1-tcp-allocates-one-aggregate-udp-and-raw-ip-allocate-a-plain-pcb"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet/tcp_var.h",
+      "source_sha256": "cf0ed26bdfa35adb85837df104e6d688c8de73fd56ced914d1350524a455d151",
+      "offset_bytes": 17507,
+      "kind": "struct",
+      "display_name": "tcpcb",
+      "chapters": [
+        "structures/internet-pcbs-and-transport-storage.md#1-tcp-allocates-one-aggregate-udp-and-raw-ip-allocate-a-plain-pcb"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/mbuf.h",
+      "source_sha256": "75f60ef4ec1d4ce44ea4263c9e9412d174c2b45c7571a9d469ca895831240a0f",
+      "offset_bytes": 28419,
+      "kind": "struct",
+      "display_name": "mbuf",
+      "chapters": [
+        "structures/mbufs-and-external-storage.md#1-separate-the-descriptor-its-byte-view-and-its-backing"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/netinet6/in6_var.h",
+      "source_sha256": "9beb06e1d427bc10b3a303b85f81d8a3a39922aaf516ee503a8818b421f92142",
+      "offset_bytes": 6762,
+      "kind": "struct",
+      "display_name": "in6_ifaddr",
+      "chapters": [
+        "subsystems/networking/ipv6-addresses-autoconfiguration-and-dad.md#the-objects-that-outlive-configuration"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/kern/thread_group.c",
+      "source_sha256": "5309a02600062847fc63c89d27e4bcb36b858ae7a1406f5e60ef294f140fe153",
+      "offset_bytes": 1774,
+      "kind": "struct",
+      "display_name": "thread_group",
+      "chapters": [
+        "subsystems/runtime/thread-group-accounting-and-cluster-migration.md#keep-membership-runnable-accounting-and-queue-placement-separate"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/kern/kern_credential.c",
+      "source_sha256": "e93b19664fe8a07f93063e7a0780efd8bea8d1f4b3907afc86fceb6d98ac8bb2",
+      "offset_bytes": 93532,
+      "kind": "struct",
+      "display_name": "ucred_rw",
+      "chapters": [
+        "structures/credentials-and-credential-storage.md#1-three-representations-with-different-storage"
+      ]
+    },
+    {
+      "source_path": "xnu/osfmk/vm/bsd_vm.c",
+      "source_sha256": "cf3e98ab5a3c4d373cd822916201932ac2321602ce3b9095e212c537c33d076b",
+      "offset_bytes": 2948,
+      "kind": "struct",
+      "display_name": "vnode_pager",
+      "chapters": [
+        "structures/ubc-and-vnode-pagers.md#1-four-structures-several-different-kinds-of-ownership"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/ubc_internal.h",
+      "source_sha256": "e6393c93c30560ffe834b6dd54f0e418cc71d1dd9cfa38dd5f7af8e3a85e00b4",
+      "offset_bytes": 6017,
+      "kind": "struct",
+      "display_name": "ubc_info",
+      "chapters": [
+        "structures/ubc-and-vnode-pagers.md#1-four-structures-several-different-kinds-of-ownership"
+      ]
+    },
+    {
+      "source_path": "xnu/bsd/sys/ubc_internal.h",
+      "source_sha256": "e6393c93c30560ffe834b6dd54f0e418cc71d1dd9cfa38dd5f7af8e3a85e00b4",
+      "offset_bytes": 3548,
+      "kind": "struct",
+      "display_name": "cs_blob",
+      "chapters": [
+        "structures/code-signature-blob-storage.md#1-the-wrapper-is-in-an-ro-zone-its-pointees-have-separate-contracts"
+      ]
     }
   ]
 }

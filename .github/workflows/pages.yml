@@ -44,13 +44,18 @@ jobs:
           sudo apt-get install -y cmark-gfm graphviz ripgrep
           python -m pip install -r docs-ai/tools/book/requirements.txt
 
+      - name: Download the locally prepared layout assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python docs-ai/tools/layouts/prepared.py download --reference runtime/prepared-layouts.release.json --output .docs-cache/layouts/prepared-layouts.tar.gz
+
       - uses: actions/configure-pages@v5
 
       - name: Render the handbook using locally prepared layouts
         env:
           DOCS_DIAGRAM_RENDERER: parsed-svg
           PYTHONDONTWRITEBYTECODE: "1"
-        run: python make_docs.py --prepared-layouts runtime/prepared-layouts.tar.gz --publish-only
+        run: python make_docs.py --prepared-layouts .docs-cache/layouts/prepared-layouts.tar.gz --publish-only
 
       - uses: actions/upload-pages-artifact@v4
         with:

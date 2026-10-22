@@ -6,6 +6,8 @@ A `cs_blob` connects a file's signed coverage to parsed signature bytes and acce
 
 This companion follows those storage contracts in `xnu-12377.121.6`. The [format chapter](../subsystems/security/signature-format-and-blob-validation.md) explains container validation and hash selection; the [attachment chapter](../subsystems/security/vnode-signature-lifecycle.md) explains loader/fcntl registration, compatibility and revalidation; [page validation](../subsystems/security/page-signature-validation.md) follows the later use of hashes. Read this chapter alongside those operations when resolving fields and ownership in the source.
 
+Inspect the live [`cs_blob` layout](layout-browser.md?declaration=cs_blob) for the selected source profile.
+
 ## 1. The wrapper is in an RO zone; its pointees have separate contracts
 
 The wrapper comes from `ZONE_ID_CS_BLOB`, declared with both read-only allocation and clearing on free. The adjacent `ubc_info` zone is a different, writable allocation. A protected `csb_mem_kaddr` field does not by itself protect every byte reached through that field. Backing allocation and monitor registration determine the serialized buffer's treatment. [Zone declarations](../../xnu/bsd/kern/ubc_subr.c#L106-L117), [backing allocator](../../xnu/bsd/kern/ubc_subr.c#L3131-L3189).

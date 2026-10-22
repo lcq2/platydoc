@@ -6,7 +6,7 @@ An ordinary BSD process in `xnu-12377.121.6` occupies two allocations: a writabl
 
 [Thread and thread_ro](thread-and-thread-ro.md) follows the protected process associations reached from current execution. [Credential storage](credentials-and-credential-storage.md) follows the `p_ucred` pointer into its own RO allocation, writable lifetime bookkeeping, replacement and retirement.
 
-Inspect the live [`proc_ro`](layout-browser.md?declaration=proc_ro), [`proc_ro_data`](layout-browser.md?declaration=proc_ro_data) layouts for the selected source profile.
+Inspect the live [`proc`](layout-browser.md?declaration=proc), [`proc_ro`](layout-browser.md?declaration=proc_ro), [`proc_ro_data`](layout-browser.md?declaration=proc_ro_data) layouts for the selected source profile.
 
 ## 1. Read the fields by role and protection
 

@@ -57,12 +57,37 @@ json::Object location(SourceLocation loc, const SourceManager &sm) {
           {"offset_bytes", sm.getFileOffset(loc)}};
 }
 
-// Identities contain source bytes, physical paths, scopes and complete macro
-// frames; names, AST ordinals, configurations and raw SourceLocations are absent.
+// Identities bind physical bytes, paths, scopes and macro frames. Pasted tokens
+// also bind their spelling to distinguish outputs from one invocation; scratch
+// offsets/hashes, AST ordinals and raw SourceLocations never enter the key.
 class Identities {
   SourceManager &sm;
+  const LangOptions &language;
   const std::map<std::string, std::string> &paths;
   std::map<std::string, std::string> hashes;
+  bool physical(SourceLocation loc) {
+    if (loc.isInvalid()) return false;
+    loc = sm.getFileLoc(loc);
+    auto path = sm.getFilename(loc);
+    return !sm.isWrittenInScratchSpace(loc) && !path.empty() && path.front() != '<';
+  }
+  std::string generatedToken(SourceLocation loc) {
+    if (!loc.isMacroID() || !sm.isWrittenInScratchSpace(sm.getSpellingLoc(loc)) ||
+        !physical(sm.getExpansionLoc(loc))) return {};
+    bool invalid = false;
+    llvm::SmallString<64> buffer;
+    auto token = Lexer::getSpelling(sm.getSpellingLoc(loc), buffer, sm, language, &invalid);
+    if (invalid || token.empty() || token.size() > 4096) return {};
+    return token.str();
+  }
+  SourceLocation stableSpelling(SourceLocation loc, SourceLocation invocation) {
+    auto spelling = sm.getSpellingLoc(loc);
+    return physical(spelling) ? spelling : invocation;
+  }
+  SourceLocation stableCaller(SourceLocation loc, SourceLocation invocation) {
+    auto caller = sm.getFileLoc(loc);
+    return invocation.isValid() && !physical(caller) ? invocation : caller;
+  }
   std::string barePointKey(SourceLocation loc) {
     if (loc.isInvalid()) return "invalid";
     loc = sm.getFileLoc(loc);
@@ -84,13 +109,16 @@ class Identities {
     return result;
   }
   std::string anchorKey(SourceLocation loc) {
+    const auto token = generatedToken(loc);
+    const auto invocation = token.empty() ? SourceLocation() : sm.getExpansionLoc(loc);
     SourceLocation spelling = sm.getSpellingLoc(loc);
+    if (!token.empty()) spelling = invocation;
     std::string result = pointKey(spelling);
     while (loc.isMacroID()) {
       auto range = sm.getImmediateExpansionRange(loc);
-      result += "|begin:" + pointKey(sm.getSpellingLoc(range.getBegin())) +
-                "|end:" + pointKey(sm.getSpellingLoc(range.getEnd())) +
-                "|caller:" + pointKey(sm.getFileLoc(loc));
+      result += "|begin:" + pointKey(invocation.isValid() ? stableSpelling(range.getBegin(), invocation) : sm.getSpellingLoc(range.getBegin())) +
+                "|end:" + pointKey(invocation.isValid() ? stableSpelling(range.getEnd(), invocation) : sm.getSpellingLoc(range.getEnd())) +
+                "|caller:" + pointKey(stableCaller(loc, invocation));
       loc = sm.getImmediateMacroCallerLoc(loc);
     }
     SourceLocation include = sm.getIncludeLoc(sm.getFileID(spelling));
@@ -98,13 +126,15 @@ class Identities {
       result += "|include:" + pointKey(include);
       include = sm.getIncludeLoc(sm.getFileID(sm.getFileLoc(include)));
     }
+    if (!token.empty()) result += "|generated-token:" + std::to_string(token.size()) + ":" + token;
     return result;
   }
 public:
   std::set<const RecordDecl *> records;
   std::set<const TypedefNameDecl *> aliases;
-  Identities(SourceManager &sm, const std::map<std::string, std::string> &paths)
-      : sm(sm), paths(paths) {}
+  Identities(SourceManager &sm, const LangOptions &language,
+             const std::map<std::string, std::string> &paths)
+      : sm(sm), language(language), paths(paths) {}
   std::string hash(SourceLocation loc) {
     loc = sm.getFileLoc(loc);
     auto path = sm.getFilename(loc).str();
@@ -141,15 +171,19 @@ public:
   }
   json::Object anchor(SourceLocation loc) {
     if (loc.isInvalid()) return json::Object{{"unsupported", true}};
+    const auto token = generatedToken(loc);
+    const auto invocation = token.empty() ? SourceLocation() : sm.getExpansionLoc(loc);
     SourceLocation spelling = sm.getSpellingLoc(loc);
+    if (!token.empty()) spelling = invocation;
     json::Object result{{"spelling", point(spelling)}};
+    if (!token.empty()) result["generated_token"] = token;
     json::Array frames;
     while (loc.isMacroID()) {
       auto range = sm.getImmediateExpansionRange(loc);
       frames.push_back(json::Object{
-          {"begin", point(sm.getSpellingLoc(range.getBegin()))},
-          {"end", point(sm.getSpellingLoc(range.getEnd()))},
-          {"caller", point(sm.getFileLoc(loc))}});
+          {"begin", point(invocation.isValid() ? stableSpelling(range.getBegin(), invocation) : sm.getSpellingLoc(range.getBegin()))},
+          {"end", point(invocation.isValid() ? stableSpelling(range.getEnd(), invocation) : sm.getSpellingLoc(range.getEnd()))},
+          {"caller", point(stableCaller(loc, invocation))}});
       loc = sm.getImmediateMacroCallerLoc(loc);
     }
     result["expansions"] = std::move(frames);
@@ -450,7 +484,7 @@ public:
     if (context.getDiagnostics().hasErrorOccurred()) return;
     DeclarationVisitor visitor;
     visitor.TraverseDecl(context.getTranslationUnitDecl());
-    Identities identity(context.getSourceManager(), paths);
+    Identities identity(context.getSourceManager(), context.getLangOpts(), paths);
     DependencyAST dependencies(context, identity, evidence);
     for (auto *record : visitor.records)
       if (wanted.empty() || wanted.count(record->getNameAsString())) select(record, context);

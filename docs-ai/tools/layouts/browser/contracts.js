@@ -32,6 +32,23 @@
   const hashPattern = /^[a-f0-9]{64}$/;
   const declarationPattern = /^decl-v1:[a-f0-9]{64}$/;
   const macroPattern = /^[A-Za-z_][A-Za-z_0-9]*$/;
+  // Independently authored CE stand-ins support only these original UBC roots.
+  // They are never a source of advertised ABI/type/layout information.
+  function guardUBC(requested, paths, exposed = null) {
+    if (!paths.some(path => path.startsWith('/inputs/layout-compat/'))) return;
+    if (JSON.stringify(requested?.records) !== JSON.stringify(['ubc_info', 'cs_blob']))
+      fail('Layout-only CE context permits only ubc_info and cs_blob.');
+    const unavailable = /\b(?:PlatydocUnavailableCEContext|PlatydocOpaqueCEKernelAPI|CEContext_t|CEKernelAPI_t)\b/;
+    for (const value of Object.values(requested.macros || {})) {
+      const replacement = typeof value === 'string' ? value : value?.replacement || '';
+      if (unavailable.test(replacement) || /\b(?:sizeof|_Alignof|__alignof|__alignof__|alignof|typeof|__typeof|__typeof__|offsetof|__builtin_offsetof)\b/.test(replacement)) fail('Layout-only CE context forbids macro type queries or stand-in references.');
+    }
+    if (exposed !== null) {
+      const text = canonical(exposed);
+      if (unavailable.test(text) || text.includes('/inputs/layout-compat/') || text.includes('layout-compatibility/'))
+        fail('Layout-only CE stand-in-dependent types/declarations/layouts cannot be published.');
+    }
+  }
   // This bound source-entry/probe contract identifies the supported catalog
   // lane. Generic API analyses need not carry Platydoc's source-profile probes.
   const requiresPAC = requested => requested?.target === 'arm64e-apple-ios' && requested.ptrauth_calls === true && requested.ptrauth_intrinsics === true &&
@@ -104,7 +121,12 @@
     for (const site of array(include_sites, 'source include context')) bareSourcePoint(site, inputs);
   }
   function sourceAnchor(value, inputs) {
-    keys(value, ['spelling', 'expansions', 'includes']); sourcePoint(value.spelling, inputs);
+    keys(value, ['spelling', 'expansions', 'includes'], ['generated_token']); sourcePoint(value.spelling, inputs);
+    if (value.generated_token !== undefined) {
+      string(value.generated_token, 'generated macro token');
+      if (!value.generated_token.length || new TextEncoder().encode(value.generated_token).length > 4096 ||
+          !value.expansions.length) fail('invalid generated macro token anchor');
+    }
     for (const frame of array(value.expansions, 'macro expansion frames')) {
       keys(frame, ['begin', 'end', 'caller']);
       for (const name of ['begin', 'end', 'caller']) sourcePoint(frame[name], inputs);
@@ -143,6 +165,7 @@
       string(value, 'file bytes');
     }
     if (!Object.hasOwn(request.files, request.main)) fail('missing main input');
+    guardUBC(request, Object.keys(request.files));
     object(request.macros || {}, 'request macros');
     for (const [name, value] of Object.entries(request.macros || {})) {
       if (!macroPattern.test(name)) fail('invalid macro name');
@@ -165,6 +188,7 @@
       if (derived.includes(name) || !editable.includes(name)) protectedChanges.push(name);
     }
     const request = {...copy(base), macros: {...(base.macros || {}), ...overrides}};
+    guardUBC(request, Object.keys(request.files));
     for (const constraint of policy.constraints || []) {
       keys(constraint, ['name', 'values']);
       if (!macroPattern.test(constraint.name)) fail('invalid constraint name');
@@ -273,6 +297,7 @@
       policy_id: policy.id, protected_changes: protectedChanges, issues};
   }
   async function create(request, result, metadata = {}) {
+    if (request?.files && typeof request.files === 'object') guardUBC(request, Object.keys(request.files));
     if (result.schema !== 2 || !Object.hasOwn(STATUSES, result.status)) fail('transport schema/status unsupported');
     const binding = await bindingFor(request, result);
     if (metadata.profile && !metadata.policy) fail('validated profile requires an explicit baseline policy');
@@ -397,7 +422,8 @@
     const barePointKey = p => new TextEncoder().encode(p.source_path).length + ':' + p.source_path + ':' + p.sha256 + ':' + p.offset_bytes;
     const pointKey = p => barePointKey(p) + p.include_sites.map(site => '|via:' + barePointKey(site)).join('');
     const anchorKey = a => pointKey(a.spelling) + a.expansions.map(f => '|begin:' + pointKey(f.begin) + '|end:' + pointKey(f.end) + '|caller:' + pointKey(f.caller)).join('') +
-      a.includes.map(p => '|include:' + pointKey(p)).join('');
+      a.includes.map(p => '|include:' + pointKey(p)).join('') +
+      (a.generated_token === undefined ? '' : '|generated-token:' + new TextEncoder().encode(a.generated_token).length + ':' + a.generated_token);
     for (const entry of array(d.entries, 'declarations')) {
       keys(entry, ['id', 'kind', 'ast_kind', 'name', 'source', 'scope'], ['owner_id']);
       if (!declarationPattern.test(entry.id) || declarations.has(entry.id)) fail('invalid/duplicate declaration identity');
@@ -549,6 +575,7 @@
       if (id !== await identity('diagnostic-v1', material)) fail('diagnostic hash mismatch');
     }
     const hasError = diagnostics.entries.some(d => ['error', 'fatal'].includes(d.severity));
+    guardUBC(c.requested, [...inputs.keys()], l.status === 'success' ? {declarations: d, layouts: l} : null);
     if (l.status === 'success') validateMandatoryPAC(c);
     if (l.status === 'success' && (hasError || c.context !== 'complete' || c.resolution.status === 'invalid-configuration')) fail('success has errors/incomplete context');
     if (l.status !== 'success' && (l.entries.length || d.entries.length || !hasError)) fail('failure publishes trusted layouts/declarations or lacks an error');

@@ -60,6 +60,26 @@ def result_hash(result):
     return sha(encoded(result) + b'\n')
 
 
+def reuse_case(previous, directory, name, request):
+    if name not in previous['cases']:
+        return None
+    evidence = previous['case_evidence'][name]
+    if evidence['runtime_request_sha256'] != result_hash(request):
+        return None
+    result = copy.deepcopy(previous['results'][previous['cases'].index(name)])
+    if result_hash(result) != evidence['compact_result_sha256']:
+        raise ValueError('Reusable comparison result was changed: ' + name)
+    if evidence['trace'] is not None:
+        trace = evidence['trace']
+        raw = local_path(directory, trace['path']).read_bytes()
+        if len(raw) != trace['bytes'] or sha(raw) != trace['sha256']:
+            raise ValueError('Reusable dependency trace was changed: ' + name)
+        result['dependency_trace'] = json.loads(gzip.decompress(raw))
+    if result_hash(result) != evidence['full_result_sha256']:
+        raise ValueError('Reusable complete response was changed: ' + name)
+    return result, previous['metrics'][name]
+
+
 def validate_pac_context(request, result):
     """The supported iOS lane preserves real compiler features and their fields."""
     if request['target'] != 'arm64e-apple-ios' or request.get('ptrauth_calls') is not True or request.get('ptrauth_intrinsics') is not True:
@@ -84,24 +104,43 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ('bundles', 'native', 'wasm', 'output'):
         parser.add_argument('--' + name, type=Path, required=True)
+    parser.add_argument('--reuse-report', type=Path,
+                        help='Reuse exact request/compiler matches from an earlier local passing comparison')
     args = parser.parse_args()
     manifest = read(args.bundles / 'manifest.json')
     cases = load_cases(args.bundles)
     results, evidence, metrics = [], {}, {}
+    previous, previous_sha, reused = None, None, []
+    if args.reuse_report:
+        raw = args.reuse_report.read_bytes()
+        previous, previous_sha = json.loads(raw), sha(raw)
+        if (previous.get('kind') != 'xnu-catalog-contexts' or previous.get('version') != 1 or
+                previous.get('wasm_parity') != 'passed' or previous.get('dependency_tracing') is not True or
+                previous.get('native_sha256') != sha(args.native.read_bytes()) or
+                previous.get('wasm_factory_sha256') != sha(args.wasm.read_bytes()) or
+                previous.get('wasm_sha256') != sha(args.wasm.with_suffix('.wasm').read_bytes()) or
+                len(previous['cases']) != len(previous['results']) or len(set(previous['cases'])) != len(previous['cases'])):
+            raise ValueError('Reuse requires a passing comparison from exactly the same native/Wasm compiler')
     args.output.parent.mkdir(parents=True, exist_ok=True)
     trace_root = args.output.with_name(args.output.stem + '-traces')
     trace_root.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='layout-catalog-parity-') as temporary:
         root = Path(temporary)
         for name, request in cases:
-            native = run(args.native.resolve(), request)
-            request_file, result_file, metric_file = root / 'request.json', root / 'wasm.json', root / 'metrics.json'
-            request_file.write_bytes(encoded(request))
-            subprocess.run(['node', str(HERE / 'run_catalog_wasm.cjs'), str(args.wasm.resolve()), str(request_file), str(result_file), str(metric_file)],
-                           capture_output=True, check=True, timeout=120)
-            wasm = read(result_file)
-            if native != wasm:
-                raise ValueError('Full native/Wasm compiler response differs: ' + name)
+            cached = reuse_case(previous, args.reuse_report.parent, name, request) if previous else None
+            if cached is not None:
+                native, metric = cached
+                reused.append(name)
+            else:
+                native = run(args.native.resolve(), request)
+                request_file, result_file, metric_file = root / 'request.json', root / 'wasm.json', root / 'metrics.json'
+                request_file.write_bytes(encoded(request))
+                subprocess.run(['node', str(HERE / 'run_catalog_wasm.cjs'), str(args.wasm.resolve()), str(request_file), str(result_file), str(metric_file)],
+                               capture_output=True, check=True, timeout=120)
+                wasm = read(result_file)
+                if native != wasm:
+                    raise ValueError('Full native/Wasm compiler response differs: ' + name)
+                metric = read(metric_file)
             if name in manifest['profiles']:
                 profile = manifest['profiles'][name]
                 original = read(local_path(args.bundles, profile['directory'] + '/native.json'))
@@ -133,14 +172,16 @@ def main():
             evidence[name] = {'directory': directory, 'base_request_sha256': base_hash,
                               'runtime_request_sha256': sha(encoded(request) + b'\n'), 'full_result_sha256': result_hash(native),
                               'compact_result_sha256': result_hash(reduced), 'trace': trace_identity}
-            results.append(reduced);metrics[name] = read(metric_file)
-            print(name, native['status'], 'exact parity', flush=True)
+            results.append(reduced);metrics[name] = metric
+            print(name, native['status'], 'reused exact parity' if cached is not None else 'exact parity', flush=True)
     report = {'kind': 'xnu-catalog-contexts', 'version': 1, 'source': {'release': manifest['source_release'], 'revision': manifest['source_commit']},
               'target': manifest['target'], 'dependency_tracing': True, 'cases': [name for name, _ in cases], 'results': results,
               'case_evidence': evidence, 'requests_sha256': requests_hash(cases), 'requests_hash_algorithm': 'length-prefixed-canonical-json-v1',
               'bundle_manifest_sha256': sha((args.bundles / 'manifest.json').read_bytes()), 'coverage_sha256': manifest['coverage_sha256'],
               'native_sha256': sha(args.native.read_bytes()), 'wasm_factory_sha256': sha(args.wasm.read_bytes()),
               'wasm_sha256': sha(args.wasm.with_suffix('.wasm').read_bytes()), 'wasm_parity': 'passed', 'metrics': metrics}
+    if previous is not None:
+        report.update(reuse_report_sha256=previous_sha, reused_cases=reused)
     args.output.write_bytes(encoded(report) + b'\n')
     print('Catalog native/Wasm comparison:', args.output, flush=True)
 

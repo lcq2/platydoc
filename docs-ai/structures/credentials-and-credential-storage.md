@@ -6,7 +6,7 @@ A credential answers which identity an operation uses. It is not simply the UID 
 
 Read [credential publication and policy lifetimes](../subsystems/security/credential-and-policy-lifetimes.md) for the surrounding authorization algorithms, kauth listeners and MAC registration. The focus here is the concrete object graph, the meaning of each reference, and how to recognize the storage contract at a source call site. [Writing protected fields](read-only-object-updates.md) supplies the common RO mutation backend; it should not be inferred from a credential API's name.
 
-Inspect the live [`ucred`](layout-browser.md?declaration=ucred), [`posix_cred`](layout-browser.md?declaration=posix_cred) layouts for the selected source profile.
+Inspect the live [`ucred`](layout-browser.md?declaration=ucred), [`posix_cred`](layout-browser.md?declaration=posix_cred), and [`ucred_rw`](layout-browser.md?declaration=ucred_rw) layouts for the selected source profile.
 
 ## 1. Three representations with different storage
 

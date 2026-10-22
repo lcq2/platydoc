@@ -6,6 +6,8 @@ A regular-file vnode connects filesystem identity to VM backing through `ubc_inf
 
 Read [file data and cached reads](../subsystems/vfs/file-data-cache-and-read-path.md), [pagers and UPLs](../subsystems/vm/pagers-and-upl.md) and [clustered writeback](../subsystems/vfs/clustered-writeback.md) alongside this chapter for the complete I/O algorithms. Here the central questions are what a pointer represents, which reference keeps it valid, and which operation changes the association.
 
+Inspect the live [`ubc_info`](layout-browser.md?declaration=ubc_info) and [`vnode_pager`](layout-browser.md?declaration=vnode_pager) layouts for the selected source profile.
+
 ## 1. Four structures, several different kinds of ownership
 
 The vnode's `v_un` union uses its `vu_ubcinfo` member for `VREG`; other vnode types use the same storage for mounted-filesystem, socket, special-device or FIFO state. `v_ubcinfo` is the macro spelling of this member. `UBCINFOEXISTS()` checks only that the vnode is non-null, has type `VREG`, and has a non-null UBC pointer. It neither locks nor retains anything, and does not test completion of initialization. [Vnode union](../../xnu/bsd/sys/vnode_internal.h#L175-L185), [member alias](../../xnu/bsd/sys/vnode_internal.h#L238), [existence predicate](../../xnu/bsd/kern/ubc_subr.c#L3025-L3029).

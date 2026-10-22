@@ -36,17 +36,26 @@ reference procedures for targeted investigation and explicit full validation;
 their old acceptance requirements are not a cumulative maintenance checklist.
 
 Local preparation and Pages publication are separate. After generating and
-validating the handbook locally, export its completed layout/browser assets:
+validating the handbook locally, export/upload its completed layout assets:
 
-  python3 docs-ai/tools/layouts/prepared.py export \
-    --book docs-ai-html --output runtime/prepared-layouts.tar.gz
+  python3 docs-ai/tools/layouts/prepared.py publish \
+    --book docs-ai-html --repo lcq2/platydoc
 
-Push that archive with the authored changes. It includes the generated layout
-catalog, header bundles, compiled Wasm runtime, browser assets and notices;
-it includes no native compiler, SDK or LLVM build tree. Pages only renders HTML
-using these prepared outputs and publishes the result:
+This uses an authenticated GitHub CLI and saves only the small
+runtime/prepared-layouts.release.json reference for Git. The archive is a
+versioned release asset, containing the layout catalog, headers, compiled Wasm,
+browser assets and notices, with no native compiler, SDK or LLVM build tree.
+Pages downloads the specified release asset and renders HTML:
 
-  python3 make_docs.py --prepared-layouts runtime/prepared-layouts.tar.gz --publish-only
+  python3 docs-ai/tools/layouts/prepared.py download \
+    --reference runtime/prepared-layouts.release.json \
+    --output .docs-cache/layouts/prepared-layouts.tar.gz
+  python3 make_docs.py --prepared-layouts .docs-cache/layouts/prepared-layouts.tar.gz --publish-only
+
+For the first migration, upload the existing archive using publish --archive,
+then stop tracking it with git rm --cached. See .github/README.md for exact
+commands. Upload must succeed before committing the workflow/reference change.
+The helper never commits, pushes, untracks files or rewrites history itself.
 
 GitHub runs no layout generation, native compiler, comparisons, tests or
 validation. The published browser uses Wasm for interactive analysis and flag
@@ -149,8 +158,10 @@ chain. Names, field indices, configurations, raw SourceLocation/FileID encodings
 and scratch-buffer offsets do not define identity. Fields and aliases have their
 own IDs. Type/layout variants are separate from declaration identity. IDs are
 stable across configurations of identical source inputs, not arbitrary source
-edits or moves. Token-paste scratch-buffer provenance, nonphysical command-line
-spelling and implicit compiler-only aliases fail closed as unsupported; no
+edits or moves. Token-pasted names use a physical macro-invocation anchor,
+physical expansion/include frames and an explicit generated_token discriminator;
+scratch-buffer positions and hashes never enter their IDs. Nonphysical command-line
+spelling and implicit compiler-only aliases still fail closed as unsupported; no
 partial catalog/layout is published. Distinct physical definitions never merge
 by name. Values outside JavaScript's exact integer range are
 rejected, not silently rounded. Request JSON is capped at 64 MiB. This is not
@@ -898,6 +909,8 @@ instead of approximating make execution.
 Reproduce in dedicated caches, preserving historical packages:
   python3 docs-ai/tools/layouts/generate_configs.py --platform iPhoneOS \
     --output .docs-cache/layouts/milestone8-configs
+  python3 docs-ai/tools/layouts/generate_sysproto.py
+  python3 docs-ai/tools/layouts/generate_mig.py
   python3 docs-ai/tools/layouts/survey_catalog.py \
     --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine \
     --config-root .docs-cache/layouts/milestone8-configs \
@@ -913,6 +926,22 @@ On Arch Linux install missing tools through pacman; these scripts never
 download or execute an extracted package. Compiler provisioning remains the
 separate pinned build workflow. A survey with genuine unsupported compiler
 features records failures; it does not authorize a compatibility definition.
+
+generate_sysproto.py uses XNU's unmodified syscall generator with explicit
+SEED_DEFINES (empty by default). generate_mig.py builds the pinned Linux-compatible
+Apple MIG source using installed autoconf/automake, gcc, make, flex and bison,
+then generates four Mach headers from this XNU checkout for each base profile.
+It requires the source archive already present at
+.docs-cache/layouts/mig-tools/port.tar.gz; it performs no download. The exact
+archive URL, revision and SHA-256 are pinned in generate_mig.py. Generated
+headers, source hashes and actual commands accompany the prepared runtime;
+neither browser readers nor GitHub Actions run these generators.
+
+For incremental preparation, pass --reuse-report PATH to compare_catalog.py
+with a previous passing comparison. It reuses results only when all compiler
+artifact hashes and the complete request match, verifies the stored result and
+trace hashes, and checks them against the new survey. Changed contexts run
+normally. Reused case timings describe their original run.
 
 coverage.json contains every root x declared base-profile cell, with distinct
 supported, unavailable, compilation-error, unsupported and invalid-configuration
@@ -961,17 +990,42 @@ Current normal-book defaults are --layout-runtime pointing to that new runtime,
 --layout-native pointing to milestone8-compiler/build-native/bin/layout-engine,
 and --layout-configs pointing to milestone8-configs. The reviewed separate
 artifact-ios.lock.json binds these artifacts. A stale or missing pin/input fails
-closed; normal generation does not provision it. The 16 family include sets
+closed; normal generation does not provision it. The family include sets
 remain separate because mixing task/thread and unrelated BSD headers can change
 source-bound forward-declaration identities even when byte sizes match.
 
-The thread/IPv6 expansion inventories 66 roots: 51 have supported layouts in
-all four base profiles (204 successful cells), and 15 retain explicit boundaries.
-The 64 runtime contexts plus 60 boundary cases and two interventions give 126
-complete native/Wasm comparisons. Added roots cover ARM64 machine/saved state,
+The inventory contains 66 roots with supported layouts in all four base
+profiles (264 successful cells). The 88
+runtime contexts include ARM64 machine/saved state,
 IPv6 address and wire headers, packet options, fragment queues, routes, neighbor
-discovery and multicast. thread_group remains header-opaque; in6_ifaddr's source
-identity is unsupported. No original header fields are removed to admit either.
+discovery and multicast. Token-pasted aliases retain physical macro provenance,
+enabling proc, ipc_space, ipc_port, fileproc, vnode, socket, inpcb, tcpcb, mbuf and
+in6_ifaddr. thread_group uses its complete original C source, explicitly listed
+in source_files; include_diagnostics narrowly suppresses its -Wstatic-in-inline
+warnings without altering declarations. ucred_rw includes original kern_credential.c
+with genuine sysproto.h and approved include-local allocator metadata placeholders
+(__builtin_xnu_type_summary becomes 0, __builtin_xnu_type_signature becomes an empty
+string). Directives shows their exact scope and layout-only meaning. vnode_pager
+includes original bsd_vm.c with genuine per-profile MIG headers. ubc_info and
+cs_blob share a dedicated context with unchanged original headers, older
+Apple-published TrustCache dependencies and independently authored layout-only
+CoreEntitlements declarations. No original KDK headers are packaged. ubc_inputs.py
+pins the public provider source/hash/license and compatibility inputs. The context
+requires both original roots and rejects exposed placeholder-dependent types;
+CoreEntitlements and unrelated pmap metadata layouts are not supported. Directives
+shows the exact compatibility declarations. Changing placeholder storage from
+1 byte to 1024 bytes aligned to 64 bytes left every returned record and declaration
+identical in the focused independence probe.
+
+Local UBC preparation reads the five unmodified TrustCache headers, APPLE_LICENSE
+and source.json from .docs-cache/layouts/trustcache-source. The provider is Apple's
+xnu-8796.101.5 release, commit aca3beaa3dfbd42498b42c5e5ce20a938e6554e5,
+EXTERNAL_HEADERS/TrustCache; source.json records individual file hashes and the
+profile pins that manifest. A prepared runtime preserves those exact inputs and
+notices. The CE compatibility headers are authored under compatibility/ and need
+no SDK or KDK. No KDK archive or extracted KDK content is used in preparation or
+publication. Macro type-query expressions (sizeof/alignof/typeof/offsetof) are rejected in
+this context so custom flags cannot use placeholder storage indirectly.
 
 Generate and verify a separate book, then exercise the current bindings:
   python3 make_docs.py --output .private/structure-expansion-book --cache .docs-cache

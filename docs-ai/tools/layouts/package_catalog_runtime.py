@@ -21,11 +21,13 @@ from survey_catalog import root_meaning, status_for, inputs as survey_inputs, re
 from coverage import validate as validate_coverage
 from build import verify_source
 from catalog import inventory as source_inventory, validate_coverage_package
+from ubc_inputs import load as load_ubc, guard as guard_ubc
 
 
 def validate_request(request, spec, base, component, headers, records,
                      universe, origins, config, configs, result, runtime=False):
     """Reconstruct every context option and byte from its authored inputs."""
+    guard_ubc(request, result)
     expected, mapped = request_for(spec, base, component, headers, records,
                                    universe, origins, config, configs)
     if not set(request['files']).issubset(expected['files']):
@@ -118,6 +120,36 @@ def main():
     llvm_files = json.loads(read_input(args.llvm_source / '.source-files.json'))
     universe, origins, rebuilt_config, rebuilt_snapshot, rebuilt_llvm = survey_inputs(
         spec, args.llvm_source, args.config_root)
+    from generate_sysproto import load as load_syscalls
+    generated_root, generated = load_syscalls(spec, snapshot)
+    if generated != bundle.get('generated_syscalls'):
+        raise ValueError('Generated syscall header provenance differs from survey')
+    generated_files = {}
+    if generated is not None:
+        generated_files = {name: checked(generated_root, name, sha) for name, sha in generated['files'].items()}
+        generated_files['generation.json'] = read_input(generated_root / 'generation.json')
+    from generate_mig import load as load_mig
+    mig_root, mig = load_mig(spec, args.config_root)
+    if mig != bundle.get('generated_mig'):
+        raise ValueError('Generated MIG header provenance differs from survey')
+    mig_files = {}
+    if mig is not None:
+        for profile in mig['profiles'].values():
+            for name, sha in profile['files'].items():
+                name = profile['directory'] + '/' + name
+                mig_files[name] = checked(mig_root, name, sha)
+        mig_files['generation.json'] = read_input(mig_root / 'generation.json')
+        mig_files['MIG-APPLE_LICENSE.txt'] = checked(mig_root, 'MIG-APPLE_LICENSE.txt', mig['license_sha256'])
+    ubc, ubc_files, ubc_root = load_ubc(spec)
+    if ubc != bundle.get('ubc_layout_inputs'):
+        raise ValueError('UBC dependency provenance differs from survey')
+    if ubc is not None:
+        checked(ubc_root, 'source.json', spec['ubc_layout_inputs']['trustcache_provenance_sha256'])
+        for name in ubc['files']:
+            origin = ubc['files'][name]
+            origin_root, original = ((HERE / 'compatibility', name) if origin['kind'] == 'layout-compatibility' else (ubc_root, Path(name).name))
+            checked(origin_root, original, origin['sha256'])
+        checked(ubc_root, 'APPLE_LICENSE', ubc['license_sha256'])
     if (rebuilt_config != config or rebuilt_snapshot != snapshot or rebuilt_llvm != source_identity or
             origins != bundle['discovery_universe']):
         raise ValueError('Survey input universe differs from original source/export rules')
@@ -190,8 +222,9 @@ def main():
                 context['headers'], selected_records, universe, origins, config, args.config_root, result, runtime=True)
             if info['files'] != expected_origins:
                 raise ValueError('Header origins differ from source/export rules')
-            expected_main = spec['diagnostic_preamble'] + ''.join('#include <' + name + '>\n' for name in context['headers'])
-            if request['files'][request['main']] != expected_main or profile['component'] != context['component']:
+            # validate_request above reconstructs the entire entry, including
+            # any include-local diagnostic push/pop, from the authored spec.
+            if profile['component'] != context['component']:
                 raise ValueError('Analysis entry/component differs from authored context')
             for virtual, content in request['files'].items():
                 origin = info['files'][virtual]
@@ -210,6 +243,17 @@ def main():
                     if llvm_files.get(origin['path']) != origin['sha256']:
                         raise ValueError('Resource header lacks compiler-source provenance')
                     checked(args.llvm_source, origin['path'], origin['sha256'])
+                elif origin['kind'] == 'generated-syscalls':
+                    if generated is None or generated['files'].get(origin['path']) != origin['sha256']:
+                        raise ValueError('Generated syscall header lacks original recipe provenance')
+                    checked(generated_root, origin['path'], origin['sha256'])
+                elif origin['kind'] == 'generated-mig':
+                    if mig is None or origin['path'] not in mig_files or digest(mig_files[origin['path']]) != origin['sha256']:
+                        raise ValueError('Generated MIG header lacks original recipe provenance')
+                    checked(mig_root, origin['path'], origin['sha256'])
+                elif origin['kind'] in ('external-header', 'layout-compatibility'):
+                    if ubc is None or ubc['files'].get(origin['path'], {}).get('sha256') != origin['sha256'] or ubc['files'][origin['path']]['kind'] != origin['kind']:
+                        raise ValueError('UBC dependency header lacks reviewed source provenance')
                 elif origin['kind'] != 'analysis-entry' or virtual != request['main']:
                     raise ValueError('Unknown header origin')
         elif name in bundle['unsupported'] and status_for(result)[0] == 'supported':
@@ -253,7 +297,7 @@ def main():
                             'layout_meaning_sha256': result_hash(meaning) if meaning is not None else None})
 
     names = ['package_catalog_runtime.py', 'package_runtime_proof.py', 'package_explorer.py',
-             'survey_catalog.py', 'layout_exports.py', 'coverage.py', 'bundle_xnu.py', 'catalog.py',
+             'survey_catalog.py', 'generate_sysproto.py', 'generate_mig.py', 'ubc_inputs.py', 'compatibility/CoreEntitlements/V2/API.h', 'compatibility/CoreEntitlements/V2/Kernel.h', 'layout_exports.py', 'coverage.py', 'bundle_xnu.py', 'catalog.py',
              'tests/compare_catalog.py', 'tests/run_catalog_wasm.cjs',
              bundle['profile_spec_path'], bundle['inventory_path']]
     names += ['browser/' + name for name in ('layout-codec.js', 'layout-runtime.js', 'layout-worker.js', 'contracts.js', 'dependencies.js')]
@@ -265,7 +309,25 @@ def main():
         stage = Path(temporary) / 'runtime'; stage.mkdir()
         (stage / marker).write_text('Platydoc validated offline catalog runtime\n')
         (stage / 'assets').mkdir()
+        for name, raw in generated_files.items():
+            path = stage / 'generated-syscalls' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+        for name, raw in mig_files.items():
+            path = stage / 'generated-mig' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+        for name, raw in ubc_files.items():
+            path = stage / 'ubc-inputs' / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+        if ubc is not None:
+            write_json(stage / 'ubc-inputs/provenance.json', ubc)
         shutil.copytree(args.notices, stage / 'licenses')
+        if mig_files:
+            (stage / 'licenses/MIG-APPLE_LICENSE.txt').write_bytes(mig_files['MIG-APPLE_LICENSE.txt'])
+        if ubc is not None:
+            (stage / 'licenses/TrustCache-APPLE_LICENSE.txt').write_bytes(ubc_files['TRUSTCACHE-APPLE_LICENSE.txt'])
         for path, name in ((SOURCE_ROOT / 'APPLE_LICENSE', 'XNU-APPLE_LICENSE.txt'),
                            (PROJECT_ROOT / 'LICENSE', 'Platydoc-GPL-2.0-only.txt'),
                            (PROJECT_ROOT / 'LICENSE-DOCS', 'Platydoc-CC-BY-4.0.txt')):

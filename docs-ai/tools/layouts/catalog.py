@@ -116,7 +116,7 @@ def validate_selection_query(query, catalog):
 
 def runtime_files(package):
     return ["layout-codec.js", "layout-runtime.js", "contracts.js", "dependencies.js", "runtime-manifest.json",
-            "runtime-manifest.js", "runtime-provenance.json", "toolchain-provenance.json", "config-provenance.json", "bundle-manifest.json", "native-validation.json"] + (["coverage.json", "coverage-evidence.json", "profile-spec.json", "structure-inventory.json"] if package.get("kind") == "milestone-8-offline-structure-catalog-runtime" else []) + [name for name in package["files"] if name.startswith(("assets/", "licenses/"))]
+            "runtime-manifest.js", "runtime-provenance.json", "toolchain-provenance.json", "config-provenance.json", "bundle-manifest.json", "native-validation.json"] + (["coverage.json", "coverage-evidence.json", "profile-spec.json", "structure-inventory.json"] if package.get("kind") == "milestone-8-offline-structure-catalog-runtime" else []) + [name for name in package["files"] if name.startswith(("assets/", "licenses/", "generated-syscalls/", "generated-mig/", "ubc-inputs/"))]
 
 
 def declaration_rows(entries):
@@ -160,7 +160,7 @@ def tool_inputs():
              "browser/contracts.js", "browser/dependencies.js", "browser/explorer-model.js",
              "browser/layouts.js", "browser/layouts.css", "browser/layouts.html",
              "browser/book-layouts.js", "generate_configs.py", "bundle_xnu.py", "package_explorer.py", "package_xnu_proof.py"]
-    names += ["coverage.py", "layout_exports.py", "survey_catalog.py", "profiles/ios-catalog.json", "profiles/structure-catalog.json"]
+    names += ["coverage.py", "layout_exports.py", "survey_catalog.py", "generate_sysproto.py", "generate_mig.py", "ubc_inputs.py", "compatibility/CoreEntitlements/V2/API.h", "compatibility/CoreEntitlements/V2/Kernel.h", "profiles/ios-catalog.json", "profiles/structure-catalog.json"]
     if (HERE / "artifact-ios.lock.json").is_file():
         names.append("artifact-ios.lock.json")
     paths = [HERE / name for name in names] + [HERE.parent / "paths.py", HERE.parent / "check_links.py", HERE.parent / "book/source_codec.py",
@@ -176,6 +176,41 @@ def generation_provenance(identities, lock, snapshot, mapping):
             "cache_purpose": "Catalog/contracts/bindings only; no prewarmed browser worker or cached override results."}
 
 
+def generated_sources(runtime, bundle, snapshot=None):
+    """Check generated headers against their preserved original-generator evidence."""
+    generated = bundle.get('generated_syscalls')
+    sources = snapshot if snapshot is not None else bundle['source_evidence']
+    if generated is not None:
+        from generate_sysproto import validate_manifest
+        validate_manifest(generated, sources, bundle['tool_inputs']['generate_sysproto.py'])
+        if read_json(runtime / 'generated-syscalls/generation.json') != generated:
+            raise ValueError('Generated syscall provenance differs from surveyed input')
+        for name, sha in generated['files'].items():
+            checked_file(runtime / 'generated-syscalls', name, sha)
+    mig = bundle.get('generated_mig')
+    if mig is not None:
+        from generate_mig import validate_manifest as validate_mig
+        spec = read_json(runtime / 'profile-spec.json')
+        validate_mig(mig, spec, bundle['profile_spec_sha256'], bundle['config_manifest_sha256'],
+                     sources, bundle['tool_inputs']['generate_mig.py'])
+        if read_json(runtime / 'generated-mig/generation.json') != mig:
+            raise ValueError('Generated MIG provenance differs from surveyed input')
+        for profile in mig['profiles'].values():
+            for name, sha in profile['files'].items():
+                checked_file(runtime / 'generated-mig', profile['directory'] + '/' + name, sha)
+        checked_file(runtime / 'generated-mig', 'MIG-APPLE_LICENSE.txt', mig['license_sha256'])
+    ubc = bundle.get('ubc_layout_inputs')
+    if ubc is not None:
+        from ubc_inputs import validate_manifest
+        validate_manifest(ubc, read_json(runtime / 'profile-spec.json'))
+        if read_json(runtime / 'ubc-inputs/provenance.json') != ubc:
+            raise ValueError('UBC dependency provenance differs from surveyed input')
+        for name, origin in ubc['files'].items():
+            checked_file(runtime / 'ubc-inputs', name, origin['sha256'])
+        checked_file(runtime / 'ubc-inputs', 'TRUSTCACHE-APPLE_LICENSE.txt', ubc['license_sha256'])
+    return generated
+
+
 def validate_coverage_package(runtime, manifest, bundle):
     """Recheck the finite survey offline, without trusting coverage labels alone."""
     from coverage import validate as validate_coverage
@@ -183,6 +218,7 @@ def validate_coverage_package(runtime, manifest, bundle):
     coverage = read_json(runtime / "coverage.json")
     authored = read_json(runtime / "structure-inventory.json")
     spec = read_json(runtime / "profile-spec.json")
+    generated_sources(runtime, bundle)
     if digest((runtime / "structure-inventory.json").read_bytes()) != bundle["inventory_sha256"] or digest((runtime / "profile-spec.json").read_bytes()) != bundle["profile_spec_sha256"]:
         raise ValueError("Packaged survey inventory/profile identity differs from bundle")
     result = validate_coverage(coverage, authored, bundle)
@@ -333,6 +369,19 @@ def provisioned(runtime, native, configs):
     if (configs / "config-provenance.json").read_bytes() != config_bytes:
         raise ValueError("Current generated configuration provenance differs from pinned bundle")
     config = json.loads(config_bytes)
+    generated = generated_sources(runtime, bundle, snapshot)
+    if generated is not None:
+        from generate_sysproto import load
+        if load(read_json(runtime / 'profile-spec.json'), snapshot)[1] != generated:
+            raise ValueError('Current generated syscall header differs from packaged input')
+    if bundle.get('generated_mig') is not None:
+        from generate_mig import load as load_mig
+        if load_mig(read_json(runtime / 'profile-spec.json'), configs)[1] != bundle['generated_mig']:
+            raise ValueError('Current generated MIG headers differ from packaged input')
+    if bundle.get('ubc_layout_inputs') is not None:
+        from ubc_inputs import load
+        if load(read_json(runtime / 'profile-spec.json'))[0] != bundle['ubc_layout_inputs']:
+            raise ValueError('Current UBC dependency input differs from packaged input')
     checked_file(HERE, "generate_configs.py", config["generator_sha256"])
     for name, sha in config["source_inputs"].items():
         checked_file(SOURCE_ROOT, name, sha)
@@ -343,6 +392,13 @@ def provisioned(runtime, native, configs):
 
 
 def bridge(entries, source, mapping, partial=False):
+    if len(entries) > 1:
+        combined = {"documents": [], "bindings": []}
+        for entry in entries:
+            checked = bridge([entry], source, mapping, partial)
+            for key in combined:
+                combined[key].extend(checked[key])
+        return combined
     with tempfile.TemporaryFile() as stream:
         stream.write(encoded({"entries": entries, "source": source, "mapping": mapping, "partial": partial}))
         stream.seek(0)
@@ -367,6 +423,25 @@ def request_for(runtime, profile, snapshot, configs, config, bundle):
                 raise ValueError("Bundled XNU header differs from current source: " + virtual)
         elif physical.startswith("generated-config/"):
             checked_file(configs, physical.removeprefix("generated-config/"), sha)
+        elif physical.startswith('generated-syscalls/'):
+            generated = bundle.get('generated_syscalls', {})
+            name = physical.removeprefix('generated-syscalls/')
+            if generated.get('files', {}).get(name) != sha:
+                raise ValueError('Bundled syscall header lacks original-generator provenance')
+            checked_file(runtime / 'generated-syscalls', name, sha)
+        elif physical.startswith('generated-mig/'):
+            name = physical.removeprefix('generated-mig/')
+            selected = bundle.get('generated_mig', {}).get('profiles', {}).get(profile['base_profile'], {})
+            expected = {selected.get('directory', '') + '/' + key: value for key, value in selected.get('files', {}).items()}
+            if expected.get(name) != sha:
+                raise ValueError('Bundled MIG header lacks matching profile provenance')
+            checked_file(runtime / 'generated-mig', name, sha)
+        elif physical.startswith(('external-header/', 'layout-compatibility/')):
+            kind, name = physical.split('/', 1)
+            origin = bundle.get('ubc_layout_inputs', {}).get('files', {}).get(name, {})
+            if origin.get('kind') != kind or origin.get('sha256') != sha:
+                raise ValueError('Unrecognized UBC dependency origin')
+            checked_file(runtime / 'ubc-inputs', name, sha)
         elif virtual.startswith("/inputs/clang-resource/"):
             if bundle["discovery_universe"].get(virtual, {}).get("sha256") != sha:
                 raise ValueError("Bundled Clang resource header lacks pinned provenance")
@@ -378,7 +453,7 @@ def request_for(runtime, profile, snapshot, configs, config, bundle):
 def common_profiles(runtime, native, configs, manifest, lock, config, snapshot, bundle, mapping, cache):
     identities = {"artifact_lock": digest(encoded(lock)), "tools": tool_inputs(),
                   "mapping": digest(encoded(mapping)), "schema": 1}
-    entries, keys = [], []
+    entries, keys, bindings = [], [], []
     for profile in manifest["profiles"]:
         request = request_for(runtime, profile, snapshot, configs, config, bundle)
         key = digest(encoded({"context": identities, "profile": profile["id"], "request": request}))
@@ -395,7 +470,7 @@ def common_profiles(runtime, native, configs, manifest, lock, config, snapshot, 
                     raise ValueError("Cache context mismatch")
                 if candidate["result"].get("status") != "ok" or candidate["result"].get("diagnostics") or candidate["result"]["compiler"]["engine_sha256"] != manifest["compiler"]["engine_sha256"] or candidate["result"]["compiler"]["revision"] != manifest["compiler"]["revision"]:
                     raise ValueError("Cache compiler/status mismatch")
-                bridge([{ "profile": profile["id"], "request": request, "result": candidate["result"], "document": candidate["document"]}], lock["source"], mapping, expanded(lock))
+                validated = bridge([{ "profile": profile["id"], "request": request, "result": candidate["result"], "document": candidate["document"]}], lock["source"], mapping, expanded(lock))
                 value = candidate
             except (ValueError, KeyError, TypeError, OSError):
                 value = None
@@ -404,7 +479,8 @@ def common_profiles(runtime, native, configs, manifest, lock, config, snapshot, 
             result = json.loads(process.stdout)
             if result.get("status") != "ok" or result.get("diagnostics") or result["compiler"]["engine_sha256"] != manifest["compiler"]["engine_sha256"] or result["compiler"]["revision"] != manifest["compiler"]["revision"]:
                 raise ValueError("Pinned common-profile compiler context failed: " + profile["id"])
-            document = bridge([{ "profile": profile["id"], "request": request, "result": result}], lock["source"], mapping, expanded(lock))["documents"][0]
+            validated = bridge([{ "profile": profile["id"], "request": request, "result": result}], lock["source"], mapping, expanded(lock))
+            document = validated["documents"][0]
             value = {"contract": "platydoc.common-profile-layout", "version": 1, "identity": key,
                      "profile": profile["id"], "request_sha256": digest(encoded(request)), "result": result, "document": document}
             cache.mkdir(parents=True, exist_ok=True)
@@ -412,8 +488,10 @@ def common_profiles(runtime, native, configs, manifest, lock, config, snapshot, 
                 raise ValueError("Refusing symlinks in layout cache")
             write_json(cached, {"key": key, "sha256": digest(encoded(value)), "value": value})
         entries.append({**value, "profile": profile["id"], "request": request})
-    validated = bridge(entries, lock["source"], mapping, expanded(lock))
-    return entries, validated["bindings"], identities
+        bindings.append(validated["bindings"][0])
+    # Each profile was already validated above. Combining the entire catalog
+    # duplicates that work and can exceed Node's maximum JSON string length.
+    return entries, bindings, identities
 
 
 def generate(output, book, cache, runtime, native, configs):
@@ -592,6 +670,7 @@ def verify(book):
         if snapshot.get(name) != sha:
             raise ValueError("Configuration recipe inputs differ from source inventory")
     bundle = read_json(output / "bundle-manifest.json")
+    generated_sources(output, bundle, snapshot)
     if bundle["config_manifest_sha256"] != lock["config_provenance_sha256"]:
         raise ValueError("Bundle/config provenance mismatch")
     for origin in bundle["discovery_universe"].values():
@@ -653,6 +732,19 @@ def verify(book):
                 parts = physical.removeprefix("generated-config/").split("/")
                 if len(parts) != 3 or parts[0] != "profiles" or config["profiles"][parts[1]]["files"].get(parts[2]) != sha:
                     raise ValueError("Bundled generated header differs from configuration recipe")
+            if physical and physical.startswith('generated-syscalls/'):
+                if bundle.get('generated_syscalls', {}).get('files', {}).get(physical.removeprefix('generated-syscalls/')) != sha:
+                    raise ValueError('Bundled syscall header differs from original generator output')
+            if physical and physical.startswith('generated-mig/'):
+                selected = bundle.get('generated_mig', {}).get('profiles', {}).get(profile['base_profile'], {})
+                expected = {'generated-mig/' + selected.get('directory', '') + '/' + name: value for name, value in selected.get('files', {}).items()}
+                if expected.get(physical) != sha:
+                    raise ValueError('Bundled MIG header differs from profile generator output')
+            if physical and physical.startswith(('external-header/', 'layout-compatibility/')):
+                kind, name = physical.split('/', 1)
+                origin = bundle.get('ubc_layout_inputs', {}).get('files', {}).get(name, {})
+                if origin.get('kind') != kind or origin.get('sha256') != sha:
+                    raise ValueError('Bundled UBC dependency differs from reviewed source')
             if virtual.startswith("/inputs/clang-resource/") and bundle["discovery_universe"].get(virtual, {}).get("sha256") != sha:
                 raise ValueError("Unpinned compiler resource header")
         if observed != headers["profiles"][profile["id"]]:

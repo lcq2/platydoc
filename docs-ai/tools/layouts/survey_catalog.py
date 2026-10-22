@@ -25,6 +25,9 @@ from build import verify_source
 from catalog import inventory as source_inventory, local_path
 from layout_exports import exported_headers
 from coverage import validate as validate_coverage
+from generate_sysproto import load as generated_syscalls
+from generate_mig import load as generated_mig
+from ubc_inputs import load as ubc_inputs, guard as guard_ubc
 
 
 def encoded(value):
@@ -45,8 +48,10 @@ def write(path, value):
 
 
 def run(native, request):
+    guard_ubc(request)
     process = subprocess.run([str(native)], input=encoded(request), capture_output=True, timeout=90, check=True)
     result = json.loads(process.stdout)
+    guard_ubc(request, result)
     if result.get("status") not in {"ok", "error", "invalid-request", "unsupported-layout", "unavailable-type"}:
         raise ValueError("Unexpected compiler response")
     if result["status"] != "ok" and result.get("records"):
@@ -93,17 +98,23 @@ def inputs(spec, llvm, configs):
     if len(snapshot) != old_pin["files"] or sha(encoded(snapshot)) != old_pin["sha256"]:
         raise ValueError("Selected source inventory changed; review source before surveying")
     source_manifest_sha = verify_source(llvm)
+    generated_syscalls(spec, snapshot)
     llvm_files = read(llvm / ".source-files.json")
     config = read(configs / "config-provenance.json")
+    generated_mig(spec, configs)
+    ubc_inputs(spec)
     if config["source_commit"] != spec["source_commit"] or config["generator_sha256"] != sha((HERE / "generate_configs.py").read_bytes()):
         raise ValueError("Generated configuration recipe changed")
     for path, digest in config["source_inputs"].items():
         if snapshot.get(path) != digest:
             raise ValueError("Configuration source changed")
     files, origins = {}, {}
+    source_files = spec.get("source_files", [])
+    if len(set(source_files)) != len(source_files) or any(name not in snapshot or Path(name).suffix != ".c" for name in source_files):
+        raise ValueError("Additional source inputs must name original inventoried C files")
     for relative, digest in snapshot.items():
         path = SOURCE_ROOT / relative
-        if path.suffix.lower() in {".h", ".inc", ".def", ".defs", ".hpp"}:
+        if path.suffix.lower() in {".h", ".inc", ".def", ".defs", ".hpp"} or relative in source_files:
             virtual = "/inputs/xnu/" + relative
             files[virtual] = path.read_bytes().decode("utf-8")
             origins[virtual] = {"kind": "xnu", "path": relative, "sha256": digest}
@@ -144,19 +155,71 @@ def request_for(spec, base, component, headers, records, files, origins, config,
     board = spec["boards"][selected["soc"]]
     supplied, mapped = dict(files), copy.deepcopy(origins)
     observed = set(spec["observe_macros"])
+    generated_root = None
+    if set(headers) & set(spec.get("generated_syscalls", {}).get("includes", [])):
+        generated_root, generated = generated_syscalls(spec)
+        virtual = '/inputs/generated-syscalls/sys/sysproto.h'
+        supplied[virtual] = (generated_root / 'sys/sysproto.h').read_text()
+        mapped[virtual] = {'kind': 'generated-syscalls', 'path': 'sys/sysproto.h',
+                           'sha256': generated['files']['sys/sysproto.h']}
+    mig_root = None
+    if set(headers) & set(spec.get('generated_mig', {}).get('includes', [])):
+        mig_root, mig = generated_mig(spec, configs)
+        profile = mig['profiles'][base]
+        for name, digest in profile['files'].items():
+            virtual = '/inputs/generated-mig/' + name
+            supplied[virtual] = (mig_root / profile['directory'] / name).read_text()
+            mapped[virtual] = {'kind': 'generated-mig', 'path': profile['directory'] + '/' + name, 'sha256': digest}
+    ubc = None
+    if set(headers) & set(spec.get('ubc_layout_inputs', {}).get('includes', [])):
+        ubc, external, _ = ubc_inputs(spec)
+        records = ['ubc_info', 'cs_blob']
+        for name, origin in ubc['files'].items():
+            prefix = '/inputs/layout-compat/' if origin['kind'] == 'layout-compatibility' else '/inputs/external-trustcache/'
+            virtual = prefix + name
+            supplied[virtual] = external[name].decode()
+            mapped[virtual] = {'kind': origin['kind'], 'path': name, 'sha256': origin['sha256']}
     for name, digest in selected["files"].items():
         if name.endswith(".h"):
             virtual = "/inputs/generated/" + name
             supplied[virtual] = local_path(configs, selected["directory"] + "/" + name).read_text()
             mapped[virtual] = {"kind": "generated-config", "path": selected["directory"] + "/" + name, "sha256": digest}
             observed.update(re.findall(r"^\s*#\s*define\s+([A-Za-z_]\w*)", supplied[virtual], re.M))
-    main = spec["diagnostic_preamble"] + "".join("#include <" + name + ">\n" for name in headers)
+    main = spec["diagnostic_preamble"]
+    if ubc is not None:
+        main += '#define PLATYDOC_COREENTITLEMENTS_LAYOUT_ONLY 1\n'
+        observed.add('PLATYDOC_COREENTITLEMENTS_LAYOUT_ONLY')
+    for name in headers:
+        compatibility = spec.get('include_compatibility', {}).get(name, {})
+        if compatibility and (name != 'kern/kern_credential.c' or compatibility != {
+                '__builtin_xnu_type_summary': '0', '__builtin_xnu_type_signature': '""'}):
+            raise ValueError('Unsupported include-local compiler builtin compatibility')
+        for builtin, replacement in compatibility.items():
+            main += '#pragma push_macro("' + builtin + '")\n#undef ' + builtin + '\n'
+            main += '#define ' + builtin + '(...) ' + replacement + '\n'
+        warnings = spec.get("include_diagnostics", {}).get(name, [])
+        if any(not re.fullmatch(r"-W[a-z0-9-]+", warning) for warning in warnings):
+            raise ValueError("Invalid include-specific diagnostic option")
+        if warnings:
+            main += "#pragma clang diagnostic push\n"
+            main += "".join('#pragma clang diagnostic ignored "' + warning + '"\n' for warning in warnings)
+        main += "#include <" + name + ">\n"
+        if warnings:
+            main += "#pragma clang diagnostic pop\n"
+        for builtin in reversed(compatibility):
+            main += '#pragma pop_macro("' + builtin + '")\n'
     supplied["/inputs/request.c"] = main
     mapped["/inputs/request.c"] = {"kind": "analysis-entry", "path": "inputs/request.c", "sha256": sha(main.encode())}
     macros = {**selected["macros"], **spec["base_macros"], board["board_macro"]: "1", "CURRENT_MACHINE_CONFIG_LC": selected["soc"]}
     if component == "bsd":
         macros.update(spec["bsd_macros"])
     request = {key: copy.deepcopy(spec[key]) for key in ("target", "language", "blocks", "kernel_mode", "ptrauth_intrinsics", "ptrauth_calls", "include_dirs", "forced_includes")}
+    if generated_root is not None:
+        request['include_dirs'].insert(0, '/inputs/generated-syscalls/')
+    if mig_root is not None:
+        request['include_dirs'].insert(0, '/inputs/generated-mig/')
+    if ubc is not None:
+        request['include_dirs'][:0] = ['/inputs/layout-compat/', '/inputs/external-trustcache/']
     request.update({"main": "/inputs/request.c", "files": supplied, "records": list(records), "macros": macros,
                     "target_features": board["target_features"], "trace_files": True, "trace_dependencies": False,
                     "observe_macros": sorted(observed | set(macros))})
@@ -268,7 +331,7 @@ def main():
     files, origins, config, snapshot, llvm_sha = inputs(spec, args.llvm_source, args.config_root)
     compiler_pin = read(HERE / "toolchain.lock.json")["llvm"]
     snapshot_sha = sha(encoded(snapshot))
-    helper_names = ["survey_catalog.py", "layout_exports.py", "coverage.py", "bundle_xnu.py", "catalog.py", "build.py", "generate_configs.py", "engine.cpp", "toolchain.lock.json"]
+    helper_names = ["survey_catalog.py", "layout_exports.py", "coverage.py", "bundle_xnu.py", "catalog.py", "build.py", "generate_configs.py", "generate_sysproto.py", "generate_mig.py", "ubc_inputs.py", "compatibility/CoreEntitlements/V2/API.h", "compatibility/CoreEntitlements/V2/Kernel.h", "engine.cpp", "toolchain.lock.json"]
     helper_inputs = {name: sha((HERE / name).read_bytes()) for name in helper_names}
     native_sha = sha(native.read_bytes())
     config_sha = sha((args.config_root / "config-provenance.json").read_bytes())
@@ -290,6 +353,16 @@ def main():
                    "native_sha256": native_sha, "tool_inputs": helper_inputs,
                    "flag_policy": spec["flag_policy"], "base_profiles": spec["configurations"], "profiles": {}, "unsupported": {},
                    "source_evidence": {path: snapshot[path] for path in spec["evidence"]}, "discovery_universe": origins}
+        _, generated = generated_syscalls(spec, snapshot)
+        if generated is not None:
+            summary['generated_syscalls'] = generated
+        _, mig = generated_mig(spec, args.config_root)
+        if mig is not None:
+            summary['generated_mig'] = mig
+            summary['source_evidence'].update(mig['source_inputs'])
+        ubc, _, _ = ubc_inputs(spec)
+        if ubc is not None:
+            summary['ubc_layout_inputs'] = ubc
         for base in spec["configurations"]:
             for entry in declared["entries"]:
                 request, mapped = request_for(spec, base, entry["component"], entry["headers"], [entry["record"]], files, origins, config, args.config_root)
@@ -376,6 +449,12 @@ def main():
             raise ValueError("Survey compiler/helper changed during generation")
         if sha((args.config_root / "config-provenance.json").read_bytes()) != config_sha:
             raise ValueError("Survey configuration provenance changed during generation")
+        if generated_syscalls(spec, snapshot)[1] != generated:
+            raise ValueError('Generated syscall inputs changed during survey')
+        if generated_mig(spec, args.config_root)[1] != mig:
+            raise ValueError('Generated MIG inputs changed during survey')
+        if ubc_inputs(spec)[0] != ubc:
+            raise ValueError('UBC dependency inputs changed during survey')
         for selected in config["profiles"].values():
             for name, digest in selected["files"].items():
                 if sha(local_path(args.config_root, selected["directory"] + "/" + name).read_bytes()) != digest:

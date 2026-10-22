@@ -48,9 +48,11 @@ const C = require('../browser/contracts.js');
   assert.equal(C.resolvePath(d, flexible.id, ['bytes', {index: 3}], {runtimeLengths: {[d.declarations.entries.find(x => x.kind === 'field' && x.owner_id === flexible.id && x.name === 'bytes').id]: 4}}).root_offset_bits, 56);
   assert.equal(C.resolvePath(d, flexible.id, ['bytes', {index: 100}], {allowFlexiblePreview: true}).bounds, 'runtime-unchecked-preview');
   assert.equal(C.resolvePath(d, record(d, 'Bits').id, ['high']).root_offset_bits, 5); checks += 9;
-  for (const name of ['token-paste', 'command-line-origin', 'implicit-alias', 'ambiguous-selection']) {
+  for (const name of ['command-line-origin', 'implicit-alias', 'ambiguous-selection']) {
     assert.equal(byName.get(name).layouts.status, 'unsupported'); assert.equal(byName.get(name).declarations.entries.length, 0); ++checks;
   }
+  assert.equal(byName.get('token-paste').layouts.status, 'success');
+  assert.equal(record(byName.get('token-paste'), 'Record').size_bytes, 4); checks += 2;
   assert.equal(byName.get('scoped-records').layouts.entries.length, 2);
   const included0 = byName.get('macro-include-0'), included1 = byName.get('macro-include-1');
   assert.equal(record(included0, 'Root').id, record(included1, 'Root').id);

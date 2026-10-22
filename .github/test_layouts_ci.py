@@ -140,7 +140,8 @@ class CITests(unittest.TestCase):
 
     def test_workflow_only_publishes_locally_prepared_layouts(self):
         workflow = (C.ROOT / '.github/workflows/pages.yml').read_text()
-        self.assertIn('--prepared-layouts runtime/prepared-layouts.tar.gz --publish-only', workflow)
+        self.assertIn('prepared.py download --reference runtime/prepared-layouts.release.json', workflow)
+        self.assertIn('--prepared-layouts .docs-cache/layouts/prepared-layouts.tar.gz --publish-only', workflow)
         self.assertIn('actions/upload-pages-artifact@v4', workflow)
         self.assertIn('actions/deploy-pages@v4', workflow)
         for forbidden in ('layouts_ci.py', '--native', 'tests/', 'compare_catalog.py',
