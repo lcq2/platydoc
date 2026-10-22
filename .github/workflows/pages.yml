@@ -4,12 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      full_tests:
-        description: Run the full unit, geometry and runtime regression suites
-        type: boolean
-        required: false
-        default: false
 
 permissions:
   contents: read
@@ -23,9 +17,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-24.04
-    # The first run builds the narrow native/Wasm LLVM targets; warm runs reuse
-    # verified compiler bytes but always recheck the complete semantic matrix.
-    timeout-minutes: 180
+    timeout-minutes: 20
 
     environment:
       name: github-pages
@@ -46,82 +38,19 @@ jobs:
           node-version: "24"
           package-manager-cache: false
 
-      - name: Install build dependencies
+      - name: Install handbook rendering dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmark-gfm graphviz ripgrep clang cmake ninja-build bison flex tcsh unifdef
+          sudo apt-get install -y cmark-gfm graphviz ripgrep
           python -m pip install -r docs-ai/tools/book/requirements.txt
-
-      - name: Check local layout asset loading and recovery
-        run: node docs-ai/tools/layouts/tests/book-layouts.test.cjs
-
-      - name: Run full CI admission regression suite
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_tests == true }}
-        run: python -B .github/test_layouts_ci.py -v
-
-      - name: Compute exact compiler cache identity
-        id: layout-context
-        run: python -B .github/layouts_ci.py context >> "$GITHUB_OUTPUT"
-
-      - name: Cache immutable source downloads
-        uses: actions/cache@v4
-        with:
-          path: .docs-cache/layouts/ci-downloads
-          key: layout-source-archives-${{ hashFiles('docs-ai/tools/layouts/toolchain.lock.json') }}
-
-      - name: Restore compact compiler artifacts
-        id: layout-compiler
-        uses: actions/cache/restore@v4
-        with:
-          path: .docs-cache/layouts/milestone8-compiler
-          key: ${{ steps.layout-context.outputs.cache_key }}
-
-      - name: Provision the pinned native and Wasm compiler
-        run: python -B .github/layouts_ci.py provision
-
-      - name: Generate the iOS catalog and verify native/Wasm equality
-        env:
-          PYTHONDONTWRITEBYTECODE: "1"
-        run: |
-          python -B docs-ai/tools/layouts/generate_configs.py --platform iPhoneOS --output .docs-cache/layouts/milestone8-configs --cc /usr/bin/clang
-          python -B docs-ai/tools/layouts/survey_catalog.py --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine --llvm-source .docs-cache/layouts/ci-build/llvm-source --config-root .docs-cache/layouts/milestone8-configs --output .docs-cache/layouts/structure-bundles
-          python -B docs-ai/tools/layouts/tests/compare_catalog.py --bundles .docs-cache/layouts/structure-bundles --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine --wasm .docs-cache/layouts/milestone8-compiler/build-wasm/bin/layout-engine.js --output .docs-cache/layouts/structure-comparison.json
-
-      - name: Run full layout regression suites
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_tests == true }}
-        run: |
-          python -B docs-ai/tools/layouts/tests/compare_ipv6.py --bundles .docs-cache/layouts/structure-bundles --comparison .docs-cache/layouts/structure-comparison.json --output .docs-cache/layouts/ci-ipv6-geometry.json
-          python -B docs-ai/tools/layouts/tests/compare_pac_guard.py --bundles .docs-cache/layouts/structure-bundles --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine --output .docs-cache/layouts/ci-pac-guard.json
-          python -B docs-ai/tools/layouts/tests/compare_runtime.py --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine --output .docs-cache/layouts/ci-runtime-tests.json
-
-      - name: Package the runtime and admit this runner's artifact pin
-        run: |
-          python -B docs-ai/tools/layouts/package_catalog_runtime.py --native .docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine --wasm .docs-cache/layouts/milestone8-compiler/build-wasm/bin/layout-engine.js --native-report .docs-cache/layouts/structure-comparison.json --bundles .docs-cache/layouts/structure-bundles --config-root .docs-cache/layouts/milestone8-configs --llvm-source .docs-cache/layouts/ci-build/llvm-source --notices .docs-cache/layouts/milestone8-compiler/notices --provenance .docs-cache/layouts/milestone8-compiler/toolchain-provenance.json --output .docs-cache/layouts/structure-runtime
-          python -B .github/layouts_ci.py pin
-
-      - name: Save verified compact compiler artifacts
-        if: steps.layout-compiler.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: .docs-cache/layouts/milestone8-compiler
-          key: ${{ steps.layout-context.outputs.cache_key }}
 
       - uses: actions/configure-pages@v5
 
-      - name: Run full handbook regression suites
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_tests == true }}
+      - name: Render the handbook using locally prepared layouts
         env:
           DOCS_DIAGRAM_RENDERER: parsed-svg
           PYTHONDONTWRITEBYTECODE: "1"
-        run: |
-          python -B -m unittest discover -s docs-ai/tools/book/tests -v
-          node docs-ai/tools/book/tests/assets.test.mjs
-
-      - name: Build and verify the handbook
-        env:
-          DOCS_DIAGRAM_RENDERER: parsed-svg
-          PYTHONDONTWRITEBYTECODE: "1"
-        run: python make_docs.py
+        run: python make_docs.py --prepared-layouts runtime/prepared-layouts.tar.gz --publish-only
 
       - uses: actions/upload-pages-artifact@v4
         with:

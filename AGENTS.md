@@ -308,6 +308,15 @@ within those suites first. A successful build already validates its output;
 do not repeat `--check`, independently rehash the ZIP, or rebuild solely for a
 second reviewer. Reviewers reuse existing evidence and inspect the diff.
 
+Keep local preparation separate from Pages publication. Generate structure
+layouts and validate them locally, then export the completed layout/browser
+assets with `docs-ai/tools/layouts/prepared.py export`. GitHub Actions consumes
+that archive to render the HTML handbook and publish it. It must not build or
+run a native layout compiler, regenerate structure layouts, run comparisons,
+tests or validation. The browser uses the supplied compiled Wasm runtime.
+`--prepared-layouts ... --publish-only` selects this publication path; default
+local builds retain their preparation and validation behavior.
+
 | Change | Required evidence |
 | --- | --- |
 | Authored Markdown or source excerpts | Relevant source review, regenerated navigation if needed, `check_links.py` with zero errors. |

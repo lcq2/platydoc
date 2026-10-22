@@ -35,12 +35,24 @@ HTTPS/fallback matrices or whole-book regressions. The milestone sections are
 reference procedures for targeted investigation and explicit full validation;
 their old acceptance requirements are not a cumulative maintenance checklist.
 
-Pages publication still generates the catalog and compares native/Wasm output
-required by the existing package format. Broad regression suites are opt-in
-through workflow_dispatch full_tests; normal pushes use two quick asset-loader
-tests plus build-time validation. A build already checks its output: do not
-follow it with redundant --check or independent archive audits. Stop after the
-focused checks pass unless a concrete failure justifies more work.
+Local preparation and Pages publication are separate. After generating and
+validating the handbook locally, export its completed layout/browser assets:
+
+  python3 docs-ai/tools/layouts/prepared.py export \
+    --book docs-ai-html --output runtime/prepared-layouts.tar.gz
+
+Push that archive with the authored changes. It includes the generated layout
+catalog, header bundles, compiled Wasm runtime, browser assets and notices;
+it includes no native compiler, SDK or LLVM build tree. Pages only renders HTML
+using these prepared outputs and publishes the result:
+
+  python3 make_docs.py --prepared-layouts runtime/prepared-layouts.tar.gz --publish-only
+
+GitHub runs no layout generation, native compiler, comparisons, tests or
+validation. The published browser uses Wasm for interactive analysis and flag
+changes. Default local builds keep their preparation/validation behavior.
+Stop after focused local checks pass unless a concrete failure justifies more
+work; the historical native proof commands below are offline maintenance only.
 
 Scope
 -----

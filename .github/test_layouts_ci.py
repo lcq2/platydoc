@@ -138,20 +138,14 @@ class CITests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'outside source'):
             C.provision(C.ROOT / 'xnu/downloads', self.root / 'cache', self.root / 'artifacts')
 
-    def test_workflow_never_refreshes_baseline_or_omits_layouts(self):
+    def test_workflow_only_publishes_locally_prepared_layouts(self):
         workflow = (C.ROOT / '.github/workflows/pages.yml').read_text()
-        self.assertNotIn('make-baseline', workflow)
-        self.assertIn('timeout-minutes: 180', workflow)
-        self.assertNotIn('layouts_ci.py check-semantics', workflow)
-        self.assertLess(workflow.index('tests/compare_catalog.py'), workflow.index('layouts_ci.py pin'))
-        self.assertIn('package_catalog_runtime.py', workflow)
-        self.assertIn('survey_catalog.py', workflow)
-        self.assertIn('compare_catalog.py', workflow)
-        self.assertIn('actions/cache/restore@v4', workflow)
-        self.assertIn('default: false', workflow)
-        for name in ('Run full CI admission regression suite', 'Run full layout regression suites', 'Run full handbook regression suites'):
-            step = workflow.split('- name: ' + name + '\n', 1)[1].split('\n      - ', 1)[0]
-            self.assertIn("if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_tests == true }}", step)
+        self.assertIn('--prepared-layouts runtime/prepared-layouts.tar.gz --publish-only', workflow)
+        self.assertIn('actions/upload-pages-artifact@v4', workflow)
+        self.assertIn('actions/deploy-pages@v4', workflow)
+        for forbidden in ('layouts_ci.py', '--native', 'tests/', 'compare_catalog.py',
+                          'survey_catalog.py', 'emsdk', 'cmake', 'ninja-build', '--check'):
+            self.assertNotIn(forbidden, workflow)
 
 
 if __name__ == '__main__': unittest.main()

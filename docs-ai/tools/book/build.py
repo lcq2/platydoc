@@ -649,6 +649,10 @@ def main():
                         help="Source-highlighting workers (default: up to 4)")
     parser.add_argument("--check",action="store_true",
                         help="Validate an already generated book without rebuilding")
+    parser.add_argument("--prepared-layouts", type=Path,
+                        help="Archive of locally prepared book/layouts assets; publishing runs no layout compiler")
+    parser.add_argument("--publish-only", action="store_true",
+                        help="Render/package prepared assets without local validation; requires --prepared-layouts")
     parser.add_argument("--layout-runtime", type=Path, default=ROOT/".docs-cache/layouts/structure-runtime",
                         help="Provisioned pinned offline layout runtime (never downloaded by book generation)")
     parser.add_argument("--layout-native", type=Path, default=ROOT/".docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine",
@@ -656,6 +660,10 @@ def main():
     parser.add_argument("--layout-configs", type=Path, default=ROOT/".docs-cache/layouts/milestone8-configs",
                         help="Generated XNU configuration files matching the pinned runtime provenance")
     args = parser.parse_args()
+    if args.publish_only and not args.prepared_layouts:
+        parser.error("--publish-only requires --prepared-layouts")
+    if args.publish_only and (args.check or args.refresh_catalogs):
+        parser.error("--publish-only cannot run --check or --refresh-catalogs")
     output,cache = args.output.resolve(),args.cache.resolve()
     if args.check:
         missing = sync_notices(handbook_paths(), check=True)
@@ -675,21 +683,23 @@ def main():
         parser.error("Refusing to replace an unmarked, nonempty output directory")
     require_source()
     check_dependencies()
-    from layouts.catalog import provisioned as check_layout_inputs
-    check_layout_inputs(args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
+    if not args.prepared_layouts:
+        from layouts.catalog import provisioned as check_layout_inputs
+        check_layout_inputs(args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
     started=time.monotonic()
     if args.refresh_catalogs:
         log("Refreshing declaration catalogs against local XNU source…")
         run_tool("build_bsd_syscall_catalog.py")
         run_tool("build_mach_trap_catalog.py")
         run_tool("build_mig_catalog.py",timeout=120)
-    log("Refreshing navigation and checking Markdown/source excerpts…")
+    log("Refreshing navigation…" if args.publish_only else "Refreshing navigation and checking Markdown/source excerpts…")
     run_tool("build_toc.py")
     run_tool("build_source_index.py")
     updated = sync_notices(handbook_paths())
     if updated:
         log(f"Updated CC BY 4.0 notices in {len(updated)} Markdown files.")
-    run_tool("check_links.py")
+    if not args.publish_only:
+        run_tool("check_links.py")
     pages=collect_pages()
     # A staging directory prevents a failed build from destroying the last book.
     staging=output.with_name(output.name+".building")
@@ -723,8 +733,9 @@ def main():
     book.render_sources(args.jobs)
     book.copy_downloads()
     from layouts.catalog import integrate as integrate_layouts
-    log("Generating the pinned layout catalog, header bundles and explorer…")
-    layouts = integrate_layouts(staging, cache, args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
+    log("Using prepared layouts and rendering the explorer…" if args.prepared_layouts else "Generating the pinned layout catalog, header bundles and explorer…")
+    layouts = integrate_layouts(staging, cache, args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve(),
+                               prepared=args.prepared_layouts.resolve() if args.prepared_layouts else None)
     write(staging/DOWNLOAD_PAGE, download_page(pages))
     import pygments
     renderers = Counter(ET.parse(staging/path).getroot().get("data-renderer","unknown")
@@ -774,10 +785,11 @@ def main():
           nav=nav_html(pages,"build-info.html"),chapter="BUILD REFERENCE"))
     log("Packaging the complete offline handbook ZIP…")
     create_archive(staging)
-    from .verify import verify_generated
-    log("Checking generated HTML, anchors, assets, SVG and offline ZIP…")
-    checks=verify_generated(staging)
-    log(json.dumps(checks,indent=2))
+    if not args.publish_only:
+        from .verify import verify_generated
+        log("Checking generated HTML, anchors, assets, SVG and offline ZIP…")
+        checks=verify_generated(staging)
+        log(json.dumps(checks,indent=2))
     backup=output.with_name(output.name+".previous")
     if backup.exists():
         if not (backup/".xnu-book").exists():

@@ -518,7 +518,7 @@ def coverage_table(coverage):
     return heading + ''.join(rows) + '</tbody></table></div></section>'
 
 
-def integrate(book, cache, runtime, native, configs):
+def integrate(book, cache, runtime, native, configs, prepared=None):
     """Inject the approved workspace into the authored native-shell chapter."""
     import re
     page = book / PAGE
@@ -530,7 +530,11 @@ def integrate(book, cache, runtime, native, configs):
         if other != page and 'id="' + MARKER + '"' in other.read_text():
             raise ValueError("Reserved explorer marker occurs outside the layout guide")
     output = book / "layouts"
-    generate(output, book, cache / "layout-common-profiles", runtime, native, configs)
+    if prepared is None:
+        generate(output, book, cache / "layout-common-profiles", runtime, native, configs)
+    else:
+        from prepared import unpack
+        unpack(prepared, output)
     template = (HERE / "browser/layouts.html").read_text()
     workspace = '<section id="workspace"' + template.split('<section id="workspace"', 1)[1].split('</main>', 1)[0]
     workspace = re.sub(r'<footer class="mockup-footer">.*?</footer>', '', workspace, flags=re.S)
