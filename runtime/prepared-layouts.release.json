@@ -1,9 +1,9 @@
 {
   "format": "platydoc.prepared-layout-release",
   "version": 1,
-  "repo": "lcq2/platydoc",
-  "tag": "layouts-964cf42e34ede8a89c1fb860d44968127549f2dffa9f197ffbb8af5d836d50c2",
+  "repo": "lcq2/platydoc-data",
+  "tag": "layouts-ca9943ec4ffc38df509d90183c78d31b42ffe10e569755a5e0c8c3076f31848c",
   "asset": "prepared-layouts.tar.gz",
-  "sha256": "964cf42e34ede8a89c1fb860d44968127549f2dffa9f197ffbb8af5d836d50c2",
-  "bytes": 98300216
+  "sha256": "ca9943ec4ffc38df509d90183c78d31b42ffe10e569755a5e0c8c3076f31848c",
+  "bytes": 98277777
 }
