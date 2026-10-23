@@ -39,9 +39,9 @@ flowchart TD
     R --> AST["Eligible AST checks before user execution"]
 ```
 
-The diagram does not imply all paths send messages or allocate server threads. The direct trap implementations and kobject server run in the calling thread's kernel execution. A user-server destination follows IPC queue/receive behavior instead. See [kernel RPC dispatch](../subsystems/ipc/kernel-rpc-and-exceptions.md), [`mach_kernelrpc.c`](../../xnu/osfmk/ipc/mach_kernelrpc.c), and [`ipc_kobject_server()`](../../xnu/osfmk/kern/ipc_kobject.c#L643).
+The diagram does not imply all paths send messages or allocate server threads. The direct trap implementations and kobject server run in the calling thread's kernel execution. A user-server destination follows IPC queue/receive behavior instead. See [kernel RPC dispatch](../subsystems/ipc/kernel-rpc-and-exceptions.md), [`mach_kernelrpc.c`](../../platydoc-data/xnu/osfmk/ipc/mach_kernelrpc.c), and [`ipc_kobject_server()`](../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L643).
 
-For example, `mach_vm_allocate()` can attempt `_kernelrpc_mach_vm_allocate_trap()` and use `_kernelrpc_mach_vm_allocate()` only after the trap returns `MACH_SEND_INVALID_DEST`. The Mach trap index and message ID are unrelated selectors for those two routes. [`libsyscall wrapper`](../../xnu/libsyscall/mach/mach_vm.c#L53-L64).
+For example, `mach_vm_allocate()` can attempt `_kernelrpc_mach_vm_allocate_trap()` and use `_kernelrpc_mach_vm_allocate()` only after the trap returns `MACH_SEND_INVALID_DEST`. The Mach trap index and message ID are unrelated selectors for those two routes. [`libsyscall wrapper`](../../platydoc-data/xnu/libsyscall/mach/mach_vm.c#L53-L64).
 
 ## What each layer validates
 
@@ -56,7 +56,7 @@ For example, `mach_vm_allocate()` can attempt `_kernelrpc_mach_vm_allocate_trap(
 | Subsystem body | Applies object-specific policy, locking, lookup, allocation, waits and cleanup. Dispatch success alone does not establish authorization or completion. |
 | Return/reply | BSD errno/restart state, trap return values or MIG reply `kern_return_t` are different result conventions. Eligible AST handling can intervene before EL0 resumes. |
 
-The shared structures are [`sysent`](../../xnu/bsd/sys/sysent.h#L45), [`mach_trap`](../../xnu/osfmk/kern/syscall_sw.h), [`ipc_kmsg`](../../xnu/osfmk/ipc/ipc_kmsg.h), [`mig_kern_subsystem`](../../xnu/osfmk/mach/mig.h#L122), and the [saved ARM64 execution state](../subsystems/platform/arm64-exception-entry.md).
+The shared structures are [`sysent`](../../platydoc-data/xnu/bsd/sys/sysent.h#L45), [`mach_trap`](../../platydoc-data/xnu/osfmk/kern/syscall_sw.h), [`ipc_kmsg`](../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.h), [`mig_kern_subsystem`](../../platydoc-data/xnu/osfmk/mach/mig.h#L122), and the [saved ARM64 execution state](../subsystems/platform/arm64-exception-entry.md).
 
 ## Multiplexed and generated interfaces
 

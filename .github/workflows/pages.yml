@@ -26,8 +26,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          submodules: recursive
+          submodules: false
           persist-credentials: false
+
+      - name: Initialize the data repository and its XNU source only
+        run: |
+          git submodule update --init platydoc-data
+          git -C platydoc-data submodule update --init xnu
 
       - uses: actions/setup-python@v6
         with:
@@ -44,14 +49,14 @@ jobs:
           sudo apt-get install -y cmark-gfm graphviz ripgrep
           python -m pip install -r docs-ai/tools/book/requirements.txt
 
-      - name: Download the locally prepared layout assets
+      - name: Download the pinned layout data package
         env:
           GH_TOKEN: ${{ github.token }}
         run: python docs-ai/tools/layouts/prepared.py download --reference runtime/prepared-layouts.release.json --output .docs-cache/layouts/prepared-layouts.tar.gz
 
       - uses: actions/configure-pages@v5
 
-      - name: Render the handbook using locally prepared layouts
+      - name: Render the handbook with the prepared Wasm runtime
         env:
           DOCS_DIAGRAM_RENDERER: parsed-svg
           PYTHONDONTWRITEBYTECODE: "1"

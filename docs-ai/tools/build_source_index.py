@@ -50,15 +50,11 @@ def main():
 
     lines = [
         "# Source-reference index", "",
-        "[Guide index](README.md) · [Coverage](coverage.md)", "",
+        "[Guide index](README.md) · [Complete contents](table-of-contents.md)", "",
         "This index maps directly cited local source, interface, build, test, "
         "and upstream documentation files to the guides that cite them. "
         "It does not imply whole-file review; see each subsystem's coverage "
         "table. Directory links are excluded.", "",
-        "Audit reports also cite files to identify future expansion work. Those "
-        "references are navigation evidence, not completed explanations. The "
-        "[coverage audit](coverage-audit.md) and its inventory keep explanatory-guide "
-        "citations separate from audit-only discoveries.", "",
         "Regenerate with `python3 docs-ai/tools/build_source_index.py`.", "",
     ]
     previous_group = None

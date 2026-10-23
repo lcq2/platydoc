@@ -1,14 +1,14 @@
 # XNU handbook: complete table of contents
 
-[Guide index](README.md) · [Expansion audit](expansion-audit.md) · [Coverage and verification](coverage.md)
+[Guide index](README.md) · [Reading guide](reading-guide.md)
 
 This is the reviewable Markdown handbook structure. Every Markdown page is listed below, with its main section headings where useful. Introductory guides establish the objects and vocabulary; the subsequent implementation chapters explain decisions, concurrency, ownership, errors and teardown. Build the local HTML book, including SVG diagrams, with `python3 make_docs.py`; see [build and reading instructions](development/building-html.md).
 
-Use [the expansion audit](expansion-audit.md) to find the newly deepened topics, and [the source index](source-index.md) to navigate from a source file back to its explanations. Section links here target the Markdown headings; source excerpts retain checkout-relative references.
+Use [the source index](source-index.md) to navigate from a source file back to its explanations. Section links here target the Markdown headings; source excerpts retain checkout-relative references.
 
 Regenerate with `python3 docs-ai/tools/build_toc.py`.
 
-## 1. Orientation and review
+## 1. Orientation
 
 - [XNU source guide](README.md)
 - [Architecture and object relationships](architecture.md)
@@ -39,17 +39,6 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Executable memory, synchronization and packet policy](reading-guide.md#executable-memory-synchronization-and-packet-policy)
   - [Exec stacks, executable I/O and scheduler placement](reading-guide.md#exec-stacks-executable-io-and-scheduler-placement)
   - [IPsec interfaces, MPTCP and process inspection](reading-guide.md#ipsec-interfaces-mptcp-and-process-inspection)
-- [Complete documentation coverage audit](coverage-audit.md)
-  - [Scope and method](coverage-audit.md#scope-and-method)
-  - [Source-tree inventory at the audit baseline](coverage-audit.md#source-tree-inventory-at-the-audit-baseline)
-  - [Depth at the audit baseline](coverage-audit.md#depth-at-the-audit-baseline)
-  - [Requested expansion tracks](coverage-audit.md#requested-expansion-tracks)
-  - [General expansion priorities](coverage-audit.md#general-expansion-priorities)
-  - [Improvements to apply across future chapters](coverage-audit.md#improvements-to-apply-across-future-chapters)
-  - [Material that should remain bounded](coverage-audit.md#material-that-should-remain-bounded)
-  - [Audit artifacts and maintenance](coverage-audit.md#audit-artifacts-and-maintenance)
-- [Documentation expansion: topic audit and research record](expansion-audit.md)
-- [Coverage and verification](coverage.md)
 - [Vocabulary and object index](glossary.md)
 - [Source-reference index](source-index.md)
 
@@ -3163,6 +3152,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [6. Failure paths are part of the diagnostic contract](development/panic-coordination-and-records.md#6-failure-paths-are-part-of-the-diagnostic-contract)
   - [Inspection boundary](development/panic-coordination-and-records.md#inspection-boundary)
 - [Building and maintaining the HTML handbook](development/building-html.md)
+  - [Source checkout](development/building-html.md#source-checkout)
   - [Build and open](development/building-html.md#build-and-open)
   - [Reading tools](development/building-html.md#reading-tools)
   - [Structure layout inputs](development/building-html.md#structure-layout-inputs)
@@ -3173,76 +3163,7 @@ Regenerate with `python3 docs-ai/tools/build_toc.py`.
   - [Compact static storage](development/building-html.md#compact-static-storage)
   - [Verification limits](development/building-html.md#verification-limits)
 
-## 17. Coverage audits and expansion plans
-
-- [First-release expansion: networking, memory, IPC and system services](audits/first-release-expansion.md)
-  - [1. Network layer below TCP](audits/first-release-expansion.md#1-network-layer-below-tcp)
-  - [2. Skywalk memory and packets](audits/first-release-expansion.md#2-skywalk-memory-and-packets)
-  - [3. Synchronous Mach IPC](audits/first-release-expansion.md#3-synchronous-mach-ipc)
-  - [4. Compressor, shared cache and reclamation](audits/first-release-expansion.md#4-compressor-shared-cache-and-reclamation)
-  - [5. Diagnostic artifacts](audits/first-release-expansion.md#5-diagnostic-artifacts)
-  - [6. Process-local IPC and terminals](audits/first-release-expansion.md#6-process-local-ipc-and-terminals)
-  - [7. VFS metadata and associated state](audits/first-release-expansion.md#7-vfs-metadata-and-associated-state)
-  - [8. ARM64 platform fundamentals](audits/first-release-expansion.md#8-arm64-platform-fundamentals)
-  - [9. Loading, serialization and NVRAM](audits/first-release-expansion.md#9-loading-serialization-and-nvram)
-  - [10. Audit-priority follow-up](audits/first-release-expansion.md#10-audit-priority-follow-up)
-  - [11. Netif, flow lookup, authorization and ARM64 memory](audits/first-release-expansion.md#11-netif-flow-lookup-authorization-and-arm64-memory)
-  - [12. Packet transformations, filtering, IPC internals and logging](audits/first-release-expansion.md#12-packet-transformations-filtering-ipc-internals-and-logging)
-  - [13. Network policy, identity and shared lookup lifetimes](audits/first-release-expansion.md#13-network-policy-identity-and-shared-lookup-lifetimes)
-  - [14. MTE mitigation from boot policy to allocation and fault](audits/first-release-expansion.md#14-mte-mitigation-from-boot-policy-to-allocation-and-fault)
-  - [15. TCP recovery, Skywalk pipes and Kdebug readout](audits/first-release-expansion.md#15-tcp-recovery-skywalk-pipes-and-kdebug-readout)
-  - [16. Trust controls, lock implementations and Skywalk diagnostics](audits/first-release-expansion.md#16-trust-controls-lock-implementations-and-skywalk-diagnostics)
-  - [17. IOKit queue and service protocols and worked operations](audits/first-release-expansion.md#17-iokit-queue-and-service-protocols-and-worked-operations)
-  - [18. VM fault, UPL and complex IPC state transitions](audits/first-release-expansion.md#18-vm-fault-upl-and-complex-ipc-state-transitions)
-  - [19. Prioritized review: IP control, power policy and instrumentation](audits/first-release-expansion.md#19-prioritized-review-ip-control-power-policy-and-instrumentation)
-  - [20. IPv6 configuration, packet paths and lifetime](audits/first-release-expansion.md#20-ipv6-configuration-packet-paths-and-lifetime)
-  - [Integration and verification scope](audits/first-release-expansion.md#integration-and-verification-scope)
-  - [21. Arguments, identity, integrity, instrumentation and packet state](audits/first-release-expansion.md#21-arguments-identity-integrity-instrumentation-and-packet-state)
-  - [22. Executable memory, synchronization, packet policy and build selection](audits/first-release-expansion.md#22-executable-memory-synchronization-packet-policy-and-build-selection)
-  - [23. Exec stacks, executable I/O and scheduler placement](audits/first-release-expansion.md#23-exec-stacks-executable-io-and-scheduler-placement)
-  - [24. IPsec interfaces, MPTCP and process inspection](audits/first-release-expansion.md#24-ipsec-interfaces-mptcp-and-process-inspection)
-  - [25. Key structures: proc, task and protected updates](audits/first-release-expansion.md#25-key-structures-proc-task-and-protected-updates)
-  - [26. Thread identity, credentials and IPC structures](audits/first-release-expansion.md#26-thread-identity-credentials-and-ipc-structures)
-  - [27. VM structures and memory capabilities](audits/first-release-expansion.md#27-vm-structures-and-memory-capabilities)
-  - [28. File descriptors, vnodes and signed-file storage](audits/first-release-expansion.md#28-file-descriptors-vnodes-and-signed-file-storage)
-  - [29. Message and networking structures](audits/first-release-expansion.md#29-message-and-networking-structures)
-- [Runtime, IPC, and platform documentation coverage audit](audits/runtime-ipc-platform.md)
-  - [Current strengths and boundaries](audits/runtime-ipc-platform.md#current-strengths-and-boundaries)
-  - [Every existing chapter: disposition](audits/runtime-ipc-platform.md#every-existing-chapter-disposition)
-  - [Prioritized expansion candidates](audits/runtime-ipc-platform.md#prioritized-expansion-candidates)
-  - [Follow-on limits and what not to expand by assumption](audits/runtime-ipc-platform.md#follow-on-limits-and-what-not-to-expand-by-assumption)
-- [Coverage audit: VM and driver runtime](audits/vm-and-drivers.md)
-  - [Current strengths and what should be preserved](audits/vm-and-drivers.md#current-strengths-and-what-should-be-preserved)
-  - [Disposition of every VM chapter](audits/vm-and-drivers.md#disposition-of-every-vm-chapter)
-  - [Disposition of every driver chapter](audits/vm-and-drivers.md#disposition-of-every-driver-chapter)
-  - [VM expansion candidates](audits/vm-and-drivers.md#vm-expansion-candidates)
-  - [Driver expansion candidates](audits/vm-and-drivers.md#driver-expansion-candidates)
-  - [Recommended sequence and boundaries](audits/vm-and-drivers.md#recommended-sequence-and-boundaries)
-  - [Audit verification and limits](audits/vm-and-drivers.md#audit-verification-and-limits)
-- [Coverage audit: processes, VFS, networking, and the full Skywalk surface](audits/processes-vfs-networking.md)
-  - [How to read the dispositions and priorities](audits/processes-vfs-networking.md#how-to-read-the-dispositions-and-priorities)
-  - [Chapter-by-chapter disposition](audits/processes-vfs-networking.md#chapter-by-chapter-disposition)
-  - [Prioritized expansion candidates](audits/processes-vfs-networking.md#prioritized-expansion-candidates)
-  - [A12 — P1: complete Skywalk expansion program](audits/processes-vfs-networking.md#a12--p1-complete-skywalk-expansion-program)
-  - [Order of work and residual limits](audits/processes-vfs-networking.md#order-of-work-and-residual-limits)
-- [Coverage audit: security, diagnostics, shared paths and orientation](audits/security-and-development.md)
-  - [What is already strong](audits/security-and-development.md#what-is-already-strong)
-  - [S1. Task and thread rights as an end-to-end capability path — P1](audits/security-and-development.md#s1-task-and-thread-rights-as-an-end-to-end-capability-path--p1)
-  - [S2. Personas and group-resolution identity — P2](audits/security-and-development.md#s2-personas-and-group-resolution-identity--p2)
-  - [S3. Audit-session ports and credential changes — P2](audits/security-and-development.md#s3-audit-session-ports-and-credential-changes--p2)
-  - [S4. Trust-cache control, csops and boot security configuration — P2](audits/security-and-development.md#s4-trust-cache-control-csops-and-boot-security-configuration--p2)
-  - [D1. Crash artifacts: corpse, process core and kernel dump — P1](audits/security-and-development.md#d1-crash-artifacts-corpse-process-core-and-kernel-dump--p1)
-  - [D2. Stackshot collection and kcdata consumption — P1](audits/security-and-development.md#d2-stackshot-collection-and-kcdata-consumption--p1)
-  - [D3. Trace consumption and kernel logging queues — P2](audits/security-and-development.md#d3-trace-consumption-and-kernel-logging-queues--p2)
-  - [D4. DTrace provider-to-action execution — P2](audits/security-and-development.md#d4-dtrace-provider-to-action-execution--p2)
-  - [D5. Sanitizer and coverage instrumentation lifetimes — P2](audits/security-and-development.md#d5-sanitizer-and-coverage-instrumentation-lifetimes--p2)
-  - [D6. Configuration and test evidence attached to implementation chapters — P1](audits/security-and-development.md#d6-configuration-and-test-evidence-attached-to-implementation-chapters--p1)
-  - [C1. SMR hash tables and resizing — P2](audits/security-and-development.md#c1-smr-hash-tables-and-resizing--p2)
-  - [C2. Worked cross-subsystem operations — P2](audits/security-and-development.md#c2-worked-cross-subsystem-operations--p2)
-  - [Chapter-by-chapter disposition](audits/security-and-development.md#chapter-by-chapter-disposition)
-  - [Boundaries and verification](audits/security-and-development.md#boundaries-and-verification)
-
-Listed: 358 pages, excluding this contents page.
+Listed: 350 pages, excluding this contents page.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

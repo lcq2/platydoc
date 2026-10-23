@@ -652,16 +652,14 @@ def main():
     parser.add_argument("--prepared-layouts", type=Path,
                         help="Archive of locally prepared book/layouts assets; publishing runs no layout compiler")
     parser.add_argument("--publish-only", action="store_true",
-                        help="Render/package prepared assets without local validation; requires --prepared-layouts")
-    parser.add_argument("--layout-runtime", type=Path, default=ROOT/".docs-cache/layouts/structure-runtime",
-                        help="Provisioned pinned offline layout runtime (never downloaded by book generation)")
-    parser.add_argument("--layout-native", type=Path, default=ROOT/".docs-cache/layouts/milestone8-compiler/build-native/bin/layout-engine",
-                        help="Provisioned pinned native layout frontend")
-    parser.add_argument("--layout-configs", type=Path, default=ROOT/".docs-cache/layouts/milestone8-configs",
-                        help="Generated XNU configuration files matching the pinned runtime provenance")
+                        help="Render/package selected assets without local validation")
+    parser.add_argument("--update-data", metavar="TAG", help="Download/select a platydoc-data release, then exit")
+    parser.add_argument("--data-repo", default="lcq2/platydoc-data", help="Release repository for --update-data")
     args = parser.parse_args()
-    if args.publish_only and not args.prepared_layouts:
-        parser.error("--publish-only requires --prepared-layouts")
+    if args.update_data:
+        from layouts.prepared import select_release
+        select_release(args.data_repo, args.update_data, ROOT / 'runtime/prepared-layouts.release.json', args.cache.resolve())
+        return 0
     if args.publish_only and (args.check or args.refresh_catalogs):
         parser.error("--publish-only cannot run --check or --refresh-catalogs")
     output,cache = args.output.resolve(),args.cache.resolve()
@@ -683,9 +681,9 @@ def main():
         parser.error("Refusing to replace an unmarked, nonempty output directory")
     require_source()
     check_dependencies()
-    if not args.prepared_layouts:
-        from layouts.catalog import provisioned as check_layout_inputs
-        check_layout_inputs(args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve())
+    from layouts.prepared import cached_archive
+    if args.prepared_layouts is None:
+        args.prepared_layouts = cached_archive(ROOT / 'runtime/prepared-layouts.release.json', cache)
     started=time.monotonic()
     if args.refresh_catalogs:
         log("Refreshing declaration catalogs against local XNU source…")
@@ -734,8 +732,7 @@ def main():
     book.copy_downloads()
     from layouts.catalog import integrate as integrate_layouts
     log("Using prepared layouts and rendering the explorer…" if args.prepared_layouts else "Generating the pinned layout catalog, header bundles and explorer…")
-    layouts = integrate_layouts(staging, cache, args.layout_runtime.resolve(), args.layout_native.resolve(), args.layout_configs.resolve(),
-                               prepared=args.prepared_layouts.resolve() if args.prepared_layouts else None)
+    layouts = integrate_layouts(staging, args.prepared_layouts.resolve())
     write(staging/DOWNLOAD_PAGE, download_page(pages))
     import pygments
     renderers = Counter(ET.parse(staging/path).getroot().get("data-renderer","unknown")

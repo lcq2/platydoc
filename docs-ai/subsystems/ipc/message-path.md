@@ -2,7 +2,7 @@
 
 [IPC overview](README.md) · [Names and rights](names-and-rights.md) · [Detailed send and receive](message-send-receive.md)
 
-A Mach message is a byte sequence plus an ownership transfer. The kernel copies its ordinary bytes, resolves port names in the sender's IPC space, and turns memory descriptors into VM objects. It then gives the resulting `ipc_kmsg` to a destination or queues it until a receiver is ready. Receiving creates names and mappings in the receiving task before copying the user representation to its buffer. A successful send means transport accepted the message; it does not mean a userspace handler has executed. [`ipc_kmsg_copyin_from_user()`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3055), [`ipc_kmsg_send()`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5129), [`mach_msg_receive_results()`](../../../xnu/osfmk/ipc/mach_msg.c#L279).
+A Mach message is a byte sequence plus an ownership transfer. The kernel copies its ordinary bytes, resolves port names in the sender's IPC space, and turns memory descriptors into VM objects. It then gives the resulting `ipc_kmsg` to a destination or queues it until a receiver is ready. Receiving creates names and mappings in the receiving task before copying the user representation to its buffer. A successful send means transport accepted the message; it does not mean a userspace handler has executed. [`ipc_kmsg_copyin_from_user()`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L3055), [`ipc_kmsg_send()`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L5129), [`mach_msg_receive_results()`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L279).
 
 This chapter follows the modern LP64/ARM64 userspace route in this checkout. [The companion chapter](message-send-receive.md) follows allocation, rights, queue locks, blocking, copyout, and failure cleanup in detail. Read [ports and rights lifetime](ports-and-rights-lifecycle.md) for the name-table operations below those calls, and [kernel RPC and exceptions](kernel-rpc-and-exceptions.md) for dispatch after the transport boundary.
 
@@ -29,11 +29,11 @@ flowchart TD
     O --> A[Return from receive; application dispatches request]
 ```
 
-For a **userspace server**, the kernel delivery endpoint is its receive right. A request resides either in that port's message queue or in a selected receiver thread's `ith_kmsg`. The eventual application handler runs after receive copyout and trap return. XNU does not infer a userspace function address from `msgh_id`. A user library or generated MIG demultiplexer interprets that ID. The checked-in `mach_msg_server_once()` demonstrates this boundary: receive completes, then the library calls the supplied `demux` function. [`ipc_mqueue_post()`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L640), [`mach_msg_server_once()`](../../../xnu/libsyscall/mach/mach_msg.c#L561).
+For a **userspace server**, the kernel delivery endpoint is its receive right. A request resides either in that port's message queue or in a selected receiver thread's `ith_kmsg`. The eventual application handler runs after receive copyout and trap return. XNU does not infer a userspace function address from `msgh_id`. A user library or generated MIG demultiplexer interprets that ID. The checked-in `mach_msg_server_once()` demonstrates this boundary: receive completes, then the library calls the supplied `demux` function. [`ipc_mqueue_post()`](../../../platydoc-data/xnu/osfmk/ipc/ipc_mqueue.c#L640), [`mach_msg_server_once()`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L561).
 
-[The userspace server invokes its demultiplexer after receive succeeds](../../../xnu/libsyscall/mach/mach_msg.c#L627).
+[The userspace server invokes its demultiplexer after receive succeeds](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L627).
 
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/mach_msg.c#L627-L632 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L627-L632 -->
 ```c
 	if (mr == MACH_MSG_SUCCESS) {
 		/* we have a request message */
@@ -43,19 +43,19 @@ For a **userspace server**, the kernel delivery endpoint is its receive right. A
 		(void) (*demux)(&bufRequest->Head, &bufReply->Head);
 ```
 
-For a **kernel kobject**, `ipc_kmsg_send()` recognizes a destination in `ipc_space_kernel`, unlocks the port, and directly calls `ipc_kobject_server()`. This is execution in the current kernel call path, not dispatch to a generic kernel server thread. A returned reply kmsg continues into the ordinary reply-port delivery path; a null result means no immediate reply. Typed MIG conversion, method lookup, and error replies are covered by [kernel RPC](kernel-rpc-and-exceptions.md). [`ipc_kmsg_send()`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5218).
+For a **kernel kobject**, `ipc_kmsg_send()` recognizes a destination in `ipc_space_kernel`, unlocks the port, and directly calls `ipc_kobject_server()`. This is execution in the current kernel call path, not dispatch to a generic kernel server thread. A returned reply kmsg continues into the ordinary reply-port delivery path; a null result means no immediate reply. Typed MIG conversion, method lookup, and error replies are covered by [kernel RPC](kernel-rpc-and-exceptions.md). [`ipc_kmsg_send()`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L5218).
 
-For a **userspace exception server**, the producer is a kernel exception RPC, but the handler's receive port still uses the message delivery and userspace copyout machinery. The exception handler runs in its own task after receiving. For a user fault, the faulting thread's exception path waits for/interprets the reply; it is not the userspace handler's execution context. Follow the [exception delivery trace](exception-delivery.md) for action selection, exception message construction, and reply validation. [`exception_deliver()`](../../../xnu/osfmk/kern/exception.c#L192), [`kernel_mach_msg_rpc_common()`](../../../xnu/osfmk/kern/ipc_mig.c#L334).
+For a **userspace exception server**, the producer is a kernel exception RPC, but the handler's receive port still uses the message delivery and userspace copyout machinery. The exception handler runs in its own task after receiving. For a user fault, the faulting thread's exception path waits for/interprets the reply; it is not the userspace handler's execution context. Follow the [exception delivery trace](exception-delivery.md) for action selection, exception message construction, and reply validation. [`exception_deliver()`](../../../platydoc-data/xnu/osfmk/kern/exception.c#L192), [`kernel_mach_msg_rpc_common()`](../../../platydoc-data/xnu/osfmk/kern/ipc_mig.c#L334).
 
 ## What is in a message
 
 [Message integrity and descriptor authentication](message-integrity-and-descriptor-authentication.md) follows the representation changes below into header/count/trailer signing, qualified pointer storage, validation and kernel-buffer relocation.
 
-The public header is 24 bytes in userspace. Its first fields describe bits and total message size; three names describe destination, optional reply right, and voucher; the integer ID belongs to the protocol. In a kernel build, `mach_port_t` in this header can represent a port pointer, so the kernel header occupies 32 bytes. `mach_msg_user_header_t` explicitly preserves the 24-byte user format even in kernel code. [`message.h`](../../../xnu/osfmk/mach/message.h#L660).
+The public header is 24 bytes in userspace. Its first fields describe bits and total message size; three names describe destination, optional reply right, and voucher; the integer ID belongs to the protocol. In a kernel build, `mach_port_t` in this header can represent a port pointer, so the kernel header occupies 32 bytes. `mach_msg_user_header_t` explicitly preserves the 24-byte user format even in kernel code. [`message.h`](../../../platydoc-data/xnu/osfmk/mach/message.h#L660).
 
-[Public header and its kernel/user size assertion](../../../xnu/osfmk/mach/message.h#L609).
+[Public header and its kernel/user size assertion](../../../platydoc-data/xnu/osfmk/mach/message.h#L609).
 
-<!-- source-excerpt: ../../../xnu/osfmk/mach/message.h#L609-L618 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/mach/message.h#L609-L618 -->
 ```c
 
 typedef struct {
@@ -78,7 +78,7 @@ xnu_static_assert_struct_size_kernel_user(mach_msg_header_t, 32, 24);
 | Voucher name | Optional voucher capability | The port is kept separately in `ikm_voucher_port` during kernel processing. |
 | `msgh_id` | Protocol message number | Opaque to ordinary queueing; a server demultiplexer gives it meaning. |
 
-With `MACH_MSGH_BITS_COMPLEX`, a four-byte `mach_msg_body_t` descriptor count follows the header. Descriptors immediately follow that count; ordinary inline bytes follow them. A noncomplex message can still contain arbitrary inline data. The kernel only interprets port names/addresses in declared header fields and descriptors: an integer in inline data is not automatically transferred as a capability. [`message format comment`](../../../xnu/osfmk/mach/message.h#L369), [`descriptor measurement`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2730).
+With `MACH_MSGH_BITS_COMPLEX`, a four-byte `mach_msg_body_t` descriptor count follows the header. Descriptors immediately follow that count; ordinary inline bytes follow them. A noncomplex message can still contain arbitrary inline data. The kernel only interprets port names/addresses in declared header fields and descriptors: an integer in inline data is not automatically transferred as a capability. [`message format comment`](../../../platydoc-data/xnu/osfmk/mach/message.h#L369), [`descriptor measurement`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L2730).
 
 | Descriptor | Important fields | Owned representation after copyin |
 |---|---|---|
@@ -87,11 +87,11 @@ With `MACH_MSGH_BITS_COMPLEX`, a four-byte `mach_msg_body_t` descriptor count fo
 | `mach_msg_ool_ports_descriptor_t` | `address`, `count`, `disposition`, `deallocate`, `copy` | An allocated array of kernel port objects, each with a transferred right. |
 | `mach_msg_guarded_port_descriptor_t` | `name`, `context`, `flags`, `disposition` | A receive-right transfer with guard checks; this implementation accepts `MOVE_RECEIVE`. |
 
-User descriptors have varying sizes: a user port descriptor is 12 bytes; a 64-bit OOL memory descriptor is 16 bytes, versus 12 for its 32-bit form. They therefore cannot be walked as an array of equally sized `mach_msg_descriptor_t` unions. Kernel descriptors have a uniform `KERNEL_DESC_SIZE`; inflation and deflation bridge those representations. [`port descriptor`](../../../xnu/osfmk/mach/message.h#L409), [`OOL descriptor layouts`](../../../xnu/osfmk/mach/message.h#L438), [`guarded descriptor validation`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2527).
+User descriptors have varying sizes: a user port descriptor is 12 bytes; a 64-bit OOL memory descriptor is 16 bytes, versus 12 for its 32-bit form. They therefore cannot be walked as an array of equally sized `mach_msg_descriptor_t` unions. Kernel descriptors have a uniform `KERNEL_DESC_SIZE`; inflation and deflation bridge those representations. [`port descriptor`](../../../platydoc-data/xnu/osfmk/mach/message.h#L409), [`OOL descriptor layouts`](../../../platydoc-data/xnu/osfmk/mach/message.h#L438), [`guarded descriptor validation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L2527).
 
-[The 64-bit OOL descriptor carries an address and transfer controls](../../../xnu/osfmk/mach/message.h#L449).
+[The 64-bit OOL descriptor carries an address and transfer controls](../../../platydoc-data/xnu/osfmk/mach/message.h#L449).
 
-<!-- source-excerpt: ../../../xnu/osfmk/mach/message.h#L449-L457 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/mach/message.h#L449-L457 -->
 ```c
 typedef struct {
 	uint64_t                      address;
@@ -104,13 +104,13 @@ typedef struct {
 xnu_static_assert_struct_size(mach_msg_ool_descriptor64_t, 16);
 ```
 
-The **trailer** is receive metadata appended after the message. Requested formats add sequence number, security token, audit token, and port context to the minimal type/size trailer. Its size must fit in the receive capacity even though it is excluded from `msgh_size`. The sequence number comes from the particular destination port when a message is selected; it does not impose a global order across a port set or force application handlers to finish in order. [`trailer definitions`](../../../xnu/osfmk/mach/message.h#L721), [`receive size check`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L156).
+The **trailer** is receive metadata appended after the message. Requested formats add sequence number, security token, audit token, and port context to the minimal type/size trailer. Its size must fit in the receive capacity even though it is excluded from `msgh_size`. The sequence number comes from the particular destination port when a message is selected; it does not impose a global order across a port set or force application handlers to finish in order. [`trailer definitions`](../../../platydoc-data/xnu/osfmk/mach/message.h#L721), [`receive size check`](../../../platydoc-data/xnu/osfmk/ipc/ipc_mqueue.c#L156).
 
-Sender identity in the trailer comes from kernel-maintained task tokens, not an inline field supplied by the application. `ipc_kmsg_init_trailer_and_sign()` initializes those tokens at send conversion; receive-time deflation supplies the selected sequence/context and requested layout. An audit token is explicitly opaque in its public declaration. [`trailer initialization`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L528), [`audit token`](../../../xnu/osfmk/mach/message.h#L755), [`trailer deflation`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4581).
+Sender identity in the trailer comes from kernel-maintained task tokens, not an inline field supplied by the application. `ipc_kmsg_init_trailer_and_sign()` initializes those tokens at send conversion; receive-time deflation supplies the selected sequence/context and requested layout. An audit token is explicitly opaque in its public declaration. [`trailer initialization`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L528), [`audit token`](../../../platydoc-data/xnu/osfmk/mach/message.h#L755), [`trailer deflation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4581).
 
-[User-sender trailer identity is obtained from the task](../../../xnu/osfmk/ipc/ipc_kmsg.c#L539).
+[User-sender trailer identity is obtained from the task](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L539).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L539-L550 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L539-L550 -->
 ```c
 	mach_msg_max_trailer_t *trailer = ipc_kmsg_get_trailer(kmsg);
 
@@ -128,15 +128,15 @@ Sender identity in the trailer comes from kernel-maintained task tokens, not an 
 
 ## From libsyscall to the ARM64 trap
 
-`mach_msg()` calls `mach_msg_overwrite()`. In the LP64/ARM64 implementation, that wrapper calls `mach_msg2()` using a scalar buffer or a message/auxiliary vector pair. A different receive buffer, supported voucher auxiliary reception, or auxiliary data produced by libdispatch can select vectors. Vector slot 0 is the message; slot 1 is auxiliary data. `msgv_rcv_addr`, when nonzero, supplies a distinct receive address. This is not the same concept as an OOL memory descriptor inside the message. [`mach_msg()`](../../../xnu/libsyscall/mach/mach_msg.c#L160), [`mach_msg_overwrite()`](../../../xnu/libsyscall/mach/mach_msg.c#L190), [`mach_msg_vector_t`](../../../xnu/osfmk/mach/message.h#L632).
+`mach_msg()` calls `mach_msg_overwrite()`. In the LP64/ARM64 implementation, that wrapper calls `mach_msg2()` using a scalar buffer or a message/auxiliary vector pair. A different receive buffer, supported voucher auxiliary reception, or auxiliary data produced by libdispatch can select vectors. Vector slot 0 is the message; slot 1 is auxiliary data. `msgv_rcv_addr`, when nonzero, supplies a distinct receive address. This is not the same concept as an OOL memory descriptor inside the message. [`mach_msg()`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L160), [`mach_msg_overwrite()`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L190), [`mach_msg_vector_t`](../../../platydoc-data/xnu/osfmk/mach/message.h#L632).
 
-The ordinary wrapper normally sets `MACH64_SEND_MQ_CALL`. Its macOS compatibility branch can use `MACH64_SEND_ANY` when the newer auxiliary-data support is unavailable. Message-based kernel interfaces use the appropriate kobject call mode; their generated/client paths are discussed in [kernel RPC](kernel-rpc-and-exceptions.md). Do not equate the public `mach_msg()` function with the deprecated `mach_msg_overwrite_trap()`: the wrapper here uses the modern trap. [`wrapper call mode`](../../../xnu/libsyscall/mach/mach_msg.c#L287), [`legacy trap comment`](../../../xnu/osfmk/ipc/mach_msg.c#L805).
+The ordinary wrapper normally sets `MACH64_SEND_MQ_CALL`. Its macOS compatibility branch can use `MACH64_SEND_ANY` when the newer auxiliary-data support is unavailable. Message-based kernel interfaces use the appropriate kobject call mode; their generated/client paths are discussed in [kernel RPC](kernel-rpc-and-exceptions.md). Do not equate the public `mach_msg()` function with the deprecated `mach_msg_overwrite_trap()`: the wrapper here uses the modern trap. [`wrapper call mode`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L287), [`legacy trap comment`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L805).
 
 `mach_msg2()` packs five pairs of 32-bit fields into the eight-argument trap ABI. The helper reads the descriptor count only for a complex send. Its packing operation is the exact contract the kernel reverses:
 
-[Packing the modern message arguments](../../../xnu/osfmk/mach/message.h#L1540).
+[Packing the modern message arguments](../../../platydoc-data/xnu/osfmk/mach/message.h#L1540).
 
-<!-- source-excerpt: ../../../xnu/osfmk/mach/message.h#L1540-L1547 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/mach/message.h#L1540-L1547 -->
 ```c
 #define MACH_MSG2_SHIFT_ARGS(lo, hi) ((uint64_t)hi << 32 | (uint32_t)lo)
 	return mach_msg2_internal(data, option64,
@@ -156,13 +156,13 @@ The ordinary wrapper normally sets `MACH64_SEND_MQ_CALL`. Its macOS compatibilit
 | `desc_count_and_rcv_name` | Descriptor count | Receive port/port-set name |
 | `rcv_size_and_priority` | Scalar receive capacity; vector receive count in vector mode | Message priority |
 
-The other arguments are `data`, the 64-bit option word, and `timeout`. The kernel casts timeout to `mach_msg_timeout_t`; queue waits convert it from milliseconds to a deadline. In vector mode actual byte sizes live in the copied vector entries, while the packed size positions hold vector counts. [`mach_msg2_trap()`](../../../xnu/osfmk/ipc/mach_msg.c#L927), [`deadline conversion`](../../../xnu/osfmk/ipc/ipc_mqueue.c#L473).
+The other arguments are `data`, the 64-bit option word, and `timeout`. The kernel casts timeout to `mach_msg_timeout_t`; queue waits convert it from milliseconds to a deadline. In vector mode actual byte sizes live in the copied vector entries, while the packed size positions hold vector counts. [`mach_msg2_trap()`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L927), [`deadline conversion`](../../../platydoc-data/xnu/osfmk/ipc/ipc_mqueue.c#L473).
 
-`mach_msg2_internal()` strips library-only interruption controls and calls the assembly trap entry. The shared trap declaration is `kernel_trap(mach_msg2_trap, -47, 8)`. On ARM64 the macro places the negative trap number in `x16`, executes `svc`, then returns to the caller after kernel exit. [`libsyscall call`](../../../xnu/libsyscall/mach/mach_msg.c#L106), [`trap declaration`](../../../xnu/osfmk/mach/syscall_sw.h#L128).
+`mach_msg2_internal()` strips library-only interruption controls and calls the assembly trap entry. The shared trap declaration is `kernel_trap(mach_msg2_trap, -47, 8)`. On ARM64 the macro places the negative trap number in `x16`, executes `svc`, then returns to the caller after kernel exit. [`libsyscall call`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L106), [`trap declaration`](../../../platydoc-data/xnu/osfmk/mach/syscall_sw.h#L128).
 
-[ARM64 trap stub macro](../../../xnu/osfmk/mach/arm/syscall_sw.h#L110).
+[ARM64 trap stub macro](../../../platydoc-data/xnu/osfmk/mach/arm/syscall_sw.h#L110).
 
-<!-- source-excerpt: ../../../xnu/osfmk/mach/arm/syscall_sw.h#L110-L117 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/mach/arm/syscall_sw.h#L110-L117 -->
 ```c
 #define kernel_trap(trap_name, trap_number, num_args) \
 .globl _##trap_name                                           %% \
@@ -174,15 +174,15 @@ _##trap_name:                                                 %% \
     ret
 ```
 
-The exception entry reaches `handle_svc()`, which sends negative syscall numbers through `mach_syscall()` after handling special time traps. `mach_syscall()` negates the number to index `mach_trap_table`, extracts arguments from saved user state, applies enabled trap filters, invokes the selected C function, and writes the result register. Slot 47 names `mach_msg2_trap`. This transport trap is distinct from an individual Mach RPC method ID. See [platform entry/return](../platform/README.md) for saved-state and return mechanics. [`handle_svc()`](../../../xnu/osfmk/arm64/sleh.c#L2743), [`argument extraction`](../../../xnu/osfmk/arm64/bsd_arm64.c#L87), [`mach_syscall()`](../../../xnu/osfmk/arm64/bsd_arm64.c#L194), [`table slot`](../../../xnu/osfmk/kern/syscall_sw.c#L154).
+The exception entry reaches `handle_svc()`, which sends negative syscall numbers through `mach_syscall()` after handling special time traps. `mach_syscall()` negates the number to index `mach_trap_table`, extracts arguments from saved user state, applies enabled trap filters, invokes the selected C function, and writes the result register. Slot 47 names `mach_msg2_trap`. This transport trap is distinct from an individual Mach RPC method ID. See [platform entry/return](../platform/README.md) for saved-state and return mechanics. [`handle_svc()`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2743), [`argument extraction`](../../../platydoc-data/xnu/osfmk/arm64/bsd_arm64.c#L87), [`mach_syscall()`](../../../platydoc-data/xnu/osfmk/arm64/bsd_arm64.c#L194), [`table slot`](../../../platydoc-data/xnu/osfmk/kern/syscall_sw.c#L154).
 
 ## The trap's two operations
 
-`mach_msg2_trap()` derives effective options from the current task's IPC policy and performs option preflight. It then builds `send_uctx.send_header` directly from the packed fields. `msgh_size` starts at zero in that temporary header because the separately supplied size is authoritative. The body/descriptor bytes are subsequently copied from the supplied message address; the first 24 bytes are not recopied to obtain these already supplied header fields. [`trap unpacking`](../../../xnu/osfmk/ipc/mach_msg.c#L965), [`get and inflate`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L2891).
+`mach_msg2_trap()` derives effective options from the current task's IPC policy and performs option preflight. It then builds `send_uctx.send_header` directly from the packed fields. `msgh_size` starts at zero in that temporary header because the separately supplied size is authoritative. The body/descriptor bytes are subsequently copied from the supplied message address; the first 24 bytes are not recopied to obtain these already supplied header fields. [`trap unpacking`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L965), [`get and inflate`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L2891).
 
-[The kernel synthesizes its user-header context from trap arguments](../../../xnu/osfmk/ipc/mach_msg.c#L965).
+[The kernel synthesizes its user-header context from trap arguments](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L965).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/mach_msg.c#L965-L977 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L965-L977 -->
 ```c
 	if (option64 & MACH64_SEND_MSG) {
 		mach_msg_send_uctx_t send_uctx = {
@@ -199,11 +199,11 @@ The exception entry reaches `handle_svc()`, which sends negative syscall numbers
 		mach_msg_priority_t priority = (mach_msg_priority_t)(rs_pr >> 32);
 ```
 
-Sending and receiving are sequential operations. A send error skips receive. Once send succeeds, receive validation can still fail, or receive can time out. There is no rollback of a request already delivered to its destination. The same invocation can therefore return a receive error after the server has started work. With scalar arguments the receive normally overwrites the original buffer; vectors permit a separate receive address. [`send/receive boundary`](../../../xnu/osfmk/ipc/mach_msg.c#L1003), [`receive address selection`](../../../xnu/osfmk/ipc/mach_msg.c#L1021).
+Sending and receiving are sequential operations. A send error skips receive. Once send succeeds, receive validation can still fail, or receive can time out. There is no rollback of a request already delivered to its destination. The same invocation can therefore return a receive error after the server has started work. With scalar arguments the receive normally overwrites the original buffer; vectors permit a separate receive address. [`send/receive boundary`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L1003), [`receive address selection`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L1021).
 
-[A send failure prevents entering the receive branch](../../../xnu/osfmk/ipc/mach_msg.c#L1006).
+[A send failure prevents entering the receive branch](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L1006).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/mach_msg.c#L1006-L1015 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L1006-L1015 -->
 ```c
 send_fail:
 	/* if send failed, skip receive */
@@ -228,11 +228,11 @@ Suppose client C holds a send right named `service_C` to a service port whose re
 | S sends reply | `reply_S`, `MOVE_SEND_ONCE` | Null | Consume the one-use reply capability. |
 | C receives reply | Null | `reply_C`, `PORT_SEND_ONCE` | The destination right has been consumed by delivery; C still owns its reply receive right. |
 
-The header fields are reversed during normal receive **after** rights are translated into the receiving namespace. The disposition names `PORT_SEND`/`PORT_SEND_ONCE` describe the normalized carried right types; for these values the constants alias the corresponding move dispositions. Send-once copyout allocates a distinct name rather than merging with an existing send entry. [`header copyout`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3253), [`reply-name allocation`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3368), [right translation](ports-and-rights-lifecycle.md).
+The header fields are reversed during normal receive **after** rights are translated into the receiving namespace. The disposition names `PORT_SEND`/`PORT_SEND_ONCE` describe the normalized carried right types; for these values the constants alias the corresponding move dispositions. Send-once copyout allocates a distinct name rather than merging with an existing send entry. [`header copyout`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L3253), [`reply-name allocation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L3368), [right translation](ports-and-rights-lifecycle.md).
 
-[The final normal-receive header swaps destination and reply roles](../../../xnu/osfmk/ipc/ipc_kmsg.c#L3620).
+[The final normal-receive header swaps destination and reply roles](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L3620).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L3620-L3624 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L3620-L3624 -->
 ```c
 	msg->msgh_bits = MACH_MSGH_BITS_SET(reply_type, dest_type,
 	    voucher_type, mbits);
@@ -256,7 +256,7 @@ sequenceDiagram
     RP-->>C: Copy out reply and return from receive
 ```
 
-The client can start its receive before or after the reply is posted. The queue covers that race. `mach_msg_server_once()` explicitly sends a reply using the received reply capability; MIG code can move that capability from the request header into its reply. The kernel transport does not automatically create an application reply just because the request had a local port. [`userspace demux and reply send`](../../../xnu/libsyscall/mach/mach_msg.c#L631).
+The client can start its receive before or after the reply is posted. The queue covers that race. `mach_msg_server_once()` explicitly sends a reply using the received reply capability; MIG code can move that capability from the request header into its reply. The kernel transport does not automatically create an application reply just because the request had a local port. [`userspace demux and reply send`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L631).
 
 ## Where to continue and what was inspected
 
@@ -264,16 +264,16 @@ Follow [detailed send and receive](message-send-receive.md) for the precise owne
 
 | Inspection depth | Sources | Scope and limits |
 |---|---|---|
-| Function-body trace | [`libsyscall/mach_msg.c`](../../../xnu/libsyscall/mach/mach_msg.c), [`message.h`](../../../xnu/osfmk/mach/message.h), [`ipc/mach_msg.c`](../../../xnu/osfmk/ipc/mach_msg.c) | Modern wrapper, vectors, packed ABI, restart handling, server-once receive/demux/reply, send/receive phases. Legacy ABI is navigation only. |
-| Function-body trace | [`ipc_kmsg.c`](../../../xnu/osfmk/ipc/ipc_kmsg.c), [`ipc_mqueue.c`](../../../xnu/osfmk/ipc/ipc_mqueue.c) | Allocation/inflation, header/body conversion, representative OOL paths, delivery, blocking, copyout and cleanup; expanded in the companion chapter. |
-| Targeted entry-path read | [`ARM trap macro`](../../../xnu/osfmk/mach/arm/syscall_sw.h), [`syscall_sw.c`](../../../xnu/osfmk/kern/syscall_sw.c), [`sleh.c`](../../../xnu/osfmk/arm64/sleh.c), [`bsd_arm64.c`](../../../xnu/osfmk/arm64/bsd_arm64.c) | ARM64 SVC dispatch and C-call boundary. Full exception-vector/register preservation analysis remains in platform documentation. |
-| Boundary review | [`ipc_policy.c`](../../../xnu/osfmk/ipc/ipc_policy.c), [`ipc_kobject.c`](../../../xnu/osfmk/kern/ipc_kobject.c), [`ipc_mig.c`](../../../xnu/osfmk/kern/ipc_mig.c), [`exception.c`](../../../xnu/osfmk/kern/exception.c) | Destination policy and kernel/user server distinction. Full RPC/exception traces are owned by the linked guide. Generated MIG source and external libdispatch implementation were not built or inspected. |
+| Function-body trace | [`libsyscall/mach_msg.c`](../../../platydoc-data/xnu/libsyscall/mach/mach_msg.c), [`message.h`](../../../platydoc-data/xnu/osfmk/mach/message.h), [`ipc/mach_msg.c`](../../../platydoc-data/xnu/osfmk/ipc/mach_msg.c) | Modern wrapper, vectors, packed ABI, restart handling, server-once receive/demux/reply, send/receive phases. Legacy ABI is navigation only. |
+| Function-body trace | [`ipc_kmsg.c`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c), [`ipc_mqueue.c`](../../../platydoc-data/xnu/osfmk/ipc/ipc_mqueue.c) | Allocation/inflation, header/body conversion, representative OOL paths, delivery, blocking, copyout and cleanup; expanded in the companion chapter. |
+| Targeted entry-path read | [`ARM trap macro`](../../../platydoc-data/xnu/osfmk/mach/arm/syscall_sw.h), [`syscall_sw.c`](../../../platydoc-data/xnu/osfmk/kern/syscall_sw.c), [`sleh.c`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c), [`bsd_arm64.c`](../../../platydoc-data/xnu/osfmk/arm64/bsd_arm64.c) | ARM64 SVC dispatch and C-call boundary. Full exception-vector/register preservation analysis remains in platform documentation. |
+| Boundary review | [`ipc_policy.c`](../../../platydoc-data/xnu/osfmk/ipc/ipc_policy.c), [`ipc_kobject.c`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c), [`ipc_mig.c`](../../../platydoc-data/xnu/osfmk/kern/ipc_mig.c), [`exception.c`](../../../platydoc-data/xnu/osfmk/kern/exception.c) | Destination policy and kernel/user server distinction. Full RPC/exception traces are owned by the linked guide. Generated MIG source and external libdispatch implementation were not built or inspected. |
 
 The snippets are exact ranges from this checkout. These are static source traces, not execution measurements; enabled platform, policy, and configuration branches still matter.
 
 ## Trailer layout at receive time
 
-The receive trailer is selected through message options and appended beyond the message bytes counted by `msgh_size`. Header/body resources can already have been installed before the final byte-copy to userspace. Trailer capacity therefore participates in receive-size selection but is not another user-send descriptor. [Trailer definitions/options](../../../xnu/osfmk/mach/message.h#L721-L910), [deflation](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4581-L4661), [final byte copy](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4740).
+The receive trailer is selected through message options and appended beyond the message bytes counted by `msgh_size`. Header/body resources can already have been installed before the final byte-copy to userspace. Trailer capacity therefore participates in receive-size selection but is not another user-send descriptor. [Trailer definitions/options](../../../platydoc-data/xnu/osfmk/mach/message.h#L721-L910), [deflation](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4581-L4661), [final byte copy](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4740).
 
 | Cumulative trailer form | Added fields | Where this path gets them |
 | --- | --- | --- |
@@ -284,13 +284,13 @@ The receive trailer is selected through message options and appended beyond the 
 | Context form | `msgh_context` | Destination context saved for this receive, converted to receiver width |
 | MAC form | Additional named fields | The inspected deflation body zeroes the post-audit area and writes context; field names do not establish a populated MAC-policy label |
 
-The ordinary sender cannot forge the task tokens by adding similarly named bytes to the message body. Conversely, a token is sender metadata, not automatic authorization for an arbitrary server operation. The server's policy remains a separate decision. [Token capture](../../../xnu/osfmk/ipc/ipc_kmsg.c#L528-L554).
+The ordinary sender cannot forge the task tokens by adding similarly named bytes to the message body. Conversely, a token is sender metadata, not automatic authorization for an arbitrary server operation. The server's policy remains a separate decision. [Token capture](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L528-L554).
 
 On ARM64, explicit 32- and 64-bit output views share the token/sequence layout, while context and later fields differ. The implementation asserts the common offsets and widths, writes the selected sequence/size, clears the post-audit area and selects the appropriate context representation:
 
-[Source: `osfmk/ipc/ipc_kmsg.c`, lines 4617–4640](../../../xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640).
+[Source: `osfmk/ipc/ipc_kmsg.c`, lines 4617–4640](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640).
 
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4617-L4640 -->
 ```c
 	trailer_assert_same_field(msgh_sender);
 	trailer_assert_same_field(msgh_audit);

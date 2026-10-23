@@ -2,20 +2,20 @@
 
 [Execution overview](execution.md) · [Exception return](arm64-exception-return.md) · [Exception levels and monitors](exception-levels-and-monitors.md)
 
-An exception does not directly call a C handler with a ready-made register structure. XNU first establishes which stack it can use, preserves registers before using them as temporaries, builds or locates an `arm_context`, and then calls a handler. The context and the stack on which the handler runs are often different allocations. Follow both pointers through [`locore.s`](../../../xnu/osfmk/arm64/locore.s#L908) and [`exception_asm.h`](../../../xnu/osfmk/arm64/exception_asm.h#L172).
+An exception does not directly call a C handler with a ready-made register structure. XNU first establishes which stack it can use, preserves registers before using them as temporaries, builds or locates an `arm_context`, and then calls a handler. The context and the stack on which the handler runs are often different allocations. Follow both pointers through [`locore.s`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L908) and [`exception_asm.h`](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L172).
 
 This trace covers the AArch64 EL0-to-EL1 path and same-EL kernel exceptions in this checkout. EL1-to-monitor or hypervisor transitions have separate entry contracts, described in [exception levels and monitors](exception-levels-and-monitors.md). Configuration macros below describe source alternatives; they do not identify the build configuration of an arbitrary Apple device.
 
 ## How the CPU finds these vectors
 
-The non-SPTM bootstrap installs `ExceptionVectorsBase` in `VBAR_EL1`, using the `MSR_VBAR_EL1_X0` wrapper where protected-register configurations require it. With `__ARM_KERNEL_PROTECT__`, the first boot initially uses the kernelcache mapping; subsequent CPU resets can use the prepared fixed exception mapping. Later, `arm_vm_prepare_kernel_el0_mappings()` maps the pages spanning `ExceptionVectorsBase` through `ExceptionVectorsEnd` at `ARM_KERNEL_PROTECT_EXCEPTION_START` and updates the boot CPU's VBAR. The mapping is an execution bridge retained when the broader kernel mappings are removed; “EL0 mapping” here does not mean the vector instructions execute at EL0. [`start.s`](../../../xnu/osfmk/arm64/start.s#L728), [`VBAR wrapper`](../../../xnu/osfmk/arm64/start.s#L45), [`arm_vm_init.c`](../../../xnu/osfmk/arm64/arm_vm_init.c#L770).
+The non-SPTM bootstrap installs `ExceptionVectorsBase` in `VBAR_EL1`, using the `MSR_VBAR_EL1_X0` wrapper where protected-register configurations require it. With `__ARM_KERNEL_PROTECT__`, the first boot initially uses the kernelcache mapping; subsequent CPU resets can use the prepared fixed exception mapping. Later, `arm_vm_prepare_kernel_el0_mappings()` maps the pages spanning `ExceptionVectorsBase` through `ExceptionVectorsEnd` at `ARM_KERNEL_PROTECT_EXCEPTION_START` and updates the boot CPU's VBAR. The mapping is an execution bridge retained when the broader kernel mappings are removed; “EL0 mapping” here does not mean the vector instructions execute at EL0. [`start.s`](../../../platydoc-data/xnu/osfmk/arm64/start.s#L728), [`VBAR wrapper`](../../../platydoc-data/xnu/osfmk/arm64/start.s#L45), [`arm_vm_init.c`](../../../platydoc-data/xnu/osfmk/arm64/arm_vm_init.c#L770).
 
-The SPTM cold-start path instead writes `ExceptionVectorsBase` after rebasing/signing the image and before the `FIXUPS_COMPLETE` call. The adjacent comment says SPTM validates and locks VBAR after that call. The externally supplied domain-entry macro and monitor implementation are not present here. [`start_sptm.s`](../../../xnu/osfmk/arm64/sptm/start_sptm.s#L145).
+The SPTM cold-start path instead writes `ExceptionVectorsBase` after rebasing/signing the image and before the `FIXUPS_COMPLETE` call. The adjacent comment says SPTM validates and locks VBAR after that call. The externally supplied domain-entry macro and monitor implementation are not present here. [`start_sptm.s`](../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L145).
 
-`ExceptionVectorsBase` is aligned to 16 KiB with kernel protection and 4 KiB otherwise. Each implemented vector slot is aligned to 128 bytes. There are four categories for each of EL1 using SP0, EL1 using SP1, and lower-EL AArch64 execution: synchronous, IRQ, FIQ, and SError. The source does not implement a fourth group of lower-EL AArch32 entry handlers in this table; remaining space is padded. [`locore.s`, table](../../../xnu/osfmk/arm64/locore.s#L526).
+`ExceptionVectorsBase` is aligned to 16 KiB with kernel protection and 4 KiB otherwise. Each implemented vector slot is aligned to 128 bytes. There are four categories for each of EL1 using SP0, EL1 using SP1, and lower-EL AArch64 execution: synchronous, IRQ, FIQ, and SError. The source does not implement a fourth group of lower-EL AArch32 entry handlers in this table; remaining space is padded. [`locore.s`, table](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L526).
 
-[EL0 synchronous and IRQ vector slots](../../../xnu/osfmk/arm64/locore.s#L576)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L576-L585 -->
+[EL0 synchronous and IRQ vector slots](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L576)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L576-L585 -->
 ```asm
 Lel0_synchronous_vector_64:
 	MAP_KERNEL
@@ -35,10 +35,10 @@ Lel0_irq_vector_64:
 | EL1, SP1 | `+0x200` | `+0x280` | `+0x300` | `+0x380` |
 | Lower EL, AArch64 | `+0x400` | `+0x480` | `+0x500` | `+0x580` |
 
-Offsets follow the ordered `.align 7` slots in [`ExceptionVectorsBase`](../../../xnu/osfmk/arm64/locore.s#L535). The vector identifies the broad category before C runs. ESR decoding is needed to subdivide synchronous exceptions, not to decide whether this was an IRQ or FIQ. In a protected-kernel build the EL0 slots first execute `MAP_KERNEL`: set the low ASID bit in `TTBR0_EL1`, load `TCR_EL1_BOOT`, and execute the specified barriers. This changes the kernel-accessible translation configuration while preserving the task's translation-root relationship. [`MAP_KERNEL`](../../../xnu/osfmk/arm64/locore.s#L198).
+Offsets follow the ordered `.align 7` slots in [`ExceptionVectorsBase`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L535). The vector identifies the broad category before C runs. ESR decoding is needed to subdivide synchronous exceptions, not to decide whether this was an IRQ or FIQ. In a protected-kernel build the EL0 slots first execute `MAP_KERNEL`: set the low ASID bit in `TTBR0_EL1`, load `TCR_EL1_BOOT`, and execute the specified barriers. This changes the kernel-accessible translation configuration while preserving the task's translation-root relationship. [`MAP_KERNEL`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L198).
 
-[MAP_KERNEL: select the kernel ASID](../../../xnu/osfmk/arm64/locore.s#L200)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L200-L203 -->
+[MAP_KERNEL: select the kernel ASID](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L200)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L200-L203 -->
 ```asm
 	/* Switch to the kernel ASID (low bit set) for the task. */
 	mrs		x18, TTBR0_EL1
@@ -46,7 +46,7 @@ Offsets follow the ordered `.align 7` slots in [`ExceptionVectorsBase`](../../..
 	msr		TTBR0_EL1, x18
 ```
 
-`BRANCH_TO_KVA_VECTOR` then obtains `thread → machine.CpuDatap → cpu_exc_vectors`, indexes the long-handler address, and branches into the kernelcache mapping. `cpu_data_init()` supplies the address of `exc_vectors_table`; without kernel protection the macro uses a direct branch. `HAS_MTE` first clears `PSTATE.TCO`, restoring tag checking disabled by hardware on exception entry. [`branch macro`](../../../xnu/osfmk/arm64/locore.s#L234), [`vector pointer initialization`](../../../xnu/osfmk/arm64/cpu.c#L850).
+`BRANCH_TO_KVA_VECTOR` then obtains `thread → machine.CpuDatap → cpu_exc_vectors`, indexes the long-handler address, and branches into the kernelcache mapping. `cpu_data_init()` supplies the address of `exc_vectors_table`; without kernel protection the macro uses a direct branch. `HAS_MTE` first clears `PSTATE.TCO`, restoring tag checking disabled by hardware on exception entry. [`branch macro`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L234), [`vector pointer initialization`](../../../platydoc-data/xnu/osfmk/arm64/cpu.c#L850).
 
 ## Structures and registers that carry the interrupted execution
 
@@ -61,16 +61,16 @@ Offsets follow the ordered `.align 7` slots in [`ExceptionVectorsBase`](../../..
 | `ELR_EL1`, `SPSR_EL1` | Exception return PC and interrupted PSTATE | Captured into `pc` and `cpsr`; later restored to hardware for `eret`. |
 | `ESR_EL1`, `FAR_EL1` | Syndrome and fault address | Interpretation depends on exception class; FAR is not a valid fault address for every exception. |
 
-Definitions and setup: [`machine_thread`](../../../xnu/osfmk/arm/thread.h#L118), [`cpu_data`](../../../xnu/osfmk/arm/cpu_data_internal.h#L140), [`arm_saved_state64`](../../../xnu/osfmk/mach/arm/thread_status.h#L416), [`arm_context`](../../../xnu/osfmk/mach/arm/thread_status.h#L1220), [`machine_thread_create`](../../../xnu/osfmk/arm64/pcb.c#L603), [`set_thread_registers`](../../../xnu/osfmk/arm64/cswitch.s#L187). `genassym.c` derives `TH_UPCB`, `ACT_CPUDATAP`, `ARM_CONTEXT_SIZE`, and `SS64_*` from these C definitions; assembly offsets are not a second manually maintained layout. [`genassym.c`](../../../xnu/osfmk/arm64/genassym.c#L162).
+Definitions and setup: [`machine_thread`](../../../platydoc-data/xnu/osfmk/arm/thread.h#L118), [`cpu_data`](../../../platydoc-data/xnu/osfmk/arm/cpu_data_internal.h#L140), [`arm_saved_state64`](../../../platydoc-data/xnu/osfmk/mach/arm/thread_status.h#L416), [`arm_context`](../../../platydoc-data/xnu/osfmk/mach/arm/thread_status.h#L1220), [`machine_thread_create`](../../../platydoc-data/xnu/osfmk/arm64/pcb.c#L603), [`set_thread_registers`](../../../platydoc-data/xnu/osfmk/arm64/cswitch.s#L187). `genassym.c` derives `TH_UPCB`, `ACT_CPUDATAP`, `ARM_CONTEXT_SIZE`, and `SS64_*` from these C definitions; assembly offsets are not a second manually maintained layout. [`genassym.c`](../../../platydoc-data/xnu/osfmk/arm64/genassym.c#L162).
 
-There are also smaller `arm_kernel_context`/`arm_kernel_saved_state` structures for scheduler context switching. Do not confuse those callee-preserved kernel registers with the full asynchronous exception snapshot. [`thread_status.h`](../../../xnu/osfmk/mach/arm/thread_status.h#L456), [`cswitch.s`](../../../xnu/osfmk/arm64/cswitch.s#L367).
+There are also smaller `arm_kernel_context`/`arm_kernel_saved_state` structures for scheduler context switching. Do not confuse those callee-preserved kernel registers with the full asynchronous exception snapshot. [`thread_status.h`](../../../platydoc-data/xnu/osfmk/mach/arm/thread_status.h#L456), [`cswitch.s`](../../../platydoc-data/xnu/osfmk/arm64/cswitch.s#L367).
 
 ## EL0 entry: preserve the user stack pointer, then stop using it
 
-The lower-EL vector starts on the exception stack. `EL0_64_VECTOR` briefly saves x0/x1 there, authenticates and loads the current thread's PCB pointer, records `SP_EL0` into the PCB, and temporarily makes SP0 point at that PCB. Once `SPSel` selects SP0, stores through `sp` write saved registers into the PCB; they do not write to the userspace stack. x0/x1 are restored from the exception stack before SP0 is selected. With kernel protection x18 has already been used as scratch and is zeroed before spilling. [`EL0_64_VECTOR`](../../../xnu/osfmk/arm64/locore.s#L908), [`LOAD_USER_PCB`](../../../xnu/osfmk/arm64/machine_routines_asm.h#L174).
+The lower-EL vector starts on the exception stack. `EL0_64_VECTOR` briefly saves x0/x1 there, authenticates and loads the current thread's PCB pointer, records `SP_EL0` into the PCB, and temporarily makes SP0 point at that PCB. Once `SPSel` selects SP0, stores through `sp` write saved registers into the PCB; they do not write to the userspace stack. x0/x1 are restored from the exception stack before SP0 is selected. With kernel protection x18 has already been used as scratch and is zeroed before spilling. [`EL0_64_VECTOR`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L908), [`LOAD_USER_PCB`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.h#L174).
 
-[EL0_64_VECTOR: save the user SP and select PCB storage](../../../xnu/osfmk/arm64/locore.s#L909)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L909-L923 -->
+[EL0_64_VECTOR: save the user SP and select PCB storage](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L909)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L909-L923 -->
 ```asm
 	stp		x0, x1, [sp, #-16]!					// Save x0 and x1 to the exception stack
 #if __ARM_KERNEL_PROTECT__
@@ -89,10 +89,10 @@ The lower-EL vector starts on the exception stack. `EL0_64_VECTOR` briefly saves
 
 ```
 
-Next, the macro leaves the context address in x0 and the thread pointer in x1. The synchronous and SError vectors load the thread's kernel-stack top into the active SP; IRQ/FIQ vectors load the per-CPU interrupt-stack top. In both cases x0 still names the PCB. These pointer-loading macros authenticate the pointers when pointer authentication is compiled in, using the field's address and discriminator. [`stack selection`](../../../xnu/osfmk/arm64/locore.s#L967), [`pointer authentication macros`](../../../xnu/osfmk/arm64/machine_routines_asm.h#L135).
+Next, the macro leaves the context address in x0 and the thread pointer in x1. The synchronous and SError vectors load the thread's kernel-stack top into the active SP; IRQ/FIQ vectors load the per-CPU interrupt-stack top. In both cases x0 still names the PCB. These pointer-loading macros authenticate the pointers when pointer authentication is compiled in, using the field's address and discriminator. [`stack selection`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L967), [`pointer authentication macros`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.h#L135).
 
-[The synchronous long vector selects a kernel stack and handler](../../../xnu/osfmk/arm64/locore.s#L982)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L982-L988 -->
+[The synchronous long vector selects a kernel stack and handler](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L982)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L982-L988 -->
 ```asm
 el0_synchronous_vector_64_long:
 	EL0_64_VECTOR	sync
@@ -103,12 +103,12 @@ el0_synchronous_vector_64_long:
 	b		fleh_dispatch64
 ```
 
-`fleh_dispatch64` receives x0=context, x1=first-level handler, x2=spill options. `SPILL_REGISTERS KERNEL_MODE` saves the remaining GPRs and q0–q31, FPSR, and FPCR, then captures ELR/SPSR/ESR/FAR. The early vector has already saved x0–x3 and SP. The name `KERNEL_MODE` selects the spill macro's calling convention; it does not mean the interrupted instruction necessarily ran in the kernel. [`dispatcher`](../../../xnu/osfmk/arm64/locore.s#L1049), [`spill implementation`](../../../xnu/osfmk/arm64/exception_asm.h#L172).
+`fleh_dispatch64` receives x0=context, x1=first-level handler, x2=spill options. `SPILL_REGISTERS KERNEL_MODE` saves the remaining GPRs and q0–q31, FPSR, and FPCR, then captures ELR/SPSR/ESR/FAR. The early vector has already saved x0–x3 and SP. The name `KERNEL_MODE` selects the spill macro's calling convention; it does not mean the interrupted instruction necessarily ran in the kernel. [`dispatcher`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1049), [`spill implementation`](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L172).
 
 The default syndrome/return-state publication ends as follows. The option is intended to defer the two address stores, but the PAC path reuses its register before this test; see the [configuration-sensitive spill-option caveat](arm64-assembly-walkthroughs.md#a-configuration-sensitive-spill-option-caveat). The later explicit stores in `fleh_synchronous` remain visible in the SPTM path:
 
-[SPILL_REGISTERS: conditional PC/FAR publication](../../../xnu/osfmk/arm64/exception_asm.h#L278)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/exception_asm.h#L278-L289 -->
+[SPILL_REGISTERS: conditional PC/FAR publication](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L278)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L278-L289 -->
 ```asm
 .ifnb \options_register
 	tbnz	\options_register, SPILL_REGISTERS_OPTION_DONT_SPILL_ELR_FAR_SHIFT, Lspill_registers_skip_elr_far_\@
@@ -124,16 +124,16 @@ Lspill_registers_skip_elr_far_\@:
 	str		w23, [x0, SS64_CPSR]
 ```
 
-Under `HAS_APPLE_PAC`, the spill calls `ml_sign_thread_state` to populate `jophash` from selected control-flow values. Fatal spill options poison that signature. This is separate from authenticating the PCB pointer or the first-level-handler address. `fleh_dispatch64` signs the handler address against the stack pointer and uses `braa` where enabled. After a user-origin snapshot it sanitizes FPCR and clears unused live GPRs, preventing arbitrary incoming values from becoming incidental kernel register state. It preserves the context in x21 and handler in x22, performs configured user/kernel accounting, and branches to the handler. [`signature and spill options`](../../../xnu/osfmk/arm64/exception_asm.h#L218), [`dispatcher sanitization`](../../../xnu/osfmk/arm64/locore.s#L1072), [`final dispatch`](../../../xnu/osfmk/arm64/locore.s#L1127).
+Under `HAS_APPLE_PAC`, the spill calls `ml_sign_thread_state` to populate `jophash` from selected control-flow values. Fatal spill options poison that signature. This is separate from authenticating the PCB pointer or the first-level-handler address. `fleh_dispatch64` signs the handler address against the stack pointer and uses `braa` where enabled. After a user-origin snapshot it sanitizes FPCR and clears unused live GPRs, preventing arbitrary incoming values from becoming incidental kernel register state. It preserves the context in x21 and handler in x22, performs configured user/kernel accounting, and branches to the handler. [`signature and spill options`](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L218), [`dispatcher sanitization`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1072), [`final dispatch`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1127).
 
-`HAS_ARM_FEAT_SME` adds separate matrix-state handling. The EL0 macro saves SVCR and, when streaming mode is active, Z/P state before stopping streaming mode; ZA is handled during context switch. The NEON snapshot alone is therefore not the entire machine state on those configurations. [`SME entry`](../../../xnu/osfmk/arm64/locore.s#L926).
+`HAS_ARM_FEAT_SME` adds separate matrix-state handling. The EL0 macro saves SVCR and, when streaming mode is active, Z/P state before stopping streaming mode; ZA is handled during context switch. The NEON snapshot alone is therefore not the entire machine state on those configurations. [`SME entry`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L926).
 
 ## Same-EL entry: the interrupted kernel stack stays meaningful
 
-A kernel exception is still an EL1 exception even though execution jumps through a vector and may change stacks. Normal kernel execution here uses SP0; the initial exception-stack staging lets the entry path examine a potentially corrupt kernel SP before trusting it. `EL1_SP0_VECTOR` selects SP0, allocates `ARM_CONTEXT_SIZE` below the interrupted SP, saves x0–x3, records the original SP, initializes flavors, and gives x0 the frame address. Thus the full context is on the interrupted kernel stack, unlike the persistent user PCB. [`EL1_SP0_VECTOR`](../../../xnu/osfmk/arm64/locore.s#L607).
+A kernel exception is still an EL1 exception even though execution jumps through a vector and may change stacks. Normal kernel execution here uses SP0; the initial exception-stack staging lets the entry path examine a potentially corrupt kernel SP before trusting it. `EL1_SP0_VECTOR` selects SP0, allocates `ARM_CONTEXT_SIZE` below the interrupted SP, saves x0–x3, records the original SP, initializes flavors, and gives x0 the frame address. Thus the full context is on the interrupted kernel stack, unlike the persistent user PCB. [`EL1_SP0_VECTOR`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L607).
 
-[EL1_SP0_VECTOR: allocate a context on the interrupted kernel stack](../../../xnu/osfmk/arm64/locore.s#L607)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L607-L616 -->
+[EL1_SP0_VECTOR: allocate a context on the interrupted kernel stack](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L607)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L607-L616 -->
 ```asm
 .macro EL1_SP0_VECTOR
 	msr		SPSel, #0							// Switch to SP0
@@ -147,16 +147,16 @@ A kernel exception is still an EL1 exception even though execution jumps through
 .endmacro
 ```
 
-For synchronous exceptions, the entry checks ESR classes that might indicate stack corruption, then `CHECK_KERNEL_STACK` validates SP_EL0 against the thread kernel stack or CPU interrupt stack. Failure constructs a fatal context on the exception stack and routes to `fleh_invalid_stack`. IRQ/FIQ paths first build the kernel frame and then switch handler execution to the interrupt stack. SPTM variants add a redzone check and a slow path that can map a stack redzone page after preserving registers. [`stack validation`](../../../xnu/osfmk/arm64/locore.s#L370), [`synchronous entry`](../../../xnu/osfmk/arm64/locore.s#L628), [`redzone handling`](../../../xnu/osfmk/arm64/locore.s#L652), [`IRQ/FIQ entry`](../../../xnu/osfmk/arm64/locore.s#L709).
+For synchronous exceptions, the entry checks ESR classes that might indicate stack corruption, then `CHECK_KERNEL_STACK` validates SP_EL0 against the thread kernel stack or CPU interrupt stack. Failure constructs a fatal context on the exception stack and routes to `fleh_invalid_stack`. IRQ/FIQ paths first build the kernel frame and then switch handler execution to the interrupt stack. SPTM variants add a redzone check and a slow path that can map a stack redzone page after preserving registers. [`stack validation`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L370), [`synchronous entry`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L628), [`redzone handling`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L652), [`IRQ/FIQ entry`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L709).
 
-SP1 vectors describe an exception while already using the exception stack. They are not the ordinary syscall path. Before its first potentially faulting memory access, the SP1 synchronous path checks whether ELR points back into its own critical spilling region and validates exception-stack bounds. If spilling cannot safely proceed it initiates configured lockdown and waits for the watchdog, with a special XNUPOST recovery path. Successful spilling normally reaches fatal handling; KTRR's narrowly recognized MMU-enable instruction-abort case and development debugger/test paths are explicit exceptions. IRQ/FIQ/SError on SP1 directly select panic handlers. [`SP1 vector`](../../../xnu/osfmk/arm64/locore.s#L751), [`KTRR exception`](../../../xnu/osfmk/arm64/locore.s#L1018), [`SP1 C handler`](../../../xnu/osfmk/arm64/sleh.c#L669), [`SP1 panic handlers`](../../../xnu/osfmk/arm64/locore.s#L1660).
+SP1 vectors describe an exception while already using the exception stack. They are not the ordinary syscall path. Before its first potentially faulting memory access, the SP1 synchronous path checks whether ELR points back into its own critical spilling region and validates exception-stack bounds. If spilling cannot safely proceed it initiates configured lockdown and waits for the watchdog, with a special XNUPOST recovery path. Successful spilling normally reaches fatal handling; KTRR's narrowly recognized MMU-enable instruction-abort case and development debugger/test paths are explicit exceptions. IRQ/FIQ/SError on SP1 directly select panic handlers. [`SP1 vector`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L751), [`KTRR exception`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1018), [`SP1 C handler`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L669), [`SP1 panic handlers`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1660).
 
 ## First-level synchronous handling and SPTM ordering
 
-`fleh_synchronous` reads live ESR, FAR, and ELR, builds an unwindable frame, and calls `sleh_synchronous(context, esr, far, did_initiate_panic_lockdown)`. The extra fourth argument matters on SPTM builds. There, `FLEH_DISPATCH64_OPTION_SYNC_EXCEPTION` requests deferred ELR/FAR spilling, subject to the [option-register caveat](arm64-assembly-walkthroughs.md#a-configuration-sensitive-spill-option-caveat). A kernel-origin exception passes the stackless lockdown eligibility check; user-origin entry checks whether lockdown is already active. The handler then explicitly stores PC/FAR into the context; the request alone does not prove that every configured earlier spill omitted those stores. [`spill option`](../../../xnu/osfmk/arm64/exception_asm.h#L155), [`SPTM synchronous entry`](../../../xnu/osfmk/arm64/locore.s#L1182), [`kernel check`](../../../xnu/osfmk/arm64/locore.s#L1218).
+`fleh_synchronous` reads live ESR, FAR, and ELR, builds an unwindable frame, and calls `sleh_synchronous(context, esr, far, did_initiate_panic_lockdown)`. The extra fourth argument matters on SPTM builds. There, `FLEH_DISPATCH64_OPTION_SYNC_EXCEPTION` requests deferred ELR/FAR spilling, subject to the [option-register caveat](arm64-assembly-walkthroughs.md#a-configuration-sensitive-spill-option-caveat). A kernel-origin exception passes the stackless lockdown eligibility check; user-origin entry checks whether lockdown is already active. The handler then explicitly stores PC/FAR into the context; the request alone does not prove that every configured earlier spill omitted those stores. [`spill option`](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L155), [`SPTM synchronous entry`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1182), [`kernel check`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1218).
 
-[Synchronous handler: release PC/FAR after the SPTM gate](../../../xnu/osfmk/arm64/locore.s#L1201)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L1201-L1204 -->
+[Synchronous handler: release PC/FAR after the SPTM gate](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1201)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1201-L1204 -->
 ```asm
 Lfleh_synchronous_continue:
 	/* We've had our chance to lockdown, release PC/FAR */
@@ -164,11 +164,11 @@ Lfleh_synchronous_continue:
 	str		x2,  [x0, SS64_FAR]
 ```
 
-After lockdown, new user synchronous exceptions wait for debugger synchronization instead of continuing ordinary handling. These are visible XNU-side control-flow rules; they do not expose SPTM's own implementation. Legacy PPL dispatch fragments have missing transition pieces and deliberate configuration-error directives in this public tree. See [exception levels and monitors](exception-levels-and-monitors.md) before trying to assemble a complete monitor crossing from these labels. [`blocked_user_sync_exception`](../../../xnu/osfmk/arm64/locore.s#L1263), [`PPL return fragment`](../../../xnu/osfmk/arm64/locore.s#L56).
+After lockdown, new user synchronous exceptions wait for debugger synchronization instead of continuing ordinary handling. These are visible XNU-side control-flow rules; they do not expose SPTM's own implementation. Legacy PPL dispatch fragments have missing transition pieces and deliberate configuration-error directives in this public tree. See [exception levels and monitors](exception-levels-and-monitors.md) before trying to assemble a complete monitor crossing from these labels. [`blocked_user_sync_exception`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1263), [`PPL return fragment`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L56).
 
 ## C dispatch: an SVC, a page fault, and a debug trap are different routes
 
-`sleh_synchronous` extracts `ESR_EC(esr)` and independently checks the saved CPSR to determine whether the interrupted context was user or kernel. It validates the context, records tracing/accounting, handles platform errors before possible CPU migration, and inherits interrupt masks from the saved state before ordinary dispatch. For user exceptions it sanitizes the saved FAR: it is retained only for classes where it is meaningful, and cleared for synchronous external aborts where validity cannot be trusted. [`sleh_synchronous`](../../../xnu/osfmk/arm64/sleh.c#L770).
+`sleh_synchronous` extracts `ESR_EC(esr)` and independently checks the saved CPSR to determine whether the interrupted context was user or kernel. It validates the context, records tracing/accounting, handles platform errors before possible CPU migration, and inherits interrupt masks from the saved state before ordinary dispatch. For user exceptions it sanitizes the saved FAR: it is retained only for classes where it is meaningful, and cleared for synchronous external aborts where validity cannot be trusted. [`sleh_synchronous`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L770).
 
 | Syndrome class or vector | Next operation | Relevant distinction |
 |---|---|---|
@@ -181,12 +181,12 @@ After lockdown, new user synchronous exceptions wait for debugger synchronizatio
 | IRQ/FIQ vector | `sleh_irq` / `sleh_fiq` | Dispatch is selected by the vector, outside this synchronous class switch. |
 | SError vector | `sleh_serror` → `arm64_platform_error` | Asynchronous platform-error path, separate from a synchronous VM abort. |
 
-Sources: [`class switch`](../../../xnu/osfmk/arm64/sleh.c#L937), [`SVC-number accessor`](../../../xnu/osfmk/mach/arm/thread_status.h#L1031), [`x16 register definition`](../../../xnu/osfmk/arm64/proc_reg.h#L2887), [`IRQ/FIQ`](../../../xnu/osfmk/arm64/sleh.c#L3003), [`SError`](../../../xnu/osfmk/arm64/sleh.c#L3138).
+Sources: [`class switch`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L937), [`SVC-number accessor`](../../../platydoc-data/xnu/osfmk/mach/arm/thread_status.h#L1031), [`x16 register definition`](../../../platydoc-data/xnu/osfmk/arm64/proc_reg.h#L2887), [`IRQ/FIQ`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L3003), [`SError`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L3138).
 
-`handle_svc` first handles the platform trap and updates cached credentials. Negative call numbers select Mach traps, with absolute/continuous time handled directly; nonnegative numbers select BSD syscall handling. `mach_syscall` negates the number, validates `mach_trap_table`, gathers arguments, runs configured filters, calls the selected function, and places its result in saved x0. An IPC request can enter through `mach_msg2_trap`, but its Mach message ID is decoded later by the destination server. [`handle_svc`](../../../xnu/osfmk/arm64/sleh.c#L2743), [`mach_syscall`](../../../xnu/osfmk/arm64/bsd_arm64.c#L194), [Mach IPC](../ipc/README.md).
+`handle_svc` first handles the platform trap and updates cached credentials. Negative call numbers select Mach traps, with absolute/continuous time handled directly; nonnegative numbers select BSD syscall handling. `mach_syscall` negates the number, validates `mach_trap_table`, gathers arguments, runs configured filters, calls the selected function, and places its result in saved x0. An IPC request can enter through `mach_msg2_trap`, but its Mach message ID is decoded later by the destination server. [`handle_svc`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2743), [`mach_syscall`](../../../platydoc-data/xnu/osfmk/arm64/bsd_arm64.c#L194), [Mach IPC](../ipc/README.md).
 
-[handle_svc: Mach and BSD dispatch](../../../xnu/osfmk/arm64/sleh.c#L2765)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/sleh.c#L2765-L2786 -->
+[handle_svc: Mach and BSD dispatch](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2765)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2765-L2786 -->
 ```c
 	if (trap_no < 0) {
 		switch (trap_no) {
@@ -212,12 +212,12 @@ Sources: [`class switch`](../../../xnu/osfmk/arm64/sleh.c#L937), [`SVC-number ac
 	}
 ```
 
-BSD `unix_syscall` uses `sysent`, with an indirect-call case when x16 is zero and the syscall number is in x0. Its return encoder handles success, errno/carry, instruction restart, and already-prepared state. Those modifications are important to the [authenticated return](arm64-exception-return.md#changing-the-saved-result-or-resume-pc). [`systemcalls.c`](../../../xnu/bsd/dev/arm/systemcalls.c#L90), [`number decoding`](../../../xnu/bsd/dev/arm/systemcalls.c#L468), [`return encoding`](../../../xnu/bsd/dev/arm/systemcalls.c#L496).
+BSD `unix_syscall` uses `sysent`, with an indirect-call case when x16 is zero and the syscall number is in x0. Its return encoder handles success, errno/carry, instruction restart, and already-prepared state. Those modifications are important to the [authenticated return](arm64-exception-return.md#changing-the-saved-result-or-resume-pc). [`systemcalls.c`](../../../platydoc-data/xnu/bsd/dev/arm/systemcalls.c#L90), [`number decoding`](../../../platydoc-data/xnu/bsd/dev/arm/systemcalls.c#L468), [`return encoding`](../../../platydoc-data/xnu/bsd/dev/arm/systemcalls.c#L496).
 
-For aborts, `handle_abort` separates decoding from policy: instruction faults request read/execute; data faults inspect WnR and cache-maintenance semantics to choose read or read/write. On a serviceable user VM fault, `handle_user_abort` strips top-byte tags for non-execute access, tries `arm_fast_fault` for non-translation faults, then calls `vm_fault` with `THREAD_ABORTSAFE`. `KERN_SUCCESS` or `KERN_ABORTED` returns to the exception-return path; other results continue into configured fatal policies or Mach exception triage. No `pc += 4` is applied to a resolved page fault: resuming the saved state retries the instruction. [`inspectors`](../../../xnu/osfmk/arm64/sleh.c#L1563), [`user abort`](../../../xnu/osfmk/arm64/sleh.c#L1920).
+For aborts, `handle_abort` separates decoding from policy: instruction faults request read/execute; data faults inspect WnR and cache-maintenance semantics to choose read or read/write. On a serviceable user VM fault, `handle_user_abort` strips top-byte tags for non-execute access, tries `arm_fast_fault` for non-translation faults, then calls `vm_fault` with `THREAD_ABORTSAFE`. `KERN_SUCCESS` or `KERN_ABORTED` returns to the exception-return path; other results continue into configured fatal policies or Mach exception triage. No `pc += 4` is applied to a resolved page fault: resuming the saved state retries the instruction. [`inspectors`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L1563), [`user abort`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L1920).
 
-[handle_user_abort: the VM call and successful return](../../../xnu/osfmk/arm64/sleh.c#L1967)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/sleh.c#L1967-L1981 -->
+[handle_user_abort: the VM call and successful return](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L1967)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L1967-L1981 -->
 ```c
 		if (result != KERN_SUCCESS) {
 
@@ -236,14 +236,14 @@ For aborts, `handle_abort` separates decoding from policy: instruction faults re
 		}
 ```
 
-Kernel data aborts choose `kernel_map` if the address is kernel, no thread exists, or there is no recovery entry; a permitted user-address copy uses the thread map. A recovery entry can cause `handle_kernel_abort_recover` to write an error into x0 and replace the saved PC with a validated copyio recovery address. This remains an EL1 return to kernel code. It is not a user Mach exception. [`kernel abort`](../../../xnu/osfmk/arm64/sleh.c#L2542), [`map selection`](../../../xnu/osfmk/arm64/sleh.c#L2599), [`recovery-state update`](../../../xnu/osfmk/arm64/sleh.c#L2185). The [VM guide](../vm/README.md) explains paging; the [IPC exception guide](../ipc/kernel-rpc-and-exceptions.md) follows failures that reach `exception_triage`.
+Kernel data aborts choose `kernel_map` if the address is kernel, no thread exists, or there is no recovery entry; a permitted user-address copy uses the thread map. A recovery entry can cause `handle_kernel_abort_recover` to write an error into x0 and replace the saved PC with a validated copyio recovery address. This remains an EL1 return to kernel code. It is not a user Mach exception. [`kernel abort`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2542), [`map selection`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2599), [`recovery-state update`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2185). The [VM guide](../vm/README.md) explains paging; the [IPC exception guide](../ipc/kernel-rpc-and-exceptions.md) follows failures that reach `exception_triage`.
 
 ## Interrupt bookkeeping before the C callback
 
-`BEGIN_INTERRUPT_HANDLER` increments per-CPU interrupt counters and the current thread's preemption count, then publishes the saved context in `cpu_int_state`. The context may be a user PCB or a kernel-stack frame; the handler stack is the CPU interrupt stack in either case. This publication allows interrupt-time code to identify the interrupted state without pretending an interrupt owns a new thread. [`locore.s`](../../../xnu/osfmk/arm64/locore.s#L1289).
+`BEGIN_INTERRUPT_HANDLER` increments per-CPU interrupt counters and the current thread's preemption count, then publishes the saved context in `cpu_int_state`. The context may be a user PCB or a kernel-stack frame; the handler stack is the CPU interrupt stack in either case. This publication allows interrupt-time code to identify the interrupted state without pretending an interrupt owns a new thread. [`locore.s`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1289).
 
-[Interrupt prologue: preemption and interrupted-context publication](../../../xnu/osfmk/arm64/locore.s#L1299)
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L1299-L1305 -->
+[Interrupt prologue: preemption and interrupted-context publication](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1299)
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1299-L1305 -->
 ```asm
 	/* Increment preempt count */
 	ldr		w1, [x22, ACT_PREEMPT_CNT]
@@ -254,9 +254,9 @@ Kernel data aborts choose `kernel_map` if the address is kernel, no thread exist
 .endmacro
 ```
 
-`sleh_irq` calls `PE_handle_ext_interrupt` on `USE_APPLEARMSMP`, otherwise the registered `IOInterruptHandler` with its target/refCon/nub/source. `sleh_fiq` checks configured fast IPI, timer, then performance-monitor sources; the fast-IPI branch acknowledges the pending bit and executes ISB before `cpu_signal_handler` to close a lost-notification window. Its residual path calls `rtclock_intr(TRUE)` while explicitly acknowledging that not every residual FIQ is known to be a timer. [`IRQ dispatch`](../../../xnu/osfmk/arm64/sleh.c#L3003), [`FIQ classification and acknowledgment`](../../../xnu/osfmk/arm64/sleh.c#L3035).
+`sleh_irq` calls `PE_handle_ext_interrupt` on `USE_APPLEARMSMP`, otherwise the registered `IOInterruptHandler` with its target/refCon/nub/source. `sleh_fiq` checks configured fast IPI, timer, then performance-monitor sources; the fast-IPI branch acknowledges the pending bit and executes ISB before `cpu_signal_handler` to close a lost-notification window. Its residual path calls `rtclock_intr(TRUE)` while explicitly acknowledging that not every residual FIQ is known to be a timer. [`IRQ dispatch`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L3003), [`FIQ classification and acknowledgment`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L3035).
 
-The C epilogue finishes accounting and tracing. Assembly `END_INTERRUPT_HANDLER` clears `cpu_int_state`, decrements preemption count, returns to the thread kernel-stack top, and issues `sevl` for a CPU-local wake event. IRQ/FIQ then set x28 to request a commpage PFZ check on user return; synchronous/SError returns clear it. The saved CPSR chooses whether the common dispatcher resumes EL0 or EL1. [`epilogue`](../../../xnu/osfmk/arm64/locore.s#L1318), [`return dispatcher`](../../../xnu/osfmk/arm64/locore.s#L1690).
+The C epilogue finishes accounting and tracing. Assembly `END_INTERRUPT_HANDLER` clears `cpu_int_state`, decrements preemption count, returns to the thread kernel-stack top, and issues `sevl` for a CPU-local wake event. IRQ/FIQ then set x28 to request a commpage PFZ check on user return; synchronous/SError returns clear it. The saved CPSR chooses whether the common dispatcher resumes EL0 or EL1. [`epilogue`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1318), [`return dispatcher`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1690).
 
 ```mermaid
 flowchart TD
@@ -283,7 +283,7 @@ flowchart TD
 
 ## Sources inspected and limits
 
-The trace follows vector bodies, spill/pointer-authentication macros, selected boot installation, PCB allocation, synchronous dispatch, abort handling, IRQ/FIQ bookkeeping, and the corresponding return path. Excerpts preserve actual source lines; they are not pseudocode. It does not audit every syndrome, every SoC register workaround, matrix-state lifecycle, panic-lockdown policy, or external monitor code, and it was not validated by booting a kernel. For a reproducible reading route start at [`EL0_64_VECTOR`](../../../xnu/osfmk/arm64/locore.s#L908), follow x0 and `sp` independently through [`fleh_dispatch64`](../../../xnu/osfmk/arm64/locore.s#L1063), then select one branch of [`sleh_synchronous`](../../../xnu/osfmk/arm64/sleh.c#L770) before reading [exception return](arm64-exception-return.md).
+The trace follows vector bodies, spill/pointer-authentication macros, selected boot installation, PCB allocation, synchronous dispatch, abort handling, IRQ/FIQ bookkeeping, and the corresponding return path. Excerpts preserve actual source lines; they are not pseudocode. It does not audit every syndrome, every SoC register workaround, matrix-state lifecycle, panic-lockdown policy, or external monitor code, and it was not validated by booting a kernel. For a reproducible reading route start at [`EL0_64_VECTOR`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L908), follow x0 and `sp` independently through [`fleh_dispatch64`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1063), then select one branch of [`sleh_synchronous`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L770) before reading [exception return](arm64-exception-return.md).
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

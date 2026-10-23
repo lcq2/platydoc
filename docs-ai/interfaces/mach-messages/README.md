@@ -10,14 +10,14 @@ For the complete kmsg and reply ownership trace, read [kernel RPC and MIG](../..
 
 ## 1. A port destination and a message ID have different jobs
 
-A request's destination port supplies the capability being used. The message ID supplies the operation. Copyin first translates the sender's local name and handles rights/memory dispositions. A kernel-owned destination then reaches `ipc_kobject_server()`; ordinary user-server ports queue the request for their own receivers. The kernel operation generally executes in the sending thread's kernel context. [`ipc_kmsg.c`](../../../xnu/osfmk/ipc/ipc_kmsg.c#L5221-L5239), [`ipc_kobject.c`](../../../xnu/osfmk/kern/ipc_kobject.c#L643-L675).
+A request's destination port supplies the capability being used. The message ID supplies the operation. Copyin first translates the sender's local name and handles rights/memory dispositions. A kernel-owned destination then reaches `ipc_kobject_server()`; ordinary user-server ports queue the request for their own receivers. The kernel operation generally executes in the sending thread's kernel context. [`ipc_kmsg.c`](../../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L5221-L5239), [`ipc_kobject.c`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L643-L675).
 
-The built-in kobject table registers 19 subsystem references in source, with `VM32_SUPPORT`, `CONFIG_USER_NOTIFICATION` and `CONFIG_ARCADE` guarding selected entries. It includes VM/ports/tasks/threads/host/processor services, IOKit, vouchers, memory entries, restartable ranges, exception receivers and eventlinks. It does not register every `.defs` subsystem. [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+The built-in kobject table registers 19 subsystem references in source, with `VM32_SUPPORT`, `CONFIG_USER_NOTIFICATION` and `CONFIG_ARCADE` guarding selected entries. It includes VM/ports/tasks/threads/host/processor services, IOKit, vouchers, memory entries, restartable ranges, exception receivers and eventlinks. It does not register every `.defs` subsystem. [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 Startup inserts real generated routines, ignoring empty slots:
 
-[`osfmk/kern/ipc_kobject.c`, lines 220–229](../../../xnu/osfmk/kern/ipc_kobject.c#L220-L229):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/ipc_kobject.c#L220-L229 -->
+[`osfmk/kern/ipc_kobject.c`, lines 220–229](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L220-L229):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L220-L229 -->
 ```c
 		for (j = 0; j < range; j++) {
 			if (mig_e[i]->kroutine[j].kstub_routine) {
@@ -45,7 +45,7 @@ flowchart LR
     Stub --> Body["Local C/C++ service body"]
 ```
 
-The `IKOT_UEXT_OBJECT` path selects `uext_server()` before ordinary MIG dispatch. Consequently, the IOKit MIG catalog is not a substitute for the separately generated DriverKit `.iig` interface and user runtime. [`dispatch selection`](../../../xnu/osfmk/kern/ipc_kobject.c#L643-L675), [DriverKit dispatch](../../subsystems/drivers/driverkit-dispatch-and-actions.md).
+The `IKOT_UEXT_OBJECT` path selects `uext_server()` before ordinary MIG dispatch. Consequently, the IOKit MIG catalog is not a substitute for the separately generated DriverKit `.iig` interface and user runtime. [`dispatch selection`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L643-L675), [DriverKit dispatch](../../subsystems/drivers/driverkit-dispatch-and-actions.md).
 
 ## 2. Reading one `.defs` declaration
 
@@ -62,12 +62,12 @@ A routine declaration specifies more than an operation name:
 | `serverprefix`, macro-wrapped names | Generated receiver names can differ from the library API; e.g. `is_io_*`, `catch_*`, `_external`, `_mig` or `_from_user`. |
 | `skip` | Reserve an ID position without generating the corresponding routine in that profile. Removing a declaration from the server need not renumber later operations. |
 
-The selected examples are visible in [`task.defs`](../../../xnu/osfmk/mach/task.defs#L100-L159), [`mach_vm.defs`](../../../xnu/osfmk/mach/mach_vm.defs#L64-L115), [`device.defs`](../../../xnu/osfmk/device/device.defs#L65-L95), and [`notify.defs`](../../../xnu/osfmk/mach/notify.defs#L59-L130).
+The selected examples are visible in [`task.defs`](../../../platydoc-data/xnu/osfmk/mach/task.defs#L100-L159), [`mach_vm.defs`](../../../platydoc-data/xnu/osfmk/mach/mach_vm.defs#L64-L115), [`device.defs`](../../../platydoc-data/xnu/osfmk/device/device.defs#L65-L95), and [`notify.defs`](../../../platydoc-data/xnu/osfmk/mach/notify.defs#L59-L130).
 
 Task control conversion, for example, is declared explicitly:
 
-[`osfmk/mach/mach_types.defs`, lines 124–131](../../../xnu/osfmk/mach/mach_types.defs#L124-L131):
-<!-- source-excerpt: ../../../xnu/osfmk/mach/mach_types.defs#L124-L131 -->
+[`osfmk/mach/mach_types.defs`, lines 124–131](../../../platydoc-data/xnu/osfmk/mach/mach_types.defs#L124-L131):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/mach/mach_types.defs#L124-L131 -->
 ```c
 /* Task control, read, inspect, name port. In descending capability. */
 type task_t = mach_port_t
@@ -79,16 +79,16 @@ type task_t = mach_port_t
 		;
 ```
 
-The generated boundary turns a wire port argument into a referenced object and later runs its destructor contract. `task_read_t`, `task_inspect_t` and `task_name_t` have separate converters/destructors immediately below. The first argument's textual name can be `target_task` while its required type is a narrower capability. Follow the type, conversion function and body rather than assuming every task-related call needs or returns task control. [`flavor definitions`](../../../xnu/osfmk/mach/mach_types.defs#L133-L177), [port policy](../../subsystems/ipc/guards-and-policy-enforcement.md).
+The generated boundary turns a wire port argument into a referenced object and later runs its destructor contract. `task_read_t`, `task_inspect_t` and `task_name_t` have separate converters/destructors immediately below. The first argument's textual name can be `target_task` while its required type is a narrower capability. Follow the type, conversion function and body rather than assuming every task-related call needs or returns task control. [`flavor definitions`](../../../platydoc-data/xnu/osfmk/mach/mach_types.defs#L133-L177), [port policy](../../subsystems/ipc/guards-and-policy-enforcement.md).
 
-Generated server C is largely absent from the checkout. The build selects MIG server/user generation and the `-mach_msg2` server ABI in [`MakeInc.def`](../../../xnu/makedefs/MakeInc.def#L1243-L1261) and [`mach/Makefile`](../../../xnu/osfmk/mach/Makefile#L330-L466). This documentation does not substitute guessed generated structures for those artifacts.
+Generated server C is largely absent from the checkout. The build selects MIG server/user generation and the `-mach_msg2` server ABI in [`MakeInc.def`](../../../platydoc-data/xnu/makedefs/MakeInc.def#L1243-L1261) and [`mach/Makefile`](../../../platydoc-data/xnu/osfmk/mach/Makefile#L330-L466). This documentation does not substitute guessed generated structures for those artifacts.
 
 ## 3. The dispatcher checks policy and calls a generated routine
 
 The registered descriptor supplies request/reply sizing and the stub function pointer. The kobject server prepares separate header/data/trailer addresses, applies configured filtering, and invokes:
 
-[`osfmk/kern/ipc_kobject.c`, lines 579–582](../../../xnu/osfmk/kern/ipc_kobject.c#L579-L582):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/ipc_kobject.c#L579-L582 -->
+[`osfmk/kern/ipc_kobject.c`, lines 579–582](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L579-L582):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L579-L582 -->
 ```c
 	__BeforeKobjectServerTrace(idx);
 	/* See contract in header doc for ipc_kobject_reply_status() */
@@ -96,7 +96,7 @@ The registered descriptor supplies request/reply sizing and the stub function po
 	__AfterKobjectServerTrace(idx);
 ```
 
-The split arguments matter: modern kernel messages need not be one contiguous structure beginning at the header. A generated stub decodes according to this ABI, calls typed conversion/implementation code and forms a reply. The surrounding server retains responsibility for transport-owned request/reply resources. [`reply sizing and filter`](../../../xnu/osfmk/kern/ipc_kobject.c#L479-L577), [split-message layout](../../subsystems/ipc/message-send-receive.md).
+The split arguments matter: modern kernel messages need not be one contiguous structure beginning at the header. A generated stub decodes according to this ABI, calls typed conversion/implementation code and forms a reply. The surrounding server retains responsibility for transport-owned request/reply resources. [`reply sizing and filter`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L479-L577), [split-message layout](../../subsystems/ipc/message-send-receive.md).
 
 There are several possible results:
 
@@ -106,7 +106,7 @@ There are several possible results:
 - `MIG_NO_REPLY`: the generated/service contract has arranged no immediate reply; the surrounding code discards its provisional reply.
 - A one-way service/notification message: the sender does not obtain an ordinary operation reply through that interface.
 
-[`error and no-reply handling`](../../../xnu/osfmk/kern/ipc_kobject.c#L458-L477), [`reply completion`](../../../xnu/osfmk/kern/ipc_kobject.c#L589-L609), [request/reply ownership](../../subsystems/ipc/kernel-rpc-and-exceptions.md).
+[`error and no-reply handling`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L458-L477), [`reply completion`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L589-L609), [request/reply ownership](../../subsystems/ipc/kernel-rpc-and-exceptions.md).
 
 An error does not establish that no subsystem state changed. A body can commit an operation before later output handling fails. The [completion/failure guide](../../cross-cutting/completion-and-failure.md) explains this distinction across Mach and BSD interfaces.
 
@@ -128,8 +128,8 @@ These families include enumeration and information, thread creation/state, termi
 
 `task_threads_from_user()` demonstrates flavor propagation:
 
-[`osfmk/kern/task.c`, lines 3965–3974](../../../xnu/osfmk/kern/task.c#L3965-L3974):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/task.c#L3965-L3974 -->
+[`osfmk/kern/task.c`, lines 3965–3974](../../../platydoc-data/xnu/osfmk/kern/task.c#L3965-L3974):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/task.c#L3965-L3974 -->
 ```c
 	switch (kotype) {
 	case IKOT_TASK_CONTROL:
@@ -143,7 +143,7 @@ These families include enumeration and information, thread creation/state, termi
 		break;
 ```
 
-It first converts the task for inspection and later releases that reference; the exported thread flavor follows the actual incoming task-port type. The operation therefore cannot be described accurately as always returning thread-control ports. [`complete body`](../../../xnu/osfmk/kern/task.c#L3949-L3982).
+It first converts the task for inspection and later releases that reference; the exported thread flavor follows the actual incoming task-port type. The operation therefore cannot be described accurately as always returning thread-control ports. [`complete body`](../../../platydoc-data/xnu/osfmk/kern/task.c#L3949-L3982).
 
 The catalogs also distinguish obsolete declarations and placeholders. `task_create` is skipped in the kernel-server profile, while the task voucher get/set/swap bodies are placeholders rather than the thread voucher adoption mechanism. The two `task_register_dyld_*_state` compatibility bodies return `KERN_NOT_SUPPORTED`. Their short implementations are copied in [task messages](task.md), so these limits are visible beside the interface.
 
@@ -164,8 +164,8 @@ The [VM mapping](../../subsystems/vm/virtual-address-maps.md), [fault/COW](../..
 
 Compatibility conversion is substantive. In `vm32_vm_protect`, the 32-bit range is checked before expanding it:
 
-[`osfmk/vm/vm32_user.c`, lines 184–195](../../../xnu/osfmk/vm/vm32_user.c#L184-L195):
-<!-- source-excerpt: ../../../xnu/osfmk/vm/vm32_user.c#L184-L195 -->
+[`osfmk/vm/vm32_user.c`, lines 184–195](../../../platydoc-data/xnu/osfmk/vm/vm32_user.c#L184-L195):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/vm/vm32_user.c#L184-L195 -->
 ```c
 	if (map == VM_MAP_NULL ||
 	    vm_sanitize_add_overflow(start32, size32, &discard)) {
@@ -185,8 +185,8 @@ A compatibility entry is not simply the same raw pointer passed to a 64-bit rout
 
 The current-task trap fast path is separate from MIG. The public allocator wrapper makes the fallback condition explicit:
 
-[`libsyscall/mach/mach_vm.c`, lines 57–61](../../../xnu/libsyscall/mach/mach_vm.c#L57-L61):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/mach_vm.c#L57-L61 -->
+[`libsyscall/mach/mach_vm.c`, lines 57–61](../../../platydoc-data/xnu/libsyscall/mach/mach_vm.c#L57-L61):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/mach_vm.c#L57-L61 -->
 ```c
 	rv = _kernelrpc_mach_vm_allocate_trap(target, address, size, flags);
 
@@ -201,13 +201,13 @@ An invalid destination from that trap can mean its restricted direct route was u
 
 The [mach_port catalog](mach_port.md) covers namespace enumeration, right allocation/destruction/reference adjustment, port-set membership, notification requests, context/guard operations and service/connection attributes. The operation's destination capability identifies the target IPC space; a second port-name argument is interpreted within that space. Acquiring a converted `ipc_space_t` does not replace the operation-specific right and guard checks. Continue with [names/rights](../../subsystems/ipc/names-and-rights.md), [right lifetimes](../../subsystems/ipc/ports-and-rights-lifecycle.md), and [guard policy](../../subsystems/ipc/guards-and-policy-enforcement.md).
 
-For example, `mach_port_peek` validates the requested trailer size/type before translating the receive right and peeking under the queue lock. A valid destination space does not entitle the caller to read arbitrary context-bearing trailer data. [`mach_port_peek`](../../../xnu/osfmk/ipc/mach_port.c#L981-L1017).
+For example, `mach_port_peek` validates the requested trailer size/type before translating the receive right and peeking under the queue lock. A valid destination space does not entitle the caller to read arbitrary context-bearing trailer data. [`mach_port_peek`](../../../platydoc-data/xnu/osfmk/ipc/mach_port.c#L981-L1017).
 
 [Mach voucher messages](mach_voucher.md) operate on recipes and manager-provided attributes; [voucher control declarations](mach_voucher_attr_control.md) retain obsolete client interfaces that are skipped by the kernel-server profile. [Thread adoption](thread_act.md) connects the voucher to bank/attribution state; the similarly named task-voucher placeholders do not implement the same operation. [Voucher lifetime details](../../subsystems/ipc/vouchers-and-importance.md).
 
 [Eventlink messages](mach_eventlink.md) create/destroy/associate endpoint objects. The fast count/wait/signal operations enter through the BSD syscall surface, while classical [semaphore declarations](semaphore.md) are distinct from their [Mach trap implementations](../mach-traps.md). The mere existence of a semaphore `.defs` file does not put it into this checkout's kobject registry.
 
-[Restartable-range messages](restartable.md) register validated instruction ranges and synchronize threads. The implementation can request reset-PC AST work and wait for acknowledgement. This is an operation where the message receiver's completion depends on execution-state coordination rather than simply updating one table. [`restartable.c`](../../../xnu/osfmk/kern/restartable.c#L583-L665), [AST flavor catalog](../../subsystems/runtime/ast-flavors.md).
+[Restartable-range messages](restartable.md) register validated instruction ranges and synchronize threads. The implementation can request reset-PC AST work and wait for acknowledgement. This is an operation where the message receiver's completion depends on execution-state coordination rather than simply updating one table. [`restartable.c`](../../../platydoc-data/xnu/osfmk/kern/restartable.c#L583-L665), [AST flavor catalog](../../subsystems/runtime/ast-flavors.md).
 
 ## 7. Host, clock and processor interfaces
 
@@ -221,7 +221,7 @@ Information-flavor dispatch can return different record sizes and fields, and ol
 
 The [device/IOKit catalog](device.md) covers object queries, registry traversal/properties, catalogue operations, service matching/notifications, user-client open/close, memory mapping and external methods. Its `serverprefix is_` produces the receiver names found in `IOUserClient.cpp`.
 
-For an external-method request, the common kernel receiver constructs `IOExternalMethodArguments`, handles scalar/structure buffers and descriptors, applies user-client filtering/admission, and dispatches the selected method. The method selector is a separate namespace supplied by the concrete driver. The generic kernel interface cannot describe a driver's absent private selector implementation. [User-client lifetime](../../subsystems/drivers/user-client-and-driverkit-lifetime.md), [DriverKit dispatch](../../subsystems/drivers/driverkit-dispatch-and-actions.md), [`IOUserClient.cpp`](../../../xnu/iokit/Kernel/IOUserClient.cpp).
+For an external-method request, the common kernel receiver constructs `IOExternalMethodArguments`, handles scalar/structure buffers and descriptors, applies user-client filtering/admission, and dispatches the selected method. The method selector is a separate namespace supplied by the concrete driver. The generic kernel interface cannot describe a driver's absent private selector implementation. [User-client lifetime](../../subsystems/drivers/user-client-and-driverkit-lifetime.md), [DriverKit dispatch](../../subsystems/drivers/driverkit-dispatch-and-actions.md), [`IOUserClient.cpp`](../../../platydoc-data/xnu/iokit/Kernel/IOUserClient.cpp).
 
 ```mermaid
 flowchart TD

@@ -1,4 +1,4 @@
-"""Source/project boundary checks after moving the handbook outside xnu/.
+"""Source/project boundary checks after moving the handbook outside platydoc-data/xnu/.
 
 Run: python3 -B -m unittest discover -s docs-ai/tools/book/tests -v
 These fixtures never invoke the audit inventory writer or modify the checkout.
@@ -30,17 +30,17 @@ class RelocatedToolTests(unittest.TestCase):
         self.base = Path(self.temporary.name)
         self.project = self.base / "project"
         self.docs = self.project / "docs-ai"
-        self.source = self.project / "xnu"
+        self.source = self.project / "platydoc-data" / "xnu"
         self.page = self.docs / "subsystems/runtime/entry.md"
-        self.write("xnu/osfmk/kern/entry.c", "int entry(void) {\n\treturn 1;\n}\n")
-        self.write("xnu/bsd/kern/helper.c", "int helper;\n")
-        self.write("xnu/iokit/present.h", "/* fixture */\n")
-        self.write("xnu/APPLE_LICENSE", "Source license.\n")
-        self.write("xnu/doc/guide.md", "# Upstream entry\n\nSource documentation.\n")
+        self.write("platydoc-data/xnu/osfmk/kern/entry.c", "int entry(void) {\n\treturn 1;\n}\n")
+        self.write("platydoc-data/xnu/bsd/kern/helper.c", "int helper;\n")
+        self.write("platydoc-data/xnu/iokit/present.h", "/* fixture */\n")
+        self.write("platydoc-data/xnu/APPLE_LICENSE", "Source license.\n")
+        self.write("platydoc-data/xnu/doc/guide.md", "# Upstream entry\n\nSource documentation.\n")
         self.write("make_docs.py", "# project entry point\n")
         self.write("docs-ai/README.md", "# Handbook\n\n[Entry](subsystems/runtime/entry.md#entry)\n")
         self.write("docs-ai/subsystems/runtime/entry.md", self.chapter())
-        self.write("docs-ai/audits/inventory.json", '{"historical": true}\n')
+        self.write(".private/handbook-tracking/audits/inventory.json", '{"historical": true}\n')
         self.patches = contextlib.ExitStack()
         self.addCleanup(self.patches.close)
         for module in (paths, check_links, check_excerpts, build_source_index, audit_inventory):
@@ -58,10 +58,10 @@ class RelocatedToolTests(unittest.TestCase):
     def chapter(self):
         return (
             "# Entry\n\n"
-            "[Kernel](../../../xnu/osfmk/kern/entry.c#L1-L3)\n"
+            "[Kernel](../../../platydoc-data/xnu/osfmk/kern/entry.c#L1-L3)\n"
             "[Project tool](../../../make_docs.py#L1)\n"
-            "[Upstream docs](../../../xnu/doc/guide.md#upstream-entry)\n\n"
-            "<!-- source-excerpt: ../../../xnu/osfmk/kern/entry.c#L1-L3 -->\n"
+            "[Upstream docs](../../../platydoc-data/xnu/doc/guide.md#upstream-entry)\n\n"
+            "<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/entry.c#L1-L3 -->\n"
             "```c\nint entry(void) {\n\treturn 1;\n}\n```\n"
         )
 
@@ -107,28 +107,28 @@ class RelocatedToolTests(unittest.TestCase):
         outside.write_text("outside\n")
         (self.source / "osfmk/kern/escape.c").symlink_to(outside)
         self.page.write_text(
-            "# Entry\n<!-- source-excerpt: ../../../xnu/osfmk/kern/escape.c#L1-L1 -->\n"
+            "# Entry\n<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/escape.c#L1-L1 -->\n"
             "```c\noutside\n```\n")
         self.assertIn("invalid excerpt source", check_excerpts.check_excerpts(self.page, self.project)[1][0])
 
     def test_audit_citations_are_only_xnu_relative_not_project_or_output_paths(self):
         generated = self.write("docs-ai-html/_downloads/osfmk/copied.c", "copy\n")
-        self.write("old-xnu/osfmk/archived.c", "archive\n")
-        self.write("xnu/osfmk/kern/space name.c", "space\n")
+        self.write("old-platydoc-data/xnu/osfmk/archived.c", "archive\n")
+        self.write("platydoc-data/xnu/osfmk/kern/space name.c", "space\n")
         (self.source / "osfmk/kern/escaped.c").symlink_to(generated)
         with self.page.open("a") as stream:
             stream.write("\n[Output](../../../docs-ai-html/_downloads/osfmk/copied.c)\n"
-                         "[Archive](../../../old-xnu/osfmk/archived.c)\n"
-                         "[Symlink](../../../xnu/osfmk/kern/escaped.c)\n"
-                         "[Encoded](../../../xnu/osfmk/kern/space%20name.c#L1)\n")
+                         "[Archive](../../../old-platydoc-data/xnu/osfmk/archived.c)\n"
+                         "[Symlink](../../../platydoc-data/xnu/osfmk/kern/escaped.c)\n"
+                         "[Encoded](../../../platydoc-data/xnu/osfmk/kern/space%20name.c#L1)\n")
         self.assertEqual(audit_inventory.source_links(self.page),
                          {"osfmk/kern/entry.c", "doc/guide.md", "osfmk/kern/space name.c"})
 
     def test_audit_discovery_scans_only_the_xnu_checkout_without_writing_baseline(self):
-        baseline = self.docs / "audits/inventory.json"
+        baseline = self.project / ".private/handbook-tracking/audits/inventory.json"
         before = baseline.read_bytes()
         self.write("docs-ai-html/_downloads/osfmk/copied.c", "copy\n")
-        self.write("old-xnu/osfmk/archived.c", "archive\n")
+        self.write("old-platydoc-data/xnu/osfmk/archived.c", "archive\n")
         self.write("docs-ai/tools/not_kernel.c", "tool fixture\n")
         discovered = {path.as_posix() for path in audit_inventory.source_paths()}
         self.assertIn("osfmk/kern/entry.c", discovered)
@@ -141,20 +141,20 @@ class RelocatedToolTests(unittest.TestCase):
 
     def test_index_groups_upstream_directories_but_links_project_relative_targets(self):
         with self.page.open("a") as stream:
-            stream.write("\n[BSD](../../../xnu/bsd/kern/helper.c#L1)\n"
-                         "[License](../../../xnu/APPLE_LICENSE)\n")
-        self.write("docs-ai/source-index.md", "# Old generated index\n\n[Stale](../xnu/iokit/present.h)\n")
+            stream.write("\n[BSD](../../../platydoc-data/xnu/bsd/kern/helper.c#L1)\n"
+                         "[License](../../../platydoc-data/xnu/APPLE_LICENSE)\n")
+        self.write("docs-ai/source-index.md", "# Old generated index\n\n[Stale](../platydoc-data/xnu/iokit/present.h)\n")
         references = build_source_index.collect_references()
-        self.assertIn(Path("xnu/osfmk/kern/entry.c"), references)
+        self.assertIn(Path("platydoc-data/xnu/osfmk/kern/entry.c"), references)
         self.assertIn(Path("make_docs.py"), references)
-        self.assertNotIn(Path("xnu/iokit/present.h"), references)
+        self.assertNotIn(Path("platydoc-data/xnu/iokit/present.h"), references)
         with contextlib.redirect_stdout(io.StringIO()):
             build_source_index.main()
         index = (self.docs / "source-index.md").read_text()
         for group in ("bsd", "osfmk", "doc", "XNU root files", "Project files"):
             self.assertIn("\n## " + group + "\n", index)
         self.assertNotIn("\n## xnu\n", index)
-        self.assertIn("(../xnu/osfmk/kern/entry.c)", index)
+        self.assertIn("(../platydoc-data/xnu/osfmk/kern/entry.c)", index)
         self.assertIn("(../make_docs.py)", index)
         self.assertEqual(index.count(doc_license.BEGIN), 1)
         self.assertEqual(index, doc_license.with_license_notice(index))
@@ -163,7 +163,7 @@ class RelocatedToolTests(unittest.TestCase):
         (self.source / "APPLE_LICENSE").unlink()
         with self.assertRaisesRegex(RuntimeError, "XNU source tree is missing or incomplete"):
             check_links.main()
-        with self.assertRaisesRegex(RuntimeError, "Populate the xnu/ checkout"):
+        with self.assertRaisesRegex(RuntimeError, "git -C platydoc-data submodule update --init xnu"):
             audit_inventory.source_paths()
 
 

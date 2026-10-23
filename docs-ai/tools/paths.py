@@ -8,7 +8,7 @@ from pathlib import Path
 
 DOCS = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = DOCS.parent
-SOURCE_ROOT = PROJECT_ROOT / "xnu"
+SOURCE_ROOT = PROJECT_ROOT / "platydoc-data" / "xnu"
 
 
 def require_source():
@@ -17,5 +17,5 @@ def require_source():
         if not (SOURCE_ROOT / relative).exists():
             raise RuntimeError(
                 f"XNU source tree is missing or incomplete at {SOURCE_ROOT}. "
-                "Populate the xnu/ checkout (or initialize its submodule) before building."
+                "Initialize platydoc-data, then run git -C platydoc-data submodule update --init xnu before building."
             )

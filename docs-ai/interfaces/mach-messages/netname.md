@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[libsyscall/mach/servers/netname.defs](../../../xnu/libsyscall/mach/servers/netname.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[libsyscall/mach/servers/netname.defs](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Register a name and port with the historical name server, using a signature port for ownership.
 
-**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../xnu/libsyscall/mach/servers/netname.defs#L53).
+**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L53).
 
-**Declarations:** [`netname_check_in`](../../../xnu/libsyscall/mach/servers/netname.defs#L60) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`netname_check_in`](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L60) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -36,9 +36,9 @@ routine netname_check_in(server_port : mach_port_t;
 
 Request the port registered for a name on the indicated host.
 
-**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../xnu/libsyscall/mach/servers/netname.defs#L53).
+**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L53).
 
-**Declarations:** [`netname_look_up`](../../../xnu/libsyscall/mach/servers/netname.defs#L65) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`netname_look_up`](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L65) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -55,9 +55,9 @@ routine netname_look_up(server_port : mach_port_t;
 
 Remove a name-server registration using its signature capability.
 
-**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../xnu/libsyscall/mach/servers/netname.defs#L53).
+**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L53).
 
-**Declarations:** [`netname_check_out`](../../../xnu/libsyscall/mach/servers/netname.defs#L70) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`netname_check_out`](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L70) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -73,9 +73,9 @@ routine netname_check_out(server_port : mach_port_t;
 
 Request the name server's version string.
 
-**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../xnu/libsyscall/mach/servers/netname.defs#L53).
+**Mechanism:** This library-supplied historical name-service protocol addresses an external server and uses bounded name strings plus the declared port capabilities. Its server prefix is `_`; no matching receiver body is supplied. It is not the kernel IPC-space name table and is not registered in `mig_e`, so server lookup/registration policy is outside this checkout. [Local path](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L53).
 
-**Declarations:** [`netname_version`](../../../xnu/libsyscall/mach/servers/netname.defs#L74) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`netname_version`](../../../platydoc-data/xnu/libsyscall/mach/servers/netname.defs#L74) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 

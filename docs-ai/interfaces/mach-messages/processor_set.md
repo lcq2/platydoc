@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/processor_set.defs](../../../xnu/osfmk/mach/processor_set.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/processor_set.defs](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > Return scheduling statistics for a processor set.
 
-**Mechanism:** Only the boot compatibility set is accepted. LOAD_INFO reports global scheduler load/Mach-factor values and global task/thread totals after checking capacity; the routine does not aggregate a private membership list under a set lock. Unsupported flavors return invalid-argument, while another set returns invalid-processor-set. [processor_set_statistics](../../../xnu/osfmk/kern/processor.c#L1595-L1627).
+**Mechanism:** Only the boot compatibility set is accepted. LOAD_INFO reports global scheduler load/Mach-factor values and global task/thread totals after checking capacity; the routine does not aggregate a private membership list under a set lock. Unsupported flavors return invalid-argument, while another set returns invalid-processor-set. [processor_set_statistics](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1595-L1627).
 
-**Declarations:** [`processor_set_statistics`](../../../xnu/osfmk/mach/processor_set.defs#L77) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`processor_set_statistics`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L77) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -32,15 +32,15 @@ routine processor_set_statistics(
  out info_out : processor_set_info_t, CountInOut);
 ```
 
-**Local body:** [`processor_set_statistics`](../../../xnu/osfmk/kern/processor.c#L1595).
+**Local body:** [`processor_set_statistics`](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1595).
 
 ### 4001: processor_set_destroy
 
 Historical processor-set destruction request; the local body determines whether this implementation supports it.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_destroy](../../../xnu/osfmk/mach/processor_set.defs#L91).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_destroy](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L91).
 
-**Declarations:** [`processor_set_destroy`](../../../xnu/osfmk/mach/processor_set.defs#L91) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_destroy`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L91) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -56,9 +56,9 @@ routine processor_set_destroy(
 
 Historical processor-set maximum-priority update.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_max_priority](../../../xnu/osfmk/mach/processor_set.defs#L94).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_max_priority](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L94).
 
-**Declarations:** [`processor_set_max_priority`](../../../xnu/osfmk/mach/processor_set.defs#L94) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_max_priority`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L94) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -76,9 +76,9 @@ routine processor_set_max_priority(
 
 Historical processor-set policy-enablement request.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_enable](../../../xnu/osfmk/mach/processor_set.defs#L99).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_enable](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L99).
 
-**Declarations:** [`processor_set_policy_enable`](../../../xnu/osfmk/mach/processor_set.defs#L99) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_policy_enable`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L99) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -95,9 +95,9 @@ routine processor_set_policy_enable(
 
 Historical processor-set policy-disablement request.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_disable](../../../xnu/osfmk/mach/processor_set.defs#L103).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_disable](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L103).
 
-**Declarations:** [`processor_set_policy_disable`](../../../xnu/osfmk/mach/processor_set.defs#L103) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_policy_disable`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L103) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -117,9 +117,9 @@ routine processor_set_policy_disable(
 
 > List all tasks in processor set.
 
-**Mechanism:** The shared enumeration accepts only `sched_boot_pset`, allocates arrays outside `tasks_threads_lock`, then retries until capacity covers the current global lists. It references IPC-active, non-exec-copy tasks under the lock, filters them through MAC exposure policy afterward, compacts the result, and converts references into task ports. The flavored entry validates CONTROL/READ/INSPECT/NAME; the older entry selects CONTROL. Allocation and filtering therefore precede capability publication. [processor_set_tasks](../../../xnu/osfmk/kern/processor.c#L1636-L1922).
+**Mechanism:** The shared enumeration accepts only `sched_boot_pset`, allocates arrays outside `tasks_threads_lock`, then retries until capacity covers the current global lists. It references IPC-active, non-exec-copy tasks under the lock, filters them through MAC exposure policy afterward, compacts the result, and converts references into task ports. The flavored entry validates CONTROL/READ/INSPECT/NAME; the older entry selects CONTROL. Allocation and filtering therefore precede capability publication. [processor_set_tasks](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1636-L1922).
 
-**Declarations:** [`processor_set_tasks`](../../../xnu/osfmk/mach/processor_set.defs#L112) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`processor_set_tasks`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L112) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -129,11 +129,11 @@ routine processor_set_tasks(
  out task_list : task_array_t);
 ```
 
-**Local body:** [`processor_set_tasks`](../../../xnu/osfmk/kern/processor.c#L1893).
+**Local body:** [`processor_set_tasks`](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1893).
 Calls visible in this body include `processor_set_tasks_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/processor.c#L1893-L1899):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/processor.c#L1893-L1899 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1893-L1899):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/processor.c#L1893-L1899 -->
 ```c
 processor_set_tasks(
 	processor_set_t         pset,
@@ -148,9 +148,9 @@ processor_set_tasks(
 
 Request the threads assigned to a processor set, with the capability flavor and local implementation limits.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_threads](../../../xnu/osfmk/mach/processor_set.defs#L124).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_threads](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L124).
 
-**Declarations:** [`processor_set_threads`](../../../xnu/osfmk/mach/processor_set.defs#L124) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_threads`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L124) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -167,9 +167,9 @@ routine processor_set_threads(
 
 Historical processor-set scheduling-policy control.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_control](../../../xnu/osfmk/mach/processor_set.defs#L127).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_policy_control](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L127).
 
-**Declarations:** [`processor_set_policy_control`](../../../xnu/osfmk/mach/processor_set.defs#L127) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_policy_control`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L127) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -188,9 +188,9 @@ routine processor_set_policy_control(
 
 Request processor-set stack-use statistics through the declared debugging interface.
 
-**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_stack_usage](../../../xnu/osfmk/mach/processor_set.defs#L132).
+**Mechanism:** This name survives in client declarations, while the kernel-server profiles reserve its slot with `skip`. There is no corresponding local server routine to trace here; the historical argument list must not be read as an implemented operation in this kernel. [processor_set_stack_usage](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L132).
 
-**Declarations:** [`processor_set_stack_usage`](../../../xnu/osfmk/mach/processor_set.defs#L132) (`client64`, `client32`, `libsyscall64`, `sender64`).
+**Declarations:** [`processor_set_stack_usage`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L132) (`client64`, `client32`, `libsyscall64`, `sender64`).
 **Reserved instead in:** `server64`, `server32`, `local64`.
 
 **Fields after preprocessing (`client64`):**
@@ -213,9 +213,9 @@ routine processor_set_stack_usage(
 
 > Get information about processor set.
 
-**Mechanism:** Rejects a null set and dispatches compatibility information flavors with per-layout capacity checks. BASIC_INFO reports the global available processor count and timeshare default; policy defaults/limits expose scheduler constants rather than a configurable independent set policy. Successful flavors return the real host and their actual word count; unsupported flavors fail. [processor_set_info](../../../xnu/osfmk/kern/processor.c#L1461-L1590).
+**Mechanism:** Rejects a null set and dispatches compatibility information flavors with per-layout capacity checks. BASIC_INFO reports the global available processor count and timeshare default; policy defaults/limits expose scheduler constants rather than a configurable independent set policy. Successful flavors return the real host and their actual word count; unsupported flavors fail. [processor_set_info](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1461-L1590).
 
-**Declarations:** [`processor_set_info`](../../../xnu/osfmk/mach/processor_set.defs#L144) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`processor_set_info`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L144) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -227,7 +227,7 @@ routine processor_set_info(
         out info_out : processor_set_info_t, CountInOut);
 ```
 
-**Local body:** [`processor_set_info`](../../../xnu/osfmk/kern/processor.c#L1461).
+**Local body:** [`processor_set_info`](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1461).
 
 ### 4010: processor_set_tasks_with_flavor
 
@@ -235,9 +235,9 @@ routine processor_set_info(
 
 > List all tasks(/inspect/read) in processor set based on flavor.
 
-**Mechanism:** The shared enumeration accepts only `sched_boot_pset`, allocates arrays outside `tasks_threads_lock`, then retries until capacity covers the current global lists. It references IPC-active, non-exec-copy tasks under the lock, filters them through MAC exposure policy afterward, compacts the result, and converts references into task ports. The flavored entry validates CONTROL/READ/INSPECT/NAME; the older entry selects CONTROL. Allocation and filtering therefore precede capability publication. [processor_set_tasks_with_flavor](../../../xnu/osfmk/kern/processor.c#L1636-L1922).
+**Mechanism:** The shared enumeration accepts only `sched_boot_pset`, allocates arrays outside `tasks_threads_lock`, then retries until capacity covers the current global lists. It references IPC-active, non-exec-copy tasks under the lock, filters them through MAC exposure policy afterward, compacts the result, and converts references into task ports. The flavored entry validates CONTROL/READ/INSPECT/NAME; the older entry selects CONTROL. Allocation and filtering therefore precede capability publication. [processor_set_tasks_with_flavor](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1636-L1922).
 
-**Declarations:** [`processor_set_tasks_with_flavor`](../../../xnu/osfmk/mach/processor_set.defs#L153) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`processor_set_tasks_with_flavor`](../../../platydoc-data/xnu/osfmk/mach/processor_set.defs#L153) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -248,11 +248,11 @@ routine processor_set_tasks_with_flavor(
  out task_list : task_array_t);
 ```
 
-**Local body:** [`processor_set_tasks_with_flavor`](../../../xnu/osfmk/kern/processor.c#L1907).
+**Local body:** [`processor_set_tasks_with_flavor`](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1907).
 Calls visible in this body include `processor_set_tasks_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/processor.c#L1907-L1922):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/processor.c#L1907-L1922 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/processor.c#L1907-L1922):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/processor.c#L1907-L1922 -->
 ```c
 processor_set_tasks_with_flavor(
 	processor_set_t         pset,

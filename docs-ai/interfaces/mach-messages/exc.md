@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/exc.defs](../../../xnu/osfmk/mach/exc.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/exc.defs](../../../platydoc-data/xnu/osfmk/mach/exc.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Deliver a traditional Mach exception with thread/task rights and 32-bit exception-code elements; the receiver chooses its policy.
 
-**Mechanism:** The sender selects this older narrow-code form for `EXCEPTION_DEFAULT` without `MACH_EXCEPTION_CODES`, exporting task/thread ports at the policy-selected flavor. The in-kernel Unix receiver first requires `ux_handler_port`, widens the two codes and delegates to `catch_mach_exception_raise`; a different registered exception server may implement its own receiver. See [exception delivery](../../subsystems/ipc/exception-delivery.md). [Local path](../../../xnu/osfmk/kern/exception.c#L355).
+**Mechanism:** The sender selects this older narrow-code form for `EXCEPTION_DEFAULT` without `MACH_EXCEPTION_CODES`, exporting task/thread ports at the policy-selected flavor. The in-kernel Unix receiver first requires `ux_handler_port`, widens the two codes and delegates to `catch_mach_exception_raise`; a different registered exception server may implement its own receiver. See [exception delivery](../../subsystems/ipc/exception-delivery.md). [Local path](../../../platydoc-data/xnu/osfmk/kern/exception.c#L355).
 
-**Declarations:** [`exception_raise`](../../../xnu/osfmk/mach/exc.defs#L80) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`exception_raise`](../../../platydoc-data/xnu/osfmk/mach/exc.defs#L80) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -33,16 +33,16 @@ routine exception_raise(
    );
 ```
 
-**Local body:** [`catch_exception_raise`](../../../xnu/osfmk/kern/ux_handler.c#L173).
+**Local body:** [`catch_exception_raise`](../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L173).
 Calls visible in this body include `catch_mach_exception_raise`.
 
 ### 2402: exception_raise_state
 
 Deliver a traditional exception with thread-state flavor/data and accept replacement state in the reply.
 
-**Mechanism:** The `EXCEPTION_STATE` sender obtains architecture state with `thread_getstatus_to_user`, allocates reply-state storage and sends narrow exception codes with a flavor/count. A successful reply is validated through `thread_setstatus_from_user`, except for corpse notification. The local Unix receiver for this state-only form returns `KERN_INVALID_ARGUMENT`; a user exception server supplies the useful receiver. [Local path](../../../xnu/osfmk/kern/exception.c#L298).
+**Mechanism:** The `EXCEPTION_STATE` sender obtains architecture state with `thread_getstatus_to_user`, allocates reply-state storage and sends narrow exception codes with a flavor/count. A successful reply is validated through `thread_setstatus_from_user`, except for corpse notification. The local Unix receiver for this state-only form returns `KERN_INVALID_ARGUMENT`; a user exception server supplies the useful receiver. [Local path](../../../platydoc-data/xnu/osfmk/kern/exception.c#L298).
 
-**Declarations:** [`exception_raise_state`](../../../xnu/osfmk/mach/exc.defs#L100) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`exception_raise_state`](../../../platydoc-data/xnu/osfmk/mach/exc.defs#L100) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -57,10 +57,10 @@ routine exception_raise_state(
    );
 ```
 
-**Local body:** [`catch_exception_raise_state`](../../../xnu/osfmk/kern/ux_handler.c#L199).
+**Local body:** [`catch_exception_raise_state`](../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L199).
 
-[Implementation excerpt](../../../xnu/osfmk/kern/ux_handler.c#L199-L211):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/ux_handler.c#L199-L211 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L199-L211):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L199-L211 -->
 ```c
 catch_exception_raise_state(
 	__unused mach_port_t                 exception_port,
@@ -81,9 +81,9 @@ catch_exception_raise_state(
 
 Deliver a traditional exception with both thread/task identity rights and state; accept replacement state in the reply.
 
-**Mechanism:** The state-and-identity sender exports policy-selected task/thread capabilities as well as old thread state, flavor and narrow codes. A successful reply is imported through architecture/state validation only when the exception is not `EXC_CORPSE_NOTIFY` and the exported thread port is `IKOT_THREAD_CONTROL`; the read-port delivery branch does not import returned state. The in-kernel Unix handler is an invalid-argument stub for this behavior; its presence in the generated exception subsystem does not mean it implements state editing. [Local path](../../../xnu/osfmk/kern/exception.c#L503-L579).
+**Mechanism:** The state-and-identity sender exports policy-selected task/thread capabilities as well as old thread state, flavor and narrow codes. A successful reply is imported through architecture/state validation only when the exception is not `EXC_CORPSE_NOTIFY` and the exported thread port is `IKOT_THREAD_CONTROL`; the read-port delivery branch does not import returned state. The in-kernel Unix handler is an invalid-argument stub for this behavior; its presence in the generated exception subsystem does not mean it implements state editing. [Local path](../../../platydoc-data/xnu/osfmk/kern/exception.c#L503-L579).
 
-**Declarations:** [`exception_raise_state_identity`](../../../xnu/osfmk/mach/exc.defs#L121) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`exception_raise_state_identity`](../../../platydoc-data/xnu/osfmk/mach/exc.defs#L121) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -100,10 +100,10 @@ routine exception_raise_state_identity(
    );
 ```
 
-**Local body:** [`catch_exception_raise_state_identity`](../../../xnu/osfmk/kern/ux_handler.c#L229).
+**Local body:** [`catch_exception_raise_state_identity`](../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L229).
 
-[Implementation excerpt](../../../xnu/osfmk/kern/ux_handler.c#L229-L243):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/ux_handler.c#L229-L243 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L229-L243):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/ux_handler.c#L229-L243 -->
 ```c
 catch_exception_raise_state_identity(
 	__unused mach_port_t                exception_port,

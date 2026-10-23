@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/semaphore.defs](../../../xnu/osfmk/mach/semaphore.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/semaphore.defs](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > a semaphore_t is created and destroyed through the task object. semaphore_create(task_t,&semaphore_t,...); semaphore_destroy(task_t,semaphore_t);
 
-**Mechanism:** Takes the semaphore lock at scheduler interrupt level and rejects an inactive object. It wakes one queued waiter when possible; otherwise the PREPOST option increments the available count. The public wrapper converts the internal `KERN_NOT_WAITING` result into success, so callers cannot distinguish a wakeup from a stored permit through the return value. [semaphore_signal](../../../xnu/osfmk/kern/sync_sema.c#L338-L415). [Public result conversion](../../../xnu/osfmk/kern/sync_sema.c#L495-L515).
+**Mechanism:** Takes the semaphore lock at scheduler interrupt level and rejects an inactive object. It wakes one queued waiter when possible; otherwise the PREPOST option increments the available count. The public wrapper converts the internal `KERN_NOT_WAITING` result into success, so callers cannot distinguish a wakeup from a stored permit through the return value. [semaphore_signal](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L338-L415). [Public result conversion](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L495-L515).
 
-**Declarations:** [`semaphore_signal`](../../../xnu/osfmk/mach/semaphore.defs#L56) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_signal`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L56) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -30,11 +30,11 @@ routine semaphore_signal(
   semaphore : semaphore_t);
 ```
 
-**Local body:** [`semaphore_signal`](../../../xnu/osfmk/kern/sync_sema.c#L495).
+**Local body:** [`semaphore_signal`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L495).
 Calls visible in this body include `semaphore_signal_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/sync_sema.c#L495-L511):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/sync_sema.c#L495-L511 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L495-L511):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L495-L511 -->
 ```c
 semaphore_signal(
 	semaphore_t             semaphore)
@@ -55,11 +55,11 @@ semaphore_signal(
 }
 ```
 
-**User wrapper:** [`semaphore_signal`](../../../xnu/libsyscall/mach/semaphore.c#L37).
+**User wrapper:** [`semaphore_signal`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L37).
 Calls visible in this body include `semaphore_signal_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L37-L40):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L37-L40 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L37-L40):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L37-L40 -->
 ```c
 semaphore_signal(mach_port_t signal_semaphore)
 {
@@ -71,9 +71,9 @@ semaphore_signal(mach_port_t signal_semaphore)
 
 Wake all eligible semaphore waiters through the semaphore signal primitive.
 
-**Mechanism:** Uses the shared signal helper with ALL but without PREPOST. When waiters exist, it sets the count to zero and wakes every waiter while releasing the wait-queue lock and restoring interrupt state. With a nonnegative count, it leaves that count unchanged: the implementation is narrower than the nearby comment that says the count always returns to zero. Inactive semaphores fail with `KERN_TERMINATED`. [semaphore_signal_all](../../../xnu/osfmk/kern/sync_sema.c#L338-L388).
+**Mechanism:** Uses the shared signal helper with ALL but without PREPOST. When waiters exist, it sets the count to zero and wakes every waiter while releasing the wait-queue lock and restoring interrupt state. With a nonnegative count, it leaves that count unchanged: the implementation is narrower than the nearby comment that says the count always returns to zero. Inactive semaphores fail with `KERN_TERMINATED`. [semaphore_signal_all](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L338-L388).
 
-**Declarations:** [`semaphore_signal_all`](../../../xnu/osfmk/mach/semaphore.defs#L59) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_signal_all`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L59) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -82,11 +82,11 @@ routine semaphore_signal_all(
   semaphore : semaphore_t);
 ```
 
-**Local body:** [`semaphore_signal_all`](../../../xnu/osfmk/kern/sync_sema.c#L553).
+**Local body:** [`semaphore_signal_all`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L553).
 Calls visible in this body include `semaphore_signal_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/sync_sema.c#L553-L569):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/sync_sema.c#L553-L569 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L553-L569):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L553-L569 -->
 ```c
 semaphore_signal_all(
 	semaphore_t             semaphore)
@@ -107,11 +107,11 @@ semaphore_signal_all(
 }
 ```
 
-**User wrapper:** [`semaphore_signal_all`](../../../xnu/libsyscall/mach/semaphore.c#L43).
+**User wrapper:** [`semaphore_signal_all`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L43).
 Calls visible in this body include `semaphore_signal_all_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L43-L46):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L43-L46 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L43-L46):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L43-L46 -->
 ```c
 semaphore_signal_all(mach_port_t signal_semaphore)
 {
@@ -123,9 +123,9 @@ semaphore_signal_all(mach_port_t signal_semaphore)
 
 Consume a semaphore count or register/block as a waiter.
 
-**Mechanism:** Under the semaphore lock, consumes an available permit or records the presence of waiters with count `-1` and asserts an abort-safe wait. The count is a waiter-present marker, not a negative waiter total. After unlocking, the non-continuation MIG body blocks through the handoff helper and translates wakeup, timeout, interruption and destruction into success, timed-out, aborted and terminated results. [semaphore_wait](../../../xnu/osfmk/kern/sync_sema.c#L605-L623). [Wait registration and blocking](../../../xnu/osfmk/kern/sync_sema.c#L659-L801).
+**Mechanism:** Under the semaphore lock, consumes an available permit or records the presence of waiters with count `-1` and asserts an abort-safe wait. The count is a waiter-present marker, not a negative waiter total. After unlocking, the non-continuation MIG body blocks through the handoff helper and translates wakeup, timeout, interruption and destruction into success, timed-out, aborted and terminated results. [semaphore_wait](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L605-L623). [Wait registration and blocking](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L659-L801).
 
-**Declarations:** [`semaphore_wait`](../../../xnu/osfmk/mach/semaphore.defs#L62) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_wait`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L62) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -134,11 +134,11 @@ routine semaphore_wait(
   semaphore : semaphore_t);
 ```
 
-**Local body:** [`semaphore_wait`](../../../xnu/osfmk/kern/sync_sema.c#L789).
+**Local body:** [`semaphore_wait`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L789).
 Calls visible in this body include `semaphore_wait_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/sync_sema.c#L789-L798):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/sync_sema.c#L789-L798 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L789-L798):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L789-L798 -->
 ```c
 semaphore_wait(
 	semaphore_t             semaphore)
@@ -152,11 +152,11 @@ semaphore_wait(
 }
 ```
 
-**User wrapper:** [`semaphore_wait`](../../../xnu/libsyscall/mach/semaphore.c#L55).
+**User wrapper:** [`semaphore_wait`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L55).
 Calls visible in this body include `semaphore_wait_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L55-L58):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L55-L58 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L55-L58):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L55-L58 -->
 ```c
 semaphore_wait(mach_port_t wait_semaphore)
 {
@@ -168,9 +168,9 @@ semaphore_wait(mach_port_t wait_semaphore)
 
 Signal the specified thread waiting on a semaphore.
 
-**Mechanism:** A non-null thread restricts the wakeup to that thread on this semaphore’s wait queue; absence of that waiter returns `KERN_NOT_WAITING`. A null thread selects any existing waiter. Unlike ordinary signal, this call does not prepost a permit when nobody is waiting. The semaphore lock and scheduler interrupt level protect the active/count check and wakeup selection. [semaphore_signal_thread](../../../xnu/osfmk/kern/sync_sema.c#L338-L415).
+**Mechanism:** A non-null thread restricts the wakeup to that thread on this semaphore’s wait queue; absence of that waiter returns `KERN_NOT_WAITING`. A null thread selects any existing waiter. Unlike ordinary signal, this call does not prepost a permit when nobody is waiting. The semaphore lock and scheduler interrupt level protect the active/count check and wakeup selection. [semaphore_signal_thread](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L338-L415).
 
-**Declarations:** [`semaphore_signal_thread`](../../../xnu/osfmk/mach/semaphore.defs#L66) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_signal_thread`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L66) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -180,11 +180,11 @@ routine semaphore_signal_thread(
   thread : thread_act_t);
 ```
 
-**Local body:** [`semaphore_signal_thread`](../../../xnu/osfmk/kern/sync_sema.c#L427).
+**Local body:** [`semaphore_signal_thread`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L427).
 Calls visible in this body include `semaphore_signal_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/sync_sema.c#L427-L437):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/sync_sema.c#L427-L437 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L427-L437):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L427-L437 -->
 ```c
 semaphore_signal_thread(
 	semaphore_t     semaphore,
@@ -199,11 +199,11 @@ semaphore_signal_thread(
 }
 ```
 
-**User wrapper:** [`semaphore_signal_thread`](../../../xnu/libsyscall/mach/semaphore.c#L49).
+**User wrapper:** [`semaphore_signal_thread`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L49).
 Calls visible in this body include `semaphore_signal_thread_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L49-L52):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L49-L52 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L49-L52):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L49-L52 -->
 ```c
 semaphore_signal_thread(mach_port_t signal_semaphore, mach_port_t thread_act)
 {
@@ -215,9 +215,9 @@ semaphore_signal_thread(mach_port_t signal_semaphore, mach_port_t thread_act)
 
 Validate the relative timeout, calculate a deadline and wait for the semaphore until completion or timeout.
 
-**Mechanism:** Rejects an invalid timespec before touching the wait queue. `{0,0}` selects a nonblocking attempt; a positive interval becomes an absolute deadline. The shared locked wait path first consumes an existing permit, so a zero timeout can succeed; otherwise it returns timed-out or installs an abort-safe timed wait. The MIG wrapper uses the stack-preserving, non-continuation form. [semaphore_timedwait](../../../xnu/osfmk/kern/sync_sema.c#L867-L892).
+**Mechanism:** Rejects an invalid timespec before touching the wait queue. `{0,0}` selects a nonblocking attempt; a positive interval becomes an absolute deadline. The shared locked wait path first consumes an existing permit, so a zero timeout can succeed; otherwise it returns timed-out or installs an abort-safe timed wait. The MIG wrapper uses the stack-preserving, non-continuation form. [semaphore_timedwait](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L867-L892).
 
-**Declarations:** [`semaphore_timedwait`](../../../xnu/osfmk/mach/semaphore.defs#L70) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_timedwait`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L70) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -227,14 +227,14 @@ routine semaphore_timedwait(
   wait_time : mach_timespec_t);
 ```
 
-**Local body:** [`semaphore_timedwait`](../../../xnu/osfmk/kern/sync_sema.c#L867).
+**Local body:** [`semaphore_timedwait`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L867).
 Calls visible in this body include `BAD_MACH_TIMESPEC`, `semaphore_deadline`, `semaphore_wait_internal`.
 
-**User wrapper:** [`semaphore_timedwait`](../../../xnu/libsyscall/mach/semaphore.c#L61).
+**User wrapper:** [`semaphore_timedwait`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L61).
 Calls visible in this body include `semaphore_timedwait_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L61-L66):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L61-L66 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L61-L66):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L61-L66 -->
 ```c
 semaphore_timedwait(mach_port_t wait_semaphore, mach_timespec_t wait_time)
 {
@@ -248,9 +248,9 @@ semaphore_timedwait(mach_port_t wait_semaphore, mach_timespec_t wait_time)
 
 Combine signaling one semaphore with waiting on another through the semaphore wait implementation.
 
-**Mechanism:** Registers the wait, or resolves an immediately available permit/error, before signaling the second semaphore. The wait lock is released before the signal lock is acquired. A waiting caller can hand execution directly to the awakened signal waiter. If the signal semaphore has died, it clears its own wait; an already-delivered wakeup wins, otherwise interruption is converted to `KERN_TERMINATED`. [semaphore_wait_signal](../../../xnu/osfmk/kern/sync_sema.c#L659-L778).
+**Mechanism:** Registers the wait, or resolves an immediately available permit/error, before signaling the second semaphore. The wait lock is released before the signal lock is acquired. A waiting caller can hand execution directly to the awakened signal waiter. If the signal semaphore has died, it clears its own wait; an already-delivered wakeup wins, otherwise interruption is converted to `KERN_TERMINATED`. [semaphore_wait_signal](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L659-L778).
 
-**Declarations:** [`semaphore_wait_signal`](../../../xnu/osfmk/mach/semaphore.defs#L74) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_wait_signal`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L74) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -260,11 +260,11 @@ routine semaphore_wait_signal(
   signal_semaphore: semaphore_t);
 ```
 
-**Local body:** [`semaphore_wait_signal`](../../../xnu/osfmk/kern/sync_sema.c#L958).
+**Local body:** [`semaphore_wait_signal`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L958).
 Calls visible in this body include `semaphore_wait_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/kern/sync_sema.c#L958-L968):
-<!-- source-excerpt: ../../../xnu/osfmk/kern/sync_sema.c#L958-L968 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L958-L968):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L958-L968 -->
 ```c
 semaphore_wait_signal(
 	semaphore_t             wait_semaphore,
@@ -279,11 +279,11 @@ semaphore_wait_signal(
 }
 ```
 
-**User wrapper:** [`semaphore_wait_signal`](../../../xnu/libsyscall/mach/semaphore.c#L69).
+**User wrapper:** [`semaphore_wait_signal`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L69).
 Calls visible in this body include `semaphore_wait_signal_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L69-L72):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L69-L72 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L69-L72):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L69-L72 -->
 ```c
 semaphore_wait_signal(mach_port_t wait_semaphore, mach_port_t signal_semaphore)
 {
@@ -295,9 +295,9 @@ semaphore_wait_signal(mach_port_t wait_semaphore, mach_port_t signal_semaphore)
 
 Combine signal and timed wait after validating and converting the timeout.
 
-**Mechanism:** Validates the wait timespec, selects a nonblocking attempt for zero or computes an absolute deadline, then uses the same wait-before-signal protocol. Even when waiting resolves immediately, the helper still signals the second semaphore before returning. Invalid timespecs are rejected before that side effect. Signal-semaphore destruction explicitly cancels the pending wait rather than leaving the caller stranded. [semaphore_timedwait_signal](../../../xnu/osfmk/kern/sync_sema.c#L1020-L1047). [Signal and cancellation ordering](../../../xnu/osfmk/kern/sync_sema.c#L704-L752).
+**Mechanism:** Validates the wait timespec, selects a nonblocking attempt for zero or computes an absolute deadline, then uses the same wait-before-signal protocol. Even when waiting resolves immediately, the helper still signals the second semaphore before returning. Invalid timespecs are rejected before that side effect. Signal-semaphore destruction explicitly cancels the pending wait rather than leaving the caller stranded. [semaphore_timedwait_signal](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L1020-L1047). [Signal and cancellation ordering](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L704-L752).
 
-**Declarations:** [`semaphore_timedwait_signal`](../../../xnu/osfmk/mach/semaphore.defs#L78) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`semaphore_timedwait_signal`](../../../platydoc-data/xnu/osfmk/mach/semaphore.defs#L78) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -308,14 +308,14 @@ routine semaphore_timedwait_signal(
   wait_time : mach_timespec_t);
 ```
 
-**Local body:** [`semaphore_timedwait_signal`](../../../xnu/osfmk/kern/sync_sema.c#L1020).
+**Local body:** [`semaphore_timedwait_signal`](../../../platydoc-data/xnu/osfmk/kern/sync_sema.c#L1020).
 Calls visible in this body include `BAD_MACH_TIMESPEC`, `semaphore_deadline`, `semaphore_wait_internal`.
 
-**User wrapper:** [`semaphore_timedwait_signal`](../../../xnu/libsyscall/mach/semaphore.c#L75).
+**User wrapper:** [`semaphore_timedwait_signal`](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L75).
 Calls visible in this body include `semaphore_timedwait_signal_trap`.
 
-[Implementation excerpt](../../../xnu/libsyscall/mach/semaphore.c#L75-L83):
-<!-- source-excerpt: ../../../xnu/libsyscall/mach/semaphore.c#L75-L83 -->
+[Implementation excerpt](../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L75-L83):
+<!-- source-excerpt: ../../../platydoc-data/xnu/libsyscall/mach/semaphore.c#L75-L83 -->
 ```c
 semaphore_timedwait_signal(mach_port_t wait_semaphore,
     mach_port_t signal_semaphore,

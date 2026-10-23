@@ -7,3 +7,4 @@ __pycache__/
 .vscode
 /runtime/*.tar.gz
 /runtime/*.tar.json
+/.private/

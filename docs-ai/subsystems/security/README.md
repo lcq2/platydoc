@@ -63,16 +63,16 @@ For an initial source walk, follow `setuid()` through `kauth_cred_proc_update()`
 
 | Object/interface | Responsibility |
 | --- | --- |
-| [`ucred`](../../../xnu/bsd/sys/ucred.h#L146), [`proc_ro`](../../../xnu/bsd/sys/proc_ro.h#L69), [`thread_ro`](../../../xnu/osfmk/kern/thread.h#L187) | Immutable identity value, process publication point, and current-thread credential cache |
-| [`mac_policy_conf`](../../../xnu/security/mac_policy.h#L6432), [`mac_policy_ops`](../../../xnu/security/mac_policy.h#L6013), [`label`](../../../xnu/security/_label.h#L86) | Registered policy operations and policy-specific label slots |
-| [`cs_blob` and `ubc_info`](../../../xnu/bsd/sys/ubc_internal.h#L106) | Signature coverage, hashes, signer/entitlement information, and attachment to file-backed VM |
-| [`kaudit_record`](../../../xnu/bsd/security/audit/audit_private.h#L334) | In-progress audit record, selected destinations, optional user data, and queue linkage |
-| [`exclaves_resource`](../../../xnu/osfmk/kern/exclaves_resource.h#L188) | Named, typed external resource with XNU lifetime and type-specific state |
+| [`ucred`](../../../platydoc-data/xnu/bsd/sys/ucred.h#L146), [`proc_ro`](../../../platydoc-data/xnu/bsd/sys/proc_ro.h#L69), [`thread_ro`](../../../platydoc-data/xnu/osfmk/kern/thread.h#L187) | Immutable identity value, process publication point, and current-thread credential cache |
+| [`mac_policy_conf`](../../../platydoc-data/xnu/security/mac_policy.h#L6432), [`mac_policy_ops`](../../../platydoc-data/xnu/security/mac_policy.h#L6013), [`label`](../../../platydoc-data/xnu/security/_label.h#L86) | Registered policy operations and policy-specific label slots |
+| [`cs_blob` and `ubc_info`](../../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L106) | Signature coverage, hashes, signer/entitlement information, and attachment to file-backed VM |
+| [`kaudit_record`](../../../platydoc-data/xnu/bsd/security/audit/audit_private.h#L334) | In-progress audit record, selected destinations, optional user data, and queue linkage |
+| [`exclaves_resource`](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.h#L188) | Named, typed external resource with XNU lifetime and type-specific state |
 | SPTM bootstrap/per-CPU state and frame types | Inputs and completion state for protected mapping/retyping operations; [detailed structure map](sptm.md) |
 | TXM call/stack/shared data | Selector arguments, protected call lifetime, typed results and policy state; [TXM](txm.md) |
 | Exclaves thread context, SCID and per-core scheduler buffers | Separate RPC and scheduling protocols with interrupt-safe execution state; [execution](exclaves-execution.md) |
 
-`CONFIG_MACF`, `CONFIG_AUDIT`, `CONFIG_CSR`, `CONFIG_CSR_FROM_DT`, and `CONFIG_EXCLAVES` materially change these paths; declarations are in [`config/MASTER`](../../../xnu/config/MASTER). Code-signing monitor and architecture options introduce additional branches. This chapter is not a statement that every mechanism is active on every product built from XNU.
+`CONFIG_MACF`, `CONFIG_AUDIT`, `CONFIG_CSR`, `CONFIG_CSR_FROM_DT`, and `CONFIG_EXCLAVES` materially change these paths; declarations are in [`config/MASTER`](../../../platydoc-data/xnu/config/MASTER). Code-signing monitor and architecture options introduce additional branches. This chapter is not a statement that every mechanism is active on every product built from XNU.
 
 ## Sources inspected and limits
 

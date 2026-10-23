@@ -1,74 +1,52 @@
-# Local preparation and Pages publishing
+# Handbook data and Pages publishing
 
-There are two flows. All compilation and validation stay local. Pages downloads
-our prepared output, renders the HTML handbook/offline ZIP and publishes them.
-The browser uses the supplied Wasm compiler for interactive layouts.
+`platydoc-data` owns compiler builds, generated headers, structure surveys,
+validation and release publication. This repository renders the handbook using
+one immutable data release. Pages never builds or runs a native compiler.
 
-## One-time migration to release assets
+## Select a data release
 
-Install GitHub CLI through your package manager (`sudo pacman -S --needed github-cli`
-on Arch), then authenticate locally. Upload the existing prepared archive before
-removing it from Git tracking:
+In a local `platydoc-data` checkout:
 
 ```sh
-gh auth login
-python3 docs-ai/tools/layouts/prepared.py publish \
-  --archive runtime/prepared-layouts.tar.gz --repo lcq2/platydoc
-git rm --cached -- runtime/prepared-layouts.tar.gz runtime/prepared-layouts.tar.json
-git add -- .gitignore .github docs-ai runtime/prepared-layouts.release.json
-git commit -m "Store prepared layout assets in GitHub Releases"
-git push origin main
+python3 make_data.py build
+python3 make_data.py publish --repo lcq2/platydoc-data
 ```
 
-`publish` writes `runtime/prepared-layouts.release.json` only after the upload
-succeeds. It does not commit, push, stage files or rewrite history. Stop if the
-upload fails; do not commit the new workflow without its release reference.
-The archive remains on disk after `git rm --cached`, and is ignored thereafter.
-The old pushed copy remains in Git history; these commands prevent future growth
-without rewriting that history.
-
-## Normal local preparation
-
-After editing pages or adding structures, use the existing local preparation
-workflow to regenerate layouts as needed. Build/validate locally, then export
-and upload in one command:
+Publication prints a content-addressed `layouts-<sha256>` release tag. In this
+repository, select that tag:
 
 ```sh
-DOCS_DIAGRAM_RENDERER=parsed-svg python3 make_docs.py
-python3 docs-ai/tools/layouts/prepared.py publish --book docs-ai-html --repo lcq2/platydoc
-git add -- docs-ai runtime/prepared-layouts.release.json
-git commit -m "Update handbook and prepared layouts"
-git push origin main
+python3 make_docs.py --update-data layouts-<sha256> --data-repo lcq2/platydoc-data
+python3 make_docs.py
 ```
 
-The archive is exported under `.docs-cache/layouts/`. Its content hash identifies
-a versioned release; unchanged content reuses that release and existing assets
-are not overwritten. Only the small release reference enters Git. Refresh the
-prepared assets when structures, layout UI, compiler or bundled inputs change;
-ordinary prose edits can reuse the existing release reference.
+Commit `runtime/prepared-layouts.release.json` with the relevant handbook edits.
+The archive and `docs-ai-html/` remain ignored. Ordinary prose and reader UI edits
+reuse the selected package and require no new data release.
 
-The upload uses [GitHub CLI releases](https://cli.github.com/manual/gh_release_create).
-Authentication remains in your local GitHub CLI configuration; no token enters
-Git. Use your own `owner/repo` in `--repo` for a fork.
+The existing reference can continue pointing to an older release hosted in
+`lcq2/platydoc` during migration. Selecting a new release changes the repository
+and checksum together; never point the reference at an unpublished asset.
 
-## Pages publication
-
-Actions downloads the exact release asset identified by the committed reference
-using its read-only repository token, then runs:
+For an unpublished local package:
 
 ```sh
-python docs-ai/tools/layouts/prepared.py download \
-  --reference runtime/prepared-layouts.release.json \
-  --output .docs-cache/layouts/prepared-layouts.tar.gz
-python make_docs.py --prepared-layouts .docs-cache/layouts/prepared-layouts.tar.gz --publish-only
+python3 make_docs.py --prepared-layouts platydoc-data/dist/prepared-layouts.tar.gz
 ```
 
-Actions does not build/run a layout compiler, generate structure layouts, run
-tests, compare native/Wasm outputs or perform validation. Node is only used for
-diagram rendering. Default local builds retain their preparation and validation.
-The reference must point to a release asset accessible to the workflow token;
-for forks, upload the archive to that fork before publishing.
+## Pages
 
-Build software uses GPL-2.0-only ([LICENSE](../LICENSE)); this explanation uses
-CC BY 4.0 ([LICENSE-DOCS](../LICENSE-DOCS)). Compiler and runtime assets retain
-their upstream notices.
+Actions downloads the exact archive from the committed reference, checks its
+size/checksum, renders HTML and the offline ZIP, and deploys the result. There
+are no compiler builds, native runs, header generators or validation suites.
+
+The producer will be checked out as the root `platydoc-data/` submodule. Only
+the selected package crosses the build boundary; Pages initializes that repository and only its `xnu` submodule for handbook
+source previews. It does not initialize `bootstrap_cmds` or run producer tools.
+
+GitHub CLI is required only for explicit release downloads/uploads. Install it
+through your package manager and authenticate locally with `gh auth login`.
+
+Original documentation: CC BY 4.0. Build tools: GPL-2.0-only. Bundled compiler,
+headers and third-party assets retain their original notices.

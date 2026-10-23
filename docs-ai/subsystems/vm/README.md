@@ -48,7 +48,7 @@ The examples use page-size symbols where possible. Before following an address i
 
 ## The central distinction
 
-A mapping describes what an address **means**. A resident page holds its current contents. A hardware translation allows a CPU to access those contents. These can exist independently: an untouched anonymous mapping can have neither a resident page nor a page-table entry; a file's cached pages can outlive a particular process mapping. The public [`vm_map_create` documentation](../../../xnu/osfmk/vm/vm_map.h#L113) explicitly identifies the VM map as the source of truth for region configuration and the pmap as its machine-dependent cache.
+A mapping describes what an address **means**. A resident page holds its current contents. A hardware translation allows a CPU to access those contents. These can exist independently: an untouched anonymous mapping can have neither a resident page nor a page-table entry; a file's cached pages can outlive a particular process mapping. The public [`vm_map_create` documentation](../../../platydoc-data/xnu/osfmk/vm/vm_map.h#L113) explicitly identifies the VM map as the source of truth for region configuration and the pmap as its machine-dependent cache.
 
 ```mermaid
 flowchart TD
@@ -69,7 +69,7 @@ flowchart TD
     ALLOC --> MAP
 ```
 
-The arrows summarize dependency and data flow, not a universal synchronous call chain. Pager dispatch is directly through operation tables in this checkout; do not assume every `memory_object_*` call sends an IPC message. See [`memory_object_data_request`](../../../xnu/osfmk/vm/memory_object.c#L1971).
+The arrows summarize dependency and data flow, not a universal synchronous call chain. Pager dispatch is directly through operation tables in this checkout; do not assume every `memory_object_*` call sends an IPC message. See [`memory_object_data_request`](../../../platydoc-data/xnu/osfmk/vm/memory_object.c#L1971).
 
 ### Follow one address in both directions
 
@@ -93,20 +93,20 @@ The upper route decides what contents an access is allowed to obtain. The lower 
 
 | Component | Owns or describes | Main source entry points |
 |---|---|---|
-| VM map | Address ranges, permissions, inheritance, submaps, resource limits | [`struct _vm_map`, `struct vm_map_entry`](../../../xnu/osfmk/vm/vm_map_xnu.h#L320), [`vm_map_enter`](../../../xnu/osfmk/vm/vm_map.c#L3030) |
-| VM object | Logical page contents indexed by object offset, pager and shadow relationships | [`struct vm_object`](../../../xnu/osfmk/vm/vm_object_xnu.h#L136), [`vm_object_shadow`](../../../xnu/osfmk/vm/vm_object.c#L4283) |
-| Resident-page system | Physical-page descriptors, object lookup, free and replacement queues | [`struct vm_page`](../../../xnu/osfmk/vm/vm_page.h#L286), [`vm_page_grab_options`](../../../xnu/osfmk/vm/vm_resident.c#L5261) |
-| Fault resolution | Permission checks, lookup, zero fill, copying, pager requests, pmap insertion | [`vm_fault`](../../../xnu/osfmk/vm/vm_fault.c#L4288), [`vm_fault_page`](../../../xnu/osfmk/vm/vm_fault.c#L1101) |
-| Pmap | Machine translations, reference/modified tracking, mapping accounting | [ARM pmap](../../../xnu/osfmk/arm/pmap/pmap.c), [SPTM pmap](../../../xnu/osfmk/arm64/sptm/pmap/pmap.c), [x86 pmap](../../../xnu/osfmk/x86_64/pmap.c) |
-| Pager/UPL interface | Supplying or returning contents; holding pages stable during I/O | [`memory_object.c`](../../../xnu/osfmk/vm/memory_object.c), [`vm_object_upl_request`](../../../xnu/osfmk/vm/vm_pageout.c#L6567), [`vm_upl.c`](../../../xnu/osfmk/vm/vm_upl.c) |
-| Reclamation | Selecting victims, compression, swap, process memory policy | [`vm_pageout_scan`](../../../xnu/osfmk/vm/vm_pageout.c#L3509), [`memorystatus_thread_internal`](../../../xnu/bsd/kern/kern_memorystatus.c#L4963) |
-| Kernel allocators | Fixed objects, typed size classes, page-granularity kernel allocations | [`zalloc_ext`](../../../xnu/osfmk/kern/zalloc.c#L6295), [`kalloc_ext`](../../../xnu/osfmk/kern/kalloc.c#L2513), [`kmem_alloc_guard_internal`](../../../xnu/osfmk/vm/vm_kern.c#L835) |
+| VM map | Address ranges, permissions, inheritance, submaps, resource limits | [`struct _vm_map`, `struct vm_map_entry`](../../../platydoc-data/xnu/osfmk/vm/vm_map_xnu.h#L320), [`vm_map_enter`](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L3030) |
+| VM object | Logical page contents indexed by object offset, pager and shadow relationships | [`struct vm_object`](../../../platydoc-data/xnu/osfmk/vm/vm_object_xnu.h#L136), [`vm_object_shadow`](../../../platydoc-data/xnu/osfmk/vm/vm_object.c#L4283) |
+| Resident-page system | Physical-page descriptors, object lookup, free and replacement queues | [`struct vm_page`](../../../platydoc-data/xnu/osfmk/vm/vm_page.h#L286), [`vm_page_grab_options`](../../../platydoc-data/xnu/osfmk/vm/vm_resident.c#L5261) |
+| Fault resolution | Permission checks, lookup, zero fill, copying, pager requests, pmap insertion | [`vm_fault`](../../../platydoc-data/xnu/osfmk/vm/vm_fault.c#L4288), [`vm_fault_page`](../../../platydoc-data/xnu/osfmk/vm/vm_fault.c#L1101) |
+| Pmap | Machine translations, reference/modified tracking, mapping accounting | [ARM pmap](../../../platydoc-data/xnu/osfmk/arm/pmap/pmap.c), [SPTM pmap](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c), [x86 pmap](../../../platydoc-data/xnu/osfmk/x86_64/pmap.c) |
+| Pager/UPL interface | Supplying or returning contents; holding pages stable during I/O | [`memory_object.c`](../../../platydoc-data/xnu/osfmk/vm/memory_object.c), [`vm_object_upl_request`](../../../platydoc-data/xnu/osfmk/vm/vm_pageout.c#L6567), [`vm_upl.c`](../../../platydoc-data/xnu/osfmk/vm/vm_upl.c) |
+| Reclamation | Selecting victims, compression, swap, process memory policy | [`vm_pageout_scan`](../../../platydoc-data/xnu/osfmk/vm/vm_pageout.c#L3509), [`memorystatus_thread_internal`](../../../platydoc-data/xnu/bsd/kern/kern_memorystatus.c#L4963) |
+| Kernel allocators | Fixed objects, typed size classes, page-granularity kernel allocations | [`zalloc_ext`](../../../platydoc-data/xnu/osfmk/kern/zalloc.c#L6295), [`kalloc_ext`](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L2513), [`kmem_alloc_guard_internal`](../../../platydoc-data/xnu/osfmk/vm/vm_kern.c#L835) |
 
 The most useful cross-subsystem routes are BSD `mmap` to a vnode's UBC object, VM faults to filesystem page-in, pageout to filesystem writeback, and IOKit memory descriptors to wired pages/device mappings. Continue into the [VFS documentation](../vfs/README.md) for filesystem operation dispatch. Process creation and termination determine map lifetime; scheduler waits and wakeups make faulting, pageout, and freezer work executable.
 
 ## Read the selected pmap backend
 
-[`arm/pmap.h`](../../../xnu/osfmk/arm/pmap.h#L42) selects the SPTM or legacy ARM representation. [`files.arm64`](../../../xnu/osfmk/conf/files.arm64#L10-L25) selects matching sources; [`files.x86_64`](../../../xnu/osfmk/conf/files.x86_64#L7-L10) selects the x86 files. The same common API name is not evidence that all backends share one algorithm.
+[`arm/pmap.h`](../../../platydoc-data/xnu/osfmk/arm/pmap.h#L42) selects the SPTM or legacy ARM representation. [`files.arm64`](../../../platydoc-data/xnu/osfmk/conf/files.arm64#L10-L25) selects matching sources; [`files.x86_64`](../../../platydoc-data/xnu/osfmk/conf/files.x86_64#L7-L10) selects the x86 files. The same common API name is not evidence that all backends share one algorithm.
 
 | Backend | Hardware state | Principal update/lifetime mechanisms |
 | --- | --- | --- |
@@ -114,7 +114,7 @@ The most useful cross-subsystem routes are BSD `mmap` to a vnode's UBC object, V
 | ARM64 SPTM | Geometry/root/ASID and reverse/table metadata coordinated with monitor-managed page tables | Monitor update interface, PV-head locks, per-CPU epochs, leaf-table pins and condemnation before reclaim |
 | x86_64 | PML4 roots, lower table pages, physical alias lists, per-CPU PCID state | Pmap reader/writer lock, PTE/PV synchronization, root activation and remote invalidation protocol |
 
-Definitions: [`legacy pmap`](../../../xnu/osfmk/arm/pmap/pmap.h#L334), [`SPTM pmap`](../../../xnu/osfmk/arm64/sptm/pmap/pmap.h#L307), [`x86 pmap`](../../../xnu/osfmk/i386/pmap.h#L583). SPTM's implementation cannot be explained by replacing a legacy PPL function call with a different entry instruction; its local concurrency and table-lifetime machinery also differ.
+Definitions: [`legacy pmap`](../../../platydoc-data/xnu/osfmk/arm/pmap/pmap.h#L334), [`SPTM pmap`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.h#L307), [`x86 pmap`](../../../platydoc-data/xnu/osfmk/i386/pmap.h#L583). SPTM's implementation cannot be explained by replacing a legacy PPL function call with a different entry instruction; its local concurrency and table-lifetime machinery also differ.
 
 | Pmap operation | Direction and purpose |
 | --- | --- |
@@ -126,15 +126,15 @@ Definitions: [`legacy pmap`](../../../xnu/osfmk/arm/pmap/pmap.h#L334), [`SPTM pm
 | `pmap_switch*` / backend activation | Select a context and satisfy address-space tag/coherency requirements |
 | `pmap_nest` / `pmap_unnest` | Share or detach selected lower-level hierarchy for supported nested mappings |
 
-Read these as interface families; argument types, helper names, fast paths, and completion contracts differ. [`common pmap interface`](../../../xnu/osfmk/vm/pmap.h), [ARM lifecycle](pmap-mapping-lifecycle.md), [x86 implementation](pmap-x86.md).
+Read these as interface families; argument types, helper names, fast paths, and completion contracts differ. [`common pmap interface`](../../../platydoc-data/xnu/osfmk/vm/pmap.h), [ARM lifecycle](pmap-mapping-lifecycle.md), [x86 implementation](pmap-x86.md).
 
 ## Details specific to this checkout
 
-* Map lookup storage is a **B+tree**, including summaries of holes for allocation. Older descriptions of XNU's red-black VM map tree do not describe [`vm_map_store_node`](../../../xnu/osfmk/vm/vm_map_store_internal.h#L65).
-* The map has an interlock and individual entries have locks. Range-lock contexts prepare and stabilize entries, including submap descent and COW resolution. A model with one map-wide lock is insufficient; see [`vm_map_lock_internal.h`](../../../xnu/osfmk/vm/vm_map_lock_internal.h#L57).
-* Page size belongs to multiple layers. A map has `hdr.page_shift`, while VM objects and physical pages use system-page conventions. Code explicitly handles different sizes; never replace `VM_MAP_PAGE_SIZE(map)` with a hard-coded 4096 in your mental model. See [`vm_object_shadow`](../../../xnu/osfmk/vm/vm_object.c#L4344).
-* Compressor, general swap, and freezer swap have separate runtime configuration predicates. The presence of their source does not establish that a particular product uses every facility. See [`vm_config` predicates](../../../xnu/osfmk/vm/vm_pageout.h#L227).
-* VM submaps have a constrained hierarchy in the current range-lock implementation; this is separate from sharing a hardware hierarchy through pmap nesting. See [`submap rules`](../../../xnu/osfmk/vm/vm_map_lock_internal.h#L68).
+* Map lookup storage is a **B+tree**, including summaries of holes for allocation. Older descriptions of XNU's red-black VM map tree do not describe [`vm_map_store_node`](../../../platydoc-data/xnu/osfmk/vm/vm_map_store_internal.h#L65).
+* The map has an interlock and individual entries have locks. Range-lock contexts prepare and stabilize entries, including submap descent and COW resolution. A model with one map-wide lock is insufficient; see [`vm_map_lock_internal.h`](../../../platydoc-data/xnu/osfmk/vm/vm_map_lock_internal.h#L57).
+* Page size belongs to multiple layers. A map has `hdr.page_shift`, while VM objects and physical pages use system-page conventions. Code explicitly handles different sizes; never replace `VM_MAP_PAGE_SIZE(map)` with a hard-coded 4096 in your mental model. See [`vm_object_shadow`](../../../platydoc-data/xnu/osfmk/vm/vm_object.c#L4344).
+* Compressor, general swap, and freezer swap have separate runtime configuration predicates. The presence of their source does not establish that a particular product uses every facility. See [`vm_config` predicates](../../../platydoc-data/xnu/osfmk/vm/vm_pageout.h#L227).
+* VM submaps have a constrained hierarchy in the current range-lock implementation; this is separate from sharing a hardware hierarchy through pmap nesting. See [`submap rules`](../../../platydoc-data/xnu/osfmk/vm/vm_map_lock_internal.h#L68).
 * A named memory entry carries a capability to backing described by a submap or `vm_map_copy`. The current copy representation has entry-list and kernel-buffer variants. See [memory entries and copies](wiring-and-memory-entries.md).
 * An invalid compressed PTE marker preserves mapping accounting; compressed contents and slot locators live in the object's compressor pager. See [compression](reclaim-and-pressure.md).
 
@@ -159,7 +159,7 @@ Read these as interface families; argument types, helper names, fast paths, and 
 | x86_64 pmap | Deep create/expand/enter/remove/protect/disconnect, rooted/hashed PV, root sharing, PCID activation and invalidation; selected nesting/EPT branches | Current four-level mapping path; bootstrap, all cache-type changes, corruption heuristics and complete hypervisor behavior remain outside scope |
 | Peripheral VM | Focused I/O mapping and driver memory boundaries; sanitize and shared-region interfaces | Shared-region/pager and deferred-reclamation paths are expanded in the companions below; complete IOMMU enforcement and external allocation/policy providers remain bounded |
 
-Useful original documentation includes [pageout scan](../../../xnu/doc/vm/pageout_scan.md), [memorystatus](../../../xnu/doc/vm/memorystatus.md), [freezer](../../../xnu/doc/vm/freezer.md), [shared region](../../../xnu/doc/vm/shared_region.md), [VM sanitization](../../../xnu/doc/vm/sanitize.md), and [allocator API guidance](../../../xnu/doc/allocators/api-basics.md). Prefer implementation when an older narrative uses a superseded function or structure name.
+Useful original documentation includes [pageout scan](../../../platydoc-data/xnu/doc/vm/pageout_scan.md), [memorystatus](../../../platydoc-data/xnu/doc/vm/memorystatus.md), [freezer](../../../platydoc-data/xnu/doc/vm/freezer.md), [shared region](../../../platydoc-data/xnu/doc/vm/shared_region.md), [VM sanitization](../../../platydoc-data/xnu/doc/vm/sanitize.md), and [allocator API guidance](../../../platydoc-data/xnu/doc/allocators/api-basics.md). Prefer implementation when an older narrative uses a superseded function or structure name.
 
 ## Backing-store and reclaim companions
 

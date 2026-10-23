@@ -37,11 +37,11 @@ flowchart TD
     B --> R[Mapping restrictions and optional memory tagging]
 ```
 
-This is a relationship diagram. The detailed guides show allocation failures, retries, lock transitions, tracking fallbacks and configuration branches. In particular, a fixed typed allocation does not normally recompute a size class or signature on every call. [Fixed runtime path](../../../xnu/osfmk/kern/kalloc.c#L2980-L2992), [variable dispatcher](../../../xnu/osfmk/kern/kalloc.c#L2513-L2555).
+This is a relationship diagram. The detailed guides show allocation failures, retries, lock transitions, tracking fallbacks and configuration branches. In particular, a fixed typed allocation does not normally recompute a size class or signature on every call. [Fixed runtime path](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L2980-L2992), [variable dispatcher](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L2513-L2555).
 
 ## What type isolation means here
 
-The typed allocator knows layouts supplied by compiler metadata. Startup processes fixed and variable records, classifies data-only and pointer-bearing cases, groups eligible layouts, and assigns a finite set of zones/heaps. Allocation then uses that assignment; it does not parse C type definitions at runtime. The actual representations are [`kalloc_type_view`](../../../xnu/osfmk/kern/kalloc.h#L329-L348) and [`kalloc_type_var_view`](../../../xnu/osfmk/kern/kalloc.h#L432-L448), initialized by [fixed startup](../../../xnu/osfmk/kern/kalloc.c#L1862) and [variable startup](../../../xnu/osfmk/kern/kalloc.c#L1967).
+The typed allocator knows layouts supplied by compiler metadata. Startup processes fixed and variable records, classifies data-only and pointer-bearing cases, groups eligible layouts, and assigns a finite set of zones/heaps. Allocation then uses that assignment; it does not parse C type definitions at runtime. The actual representations are [`kalloc_type_view`](../../../platydoc-data/xnu/osfmk/kern/kalloc.h#L329-L348) and [`kalloc_type_var_view`](../../../platydoc-data/xnu/osfmk/kern/kalloc.h#L432-L448), initialized by [fixed startup](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L1862) and [variable startup](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L1967).
 
 Several mechanisms contribute different properties:
 
@@ -57,21 +57,21 @@ Several mechanisms contribute different properties:
 | Restricted mapping type | Requests protection of kernel-private physical pages from inappropriate aliases/sharing on the relevant backend | SPTM enforcement is external; configuration and runtime choices matter. |
 | RO mutation, guards, MTE/KASAN | Restrict writes, expose some bounds violations, or validate memory-tag use | They are complementary to layout segregation and do not establish complete memory safety. |
 
-The [typed guide](typed-allocation.md) explains the exact grouping/budget algorithms and examples. The fixed free compatibility is visible in [`kfree_type_impl_internal`](../../../xnu/osfmk/kern/zalloc.c#L5806-L5839); variable family checks are in [`kfree_zone`](../../../xnu/osfmk/kern/kalloc.c#L2853-L2901). Read those bodies before equating segregation with a strict dynamic type system.
+The [typed guide](typed-allocation.md) explains the exact grouping/budget algorithms and examples. The fixed free compatibility is visible in [`kfree_type_impl_internal`](../../../platydoc-data/xnu/osfmk/kern/zalloc.c#L5806-L5839); variable family checks are in [`kfree_zone`](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L2853-L2901). Read those bodies before equating segregation with a strict dynamic type system.
 
-Explicit zones remain useful where a subsystem requires a dedicated allocation class and strong membership assertions. RO, per-CPU and SMR zones also have capabilities that generic typed allocation does not select automatically. The in-tree [allocator API guide](../../../xnu/doc/allocators/api-basics.md#zones-zalloc) describes when to use them; the implementation chapters show their actual storage paths.
+Explicit zones remain useful where a subsystem requires a dedicated allocation class and strong membership assertions. RO, per-CPU and SMR zones also have capabilities that generic typed allocation does not select automatically. The in-tree [allocator API guide](../../../platydoc-data/xnu/doc/allocators/api-basics.md#zones-zalloc) describes when to use them; the implementation chapters show their actual storage paths.
 
 ## The structures to keep open while reading
 
 | Structure | What it describes | Source |
 | --- | --- | --- |
-| `zone` | Element/chunk geometry, inventory queues, expansion/GC state, caches and locking | [zalloc_internal.h](../../../xnu/osfmk/kern/zalloc_internal.h#L228) |
-| `zone_page_metadata` | Owning zone, primary/secondary chunk state, occupancy and bitmap/queue linkage for zone VA pages | [zalloc.c](../../../xnu/osfmk/kern/zalloc.c#L193) |
-| `zone_stats`, `zone_depot` | Per-CPU accounting/initial-sharing state and magazine inventory | [statistics and depot](../../../xnu/osfmk/kern/zalloc_internal.h#L140-L178) |
-| `zone_security_flags` | Heap family, placement/security classifications and signature-equivalence information | [zalloc_internal.h](../../../xnu/osfmk/kern/zalloc_internal.h#L413) |
-| `kalloc_heap` | Starting zone, family, statistics, accounting tag and VM-placement hash | [kalloc.h](../../../xnu/osfmk/kern/kalloc.h#L90-L98) |
-| `kalloc_type_view` / variable view | Compiler type metadata and startup-assigned allocation destination | [fixed view](../../../xnu/osfmk/kern/kalloc.h#L329), [variable view](../../../xnu/osfmk/kern/kalloc.h#L432) |
-| `kmem_guard_t` and VM guard-object state | Allocation interval/context and placement inputs; slab/chunk availability and guard policy | [VM kernel interface](../../../xnu/osfmk/vm/vm_kern_xnu.h), [guard-object implementation](kernel-virtual-allocation.md) |
+| `zone` | Element/chunk geometry, inventory queues, expansion/GC state, caches and locking | [zalloc_internal.h](../../../platydoc-data/xnu/osfmk/kern/zalloc_internal.h#L228) |
+| `zone_page_metadata` | Owning zone, primary/secondary chunk state, occupancy and bitmap/queue linkage for zone VA pages | [zalloc.c](../../../platydoc-data/xnu/osfmk/kern/zalloc.c#L193) |
+| `zone_stats`, `zone_depot` | Per-CPU accounting/initial-sharing state and magazine inventory | [statistics and depot](../../../platydoc-data/xnu/osfmk/kern/zalloc_internal.h#L140-L178) |
+| `zone_security_flags` | Heap family, placement/security classifications and signature-equivalence information | [zalloc_internal.h](../../../platydoc-data/xnu/osfmk/kern/zalloc_internal.h#L413) |
+| `kalloc_heap` | Starting zone, family, statistics, accounting tag and VM-placement hash | [kalloc.h](../../../platydoc-data/xnu/osfmk/kern/kalloc.h#L90-L98) |
+| `kalloc_type_view` / variable view | Compiler type metadata and startup-assigned allocation destination | [fixed view](../../../platydoc-data/xnu/osfmk/kern/kalloc.h#L329), [variable view](../../../platydoc-data/xnu/osfmk/kern/kalloc.h#L432) |
+| `kmem_guard_t` and VM guard-object state | Allocation interval/context and placement inputs; slab/chunk availability and guard policy | [VM kernel interface](../../../platydoc-data/xnu/osfmk/vm/vm_kern_xnu.h), [guard-object implementation](kernel-virtual-allocation.md) |
 | `vm_map_entry`, `vm_object`, `vm_page`, `pmap` | Reserved virtual interval, logical backing, physical-page ownership and CPU translation | [VM structures](maps-and-faults.md#know-the-five-principal-structures) |
 
 Zone page metadata and a `vm_page` are not duplicate descriptions. The first manages object-sized slots within a chunk; the second manages the physical backing of pages. Kalloc views and their statistics likewise do not replace the zone's storage identity.
@@ -97,7 +97,7 @@ This layered release explains why element frees, zone allocated/free counts, wir
 
 ## Flags and API variants change the contract
 
-`Z_WAITOK` permits blocking; `Z_NOWAIT` requests a nonblocking allocation that can fail; `Z_NOPAGEWAIT` permits synchronization waits but forbids waiting for free pages. `Z_NOFAIL` is restricted to supported allocation sizes/classes and is rejected by the large kalloc path. `Z_ZERO` requests zeroed contents explicitly. Do not infer that every freeing/zeroing strategy makes these flags interchangeable. [Flag guidance](../../../xnu/doc/allocators/api-basics.md#allocation-flags), [large-path rejection](../../../xnu/osfmk/kern/kalloc.c#L2350-L2370).
+`Z_WAITOK` permits blocking; `Z_NOWAIT` requests a nonblocking allocation that can fail; `Z_NOPAGEWAIT` permits synchronization waits but forbids waiting for free pages. `Z_NOFAIL` is restricted to supported allocation sizes/classes and is rejected by the large kalloc path. `Z_ZERO` requests zeroed contents explicitly. Do not infer that every freeing/zeroing strategy makes these flags interchangeable. [Flag guidance](../../../platydoc-data/xnu/doc/allocators/api-basics.md#allocation-flags), [large-path rejection](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L2350-L2370).
 
 Fixed `kalloc_type(T, flags)`, variable `kalloc_type(T, count, flags)`, header-plus-array forms and encoded `kalloc_array` representations have different metadata and matching free contracts. A count of one does not make a variable allocation equivalent to a fixed one. IOKit operators, unprocessed extension metadata, tracking, sanitizer and architecture branches add explicit fallbacks. [Typed API forms](typed-allocation.md), [array representation](kalloc-heaps-and-routing.md#encoded-arrays-carry-capacity-separately-from-ordinary-pointers), [wrapper behavior](allocator-interfaces.md).
 
@@ -107,16 +107,16 @@ The checkout includes LLDB commands for inspecting the structures described here
 
 | Command | Question it helps answer | Implementation |
 | --- | --- | --- |
-| `zprint` | Which zones exist, and what do their capacity and usage counters report? | [Zone summary](../../../xnu/tools/lldbmacros/memory.py#L481) |
-| `showkalloctypes -S <sizeclass>` | Which fixed type views were associated with this size class? | [Type listing](../../../xnu/tools/lldbmacros/memory.py#L683) |
-| `showkalloctypes -K <view-address>` | Which zone or variable heap does this metadata record identify? | [View decoding](../../../xnu/tools/lldbmacros/memory.py#L728) |
-| `showkalloctypes -V` | What variable views and heap assignments are visible? | [Variable listing](../../../xnu/tools/lldbmacros/memory.py#L745) |
-| `showzcache <zone-address>` | How much inventory is held in this zone's CPU caches? | [Cache summary](../../../xnu/tools/lldbmacros/memory.py#L283) |
-| `showzchunks <zone-address> [address]` | Which chunks belong to this zone, and how is an address represented in its metadata? | [Chunk inspection](../../../xnu/tools/lldbmacros/memory.py#L836) |
+| `zprint` | Which zones exist, and what do their capacity and usage counters report? | [Zone summary](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L481) |
+| `showkalloctypes -S <sizeclass>` | Which fixed type views were associated with this size class? | [Type listing](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L683) |
+| `showkalloctypes -K <view-address>` | Which zone or variable heap does this metadata record identify? | [View decoding](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L728) |
+| `showkalloctypes -V` | What variable views and heap assignments are visible? | [Variable listing](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L745) |
+| `showzcache <zone-address>` | How much inventory is held in this zone's CPU caches? | [Cache summary](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L283) |
+| `showzchunks <zone-address> [address]` | Which chunks belong to this zone, and how is an address represented in its metadata? | [Chunk inspection](../../../platydoc-data/xnu/tools/lldbmacros/memory.py#L836) |
 
 These commands expose allocator state, not a reconstructed history of every live object's type or ownership. In particular, an assigned fixed-view zone need not be the actual zone of an allocation still using shared EARLY storage. Inspect actual pointer metadata and the free-time rules as well as the startup assignment.
 
-There are useful test entry points to read alongside the implementation. [`tests/kalloc.c`](../../../xnu/tests/kalloc.c) invokes the kernel's typed-policy, heap and guard-region tests; the corresponding [typed-policy test](../../../xnu/osfmk/kern/kalloc.c#L3746) checks budget distribution and data redirection, while [heap tests](../../../xnu/osfmk/kern/kalloc.c#L3792) exercise allocation, free and resize behavior. [`tests/vm/zalloc.c`](../../../xnu/tests/vm/zalloc.c) selects basic, RO, stress and GC tests. [`verify_kalloc_config.c`](../../../xnu/tests/verify_kalloc_config.c) compares reported kalloc zone names with their element sizes; it is not a proof of type isolation. These are source-navigation pointers, not tests executed for this documentation change.
+There are useful test entry points to read alongside the implementation. [`tests/kalloc.c`](../../../platydoc-data/xnu/tests/kalloc.c) invokes the kernel's typed-policy, heap and guard-region tests; the corresponding [typed-policy test](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L3746) checks budget distribution and data redirection, while [heap tests](../../../platydoc-data/xnu/osfmk/kern/kalloc.c#L3792) exercise allocation, free and resize behavior. [`tests/vm/zalloc.c`](../../../platydoc-data/xnu/tests/vm/zalloc.c) selects basic, RO, stress and GC tests. [`verify_kalloc_config.c`](../../../platydoc-data/xnu/tests/verify_kalloc_config.c) compares reported kalloc zone names with their element sizes; it is not a proof of type isolation. These are source-navigation pointers, not tests executed for this documentation change.
 
 ## Scope and verification
 

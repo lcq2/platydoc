@@ -8,9 +8,9 @@ This checkout contains substantial **XNU-side integration** for SPTM, TXM, and E
 
 | Mechanism | Responsibility visible from XNU | Principal local source |
 | --- | --- | --- |
-| SPTM | Bootstrap protection contract; typed physical frames and page tables; validated mapping/retyping interfaces; protected-domain dispatch/resumption | [`arm64/sptm`](../../../xnu/osfmk/arm64/sptm), [`locore.s`](../../../xnu/osfmk/arm64/locore.s#L1696-L1743) |
-| TXM | Code-signing and execution-policy operations; signature/profile/trust objects; address-space and executable-region association; protected state shared with XNU | [`code_signing/txm.c`](../../../xnu/bsd/kern/code_signing/txm.c), [`SPTM pmap integration`](../../../xnu/osfmk/arm64/sptm/pmap/pmap.c) |
-| Exclaves / SK integration | Scheduling-context entry, RPC/upcalls, task/resource authorization, secure-memory handoff, shared buffers, and service access to XNU facilities | [`exclaves.c`](../../../xnu/osfmk/kern/exclaves.c), [`xnuproxy`](../../../xnu/osfmk/kern/exclaves_xnuproxy.c), [`resources`](../../../xnu/osfmk/kern/exclaves_resource.c) |
+| SPTM | Bootstrap protection contract; typed physical frames and page tables; validated mapping/retyping interfaces; protected-domain dispatch/resumption | [`arm64/sptm`](../../../platydoc-data/xnu/osfmk/arm64/sptm), [`locore.s`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1696-L1743) |
+| TXM | Code-signing and execution-policy operations; signature/profile/trust objects; address-space and executable-region association; protected state shared with XNU | [`code_signing/txm.c`](../../../platydoc-data/xnu/bsd/kern/code_signing/txm.c), [`SPTM pmap integration`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c) |
+| Exclaves / SK integration | Scheduling-context entry, RPC/upcalls, task/resource authorization, secure-memory handoff, shared buffers, and service access to XNU facilities | [`exclaves.c`](../../../platydoc-data/xnu/osfmk/kern/exclaves.c), [`xnuproxy`](../../../platydoc-data/xnu/osfmk/kern/exclaves_xnuproxy.c), [`resources`](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.c) |
 
 These interfaces cooperate. For example, XNU uses SPTM to transfer pages to TXM or SK; TXM associates executable policy with XNU address spaces; an Exclaves upcall can request VM pages or VFS I/O from XNU. The secure RPC protocol, physical frame type, and executable policy object are different kinds of state.
 
@@ -54,29 +54,29 @@ Keep the existing [exception-entry](../platform/arm64-exception-entry.md), [exce
 | Interrupt during TXM | XNU handles interrupt; registered `xnu_return_to_gl2` sees `txm_thread_stack` | Tail branch to `txm_resume`, with stack in `x0` |
 | Interrupt during Exclaves/SK | Dispatcher sees `TH_EXCLAVES_EXECUTION` after the TXM test | Tail branch to `sk_resume` |
 | Interrupt during SPTM | Neither preceding protected-domain indicator matches | Tail branch to `sptm_resume_from_exception` |
-| Protected-domain panic via the SPTM entry point | [`_start`](../../../xnu/osfmk/arm64/sptm/start_sptm.s#L72-L94) recognizes `SPTM_CPU_PANIC` and branches to `panic_from_sptm`; the source lists SPTM, TXM, and cL4 callers | Fatal XNU panic/reporting path |
+| Protected-domain panic via the SPTM entry point | [`_start`](../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L72-L94) recognizes `SPTM_CPU_PANIC` and branches to `panic_from_sptm`; the source lists SPTM, TXM, and cL4 callers | Fatal XNU panic/reporting path |
 | Exclaves panic service | Dedicated context marked `TH_EXCLAVES_RESUME_PANIC_THREAD` | Special scheduler/panic protocol; distinct from ordinary endpoint completion |
 
-Sources: [SPTM boot](../../../xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161), [entry/exit hooks](../../../xnu/osfmk/arm64/locore.s#L2676), [TXM call path](../../../xnu/bsd/kern/code_signing/txm.c#L319-L432), [control trap](../../../xnu/osfmk/kern/exclaves.c#L213), [scheduler request](../../../xnu/osfmk/kern/exclaves.c#L2064-L2168), [secure entry](../../../xnu/osfmk/kern/exclaves.c#L1681-L1785), [proxy loop](../../../xnu/osfmk/kern/exclaves_xnuproxy.c#L481), [resume selector](../../../xnu/osfmk/arm64/locore.s#L1696-L1743), [SPTM panic entry](../../../xnu/osfmk/arm64/sptm/start_sptm.s#L311), [Exclaves panic context](../../../xnu/osfmk/kern/exclaves_panic.c#L89-L135).
+Sources: [SPTM boot](../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161), [entry/exit hooks](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2676), [TXM call path](../../../platydoc-data/xnu/bsd/kern/code_signing/txm.c#L319-L432), [control trap](../../../platydoc-data/xnu/osfmk/kern/exclaves.c#L213), [scheduler request](../../../platydoc-data/xnu/osfmk/kern/exclaves.c#L2064-L2168), [secure entry](../../../platydoc-data/xnu/osfmk/kern/exclaves.c#L1681-L1785), [proxy loop](../../../platydoc-data/xnu/osfmk/kern/exclaves_xnuproxy.c#L481), [resume selector](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1696-L1743), [SPTM panic entry](../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L311), [Exclaves panic context](../../../platydoc-data/xnu/osfmk/kern/exclaves_panic.c#L89-L135).
 
 ## Normal call completion differs from interrupt resumption
 
 At bootstrap XNU registers the address of its protected-domain return dispatcher:
 
-[Source: registered XNU return address](../../../xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763)
+[Source: registered XNU return address](../../../platydoc-data/xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763 -->
 ```c
 	extern void xnu_return_to_gl2(void);
 	const sptm_vaddr_t handler_addr = (sptm_vaddr_t) ptrauth_strip((void *)xnu_return_to_gl2, ptrauth_key_function_pointer);
 	sptm_register_xnu_exc_return(handler_addr);
 ```
 
-The interrupted-domain state remains associated with the current XNU thread. `thread->txm_thread_stack` identifies active TXM execution. Exclaves keeps an interrupt-safe state word separately from ordinary RPC/upcall state: the former may be read from interrupt context and is modified by the current thread with interrupts disabled. [Thread fields and synchronization contract](../../../xnu/osfmk/kern/thread.h#L1106-L1129).
+The interrupted-domain state remains associated with the current XNU thread. `thread->txm_thread_stack` identifies active TXM execution. Exclaves keeps an interrupt-safe state word separately from ordinary RPC/upcall state: the former may be read from interrupt context and is modified by the current thread with interrupts disabled. [Thread fields and synchronization contract](../../../platydoc-data/xnu/osfmk/kern/thread.h#L1106-L1129).
 
-`xnu_return_to_gl2` tests TXM first, SK second, and otherwise resumes SPTM. It uses tail branches, followed by unreachable loops. These are resume operations for an unfinished protected call; they are not normal C returns to the dispatcher. When the protected call eventually completes normally, the original call continuation performs its own cleanup and result handling. [Selector body](../../../xnu/osfmk/arm64/locore.s#L1705-L1743).
+`xnu_return_to_gl2` tests TXM first, SK second, and otherwise resumes SPTM. It uses tail branches, followed by unreachable loops. These are resume operations for an unfinished protected call; they are not normal C returns to the dispatcher. When the protected call eventually completes normally, the original call continuation performs its own cleanup and result handling. [Selector body](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1705-L1743).
 
-An interrupted saved state's PC can be a re-entry handler rather than the protected instruction that was interrupted. `ml_get_backtrace_pc` uses saved `x14` when its frame-pointer test recognizes a non-XNU stack. The stack-range helper checks bootstrap-supplied SPTM/TXM ranges; it is not a universal recognizer of every possible secure stack. A backtrace PC, an exception-return PC, and the C caller's continuation can therefore differ without describing three separate user requests. [Backtrace interpretation](../../../xnu/osfmk/arm64/machine_routines.c#L3145-L3194).
+An interrupted saved state's PC can be a re-entry handler rather than the protected instruction that was interrupted. `ml_get_backtrace_pc` uses saved `x14` when its frame-pointer test recognizes a non-XNU stack. The stack-range helper checks bootstrap-supplied SPTM/TXM ranges; it is not a universal recognizer of every possible secure stack. A backtrace PC, an exception-return PC, and the C caller's continuation can therefore differ without describing three separate user requests. [Backtrace interpretation](../../../platydoc-data/xnu/osfmk/arm64/machine_routines.c#L3145-L3194).
 
 ## Exception levels, guarded execution, and configuration
 
@@ -84,7 +84,7 @@ The SPTM assembly explicitly describes its initial transition as a trap to **GL2
 
 Similarly, `sk_enter`, `txm_enter` and the three resume routines establish named library boundaries, but their bodies are not supplied here. The local C code shows arguments, thread state and results. It does not expose every privileged register save, secure page-table switch, capability check, or exception vector inside those destinations.
 
-Build selection is part of the contract. `files.arm64` chooses SPTM-specific bootstrap/pmap files. `MakeInc.def` derives enablement from platform/device configuration, links `sptm_xnu` and `TrustedExecutionMonitor_Kernel`, and separately enables Exclaves configuration. Exclaves generated transport also depends on available SDK modules. Not every source branch appears in the same kernel binary. [Architecture files](../../../xnu/osfmk/conf/files.arm64#L10-L25), [build selection and archives](../../../xnu/makedefs/MakeInc.def#L1159-L1190), [Tightbeam generation](../../../xnu/osfmk/kern/Makefile#L180-L203).
+Build selection is part of the contract. `files.arm64` chooses SPTM-specific bootstrap/pmap files. `MakeInc.def` derives enablement from platform/device configuration, links `sptm_xnu` and `TrustedExecutionMonitor_Kernel`, and separately enables Exclaves configuration. Exclaves generated transport also depends on available SDK modules. Not every source branch appears in the same kernel binary. [Architecture files](../../../platydoc-data/xnu/osfmk/conf/files.arm64#L10-L25), [build selection and archives](../../../platydoc-data/xnu/makedefs/MakeInc.def#L1159-L1190), [Tightbeam generation](../../../platydoc-data/xnu/osfmk/kern/Makefile#L180-L203).
 
 ## How to assess the security claims in these guides
 

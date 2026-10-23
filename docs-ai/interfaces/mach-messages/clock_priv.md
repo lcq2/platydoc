@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/clock_priv.defs](../../../xnu/osfmk/mach/clock_priv.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/clock_priv.defs](../../../platydoc-data/xnu/osfmk/mach/clock_priv.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > Obsolete interfaces, removed from kernel.
 
-**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [clock_set_time](../../../xnu/osfmk/mach/clock_priv.defs#L51).
+**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [clock_set_time](../../../platydoc-data/xnu/osfmk/mach/clock_priv.defs#L51).
 
-**Declarations:** [`clock_set_time`](../../../xnu/osfmk/mach/clock_priv.defs#L51) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`clock_set_time`](../../../platydoc-data/xnu/osfmk/mach/clock_priv.defs#L51) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -37,9 +37,9 @@ routine clock_set_time(
 
 Request a privileged update of the selected clock attribute flavor.
 
-**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [clock_set_attributes](../../../xnu/osfmk/mach/clock_priv.defs#L55).
+**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [clock_set_attributes](../../../platydoc-data/xnu/osfmk/mach/clock_priv.defs#L55).
 
-**Declarations:** [`clock_set_attributes`](../../../xnu/osfmk/mach/clock_priv.defs#L55) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`clock_set_attributes`](../../../platydoc-data/xnu/osfmk/mach/clock_priv.defs#L55) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 

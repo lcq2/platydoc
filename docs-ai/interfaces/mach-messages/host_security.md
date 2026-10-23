@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/host_security.defs](../../../xnu/osfmk/mach/host_security.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/host_security.defs](../../../platydoc-data/xnu/osfmk/mach/host_security.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > Obsolete interfaces, removed from kernel.
 
-**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [host_security_create_task_token](../../../xnu/osfmk/mach/host_security.defs#L81).
+**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [host_security_create_task_token](../../../platydoc-data/xnu/osfmk/mach/host_security.defs#L81).
 
-**Declarations:** [`host_security_create_task_token`](../../../xnu/osfmk/mach/host_security.defs#L81) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`host_security_create_task_token`](../../../platydoc-data/xnu/osfmk/mach/host_security.defs#L81) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -43,9 +43,9 @@ routine host_security_create_task_token(
 
 Request assignment of security/audit identity tokens to a task through the historical host-security capability.
 
-**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [host_security_set_task_token](../../../xnu/osfmk/mach/host_security.defs#L91).
+**Mechanism:** The interface file explicitly labels these operations obsolete and removed from the kernel. This declaration preserves the message shape, but this checkout supplies no corresponding routine body; it does not establish a working token-changing or clock-control service. The catalog registration boundary must be considered separately from successful preprocessing. [host_security_set_task_token](../../../platydoc-data/xnu/osfmk/mach/host_security.defs#L91).
 
-**Declarations:** [`host_security_set_task_token`](../../../xnu/osfmk/mach/host_security.defs#L91) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`host_security_set_task_token`](../../../platydoc-data/xnu/osfmk/mach/host_security.defs#L91) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 

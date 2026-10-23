@@ -1,6 +1,6 @@
 # Maintaining Platydoc and the XNU source handbook
 
-Platydoc owns the source-based technical handbook in `docs-ai/`, its tools and generated book. Apple XNU is a separate, read-only input under `xnu/`, which may be a checkout or submodule. These instructions cover researching, expanding, correcting, regenerating and carrying the handbook forward to another XNU release. Keep documentation, build artifacts and maintenance instructions outside `xnu/`; documentation work must not modify that source tree.
+Platydoc owns the source-based technical handbook in `docs-ai/`, its tools and generated book. Apple XNU is a separate, read-only input under `platydoc-data/xnu/`, which may be a checkout or submodule. These instructions cover researching, expanding, correcting, regenerating and carrying the handbook forward to another XNU release. Keep status, progress, coverage audits and expansion plans in the Git-ignored `.private/handbook-tracking/` directory, outside handbook discovery. Never link to those private records from published handbook pages. Keep documentation, build artifacts and maintenance instructions outside `platydoc-data/xnu/`; documentation work must not modify that source tree.
 
 The reader is technically capable but may be new to XNU. Explain how concrete operations work, which objects hold state, what decisions change execution, and how subsystems interact. Favor exact structures, fields, function bodies, small source excerpts and useful diagrams over terminology without explanation.
 
@@ -12,7 +12,7 @@ Start with:
 
 - [Documentation home](docs-ai/README.md), [architecture](docs-ai/architecture.md) and [reading guide](docs-ai/reading-guide.md).
 - [Complete contents](docs-ai/table-of-contents.md) and the relevant subsystem `README.md`.
-- [Coverage and verification](docs-ai/coverage.md), [coverage audit](docs-ai/coverage-audit.md), [expansion history](docs-ai/expansion-audit.md) and the applicable report in `docs-ai/audits/`.
+- [Coverage and verification](.private/handbook-tracking/coverage.md), [coverage audit](.private/handbook-tracking/coverage-audit.md), [expansion history](.private/handbook-tracking/expansion-audit.md) and the applicable report in `.private/handbook-tracking/audits/`.
 - [Source-reference index](docs-ai/source-index.md), which maps cited files back to their explanations.
 - [HTML build instructions](docs-ai/development/building-html.md) when changing the rendered book or its tools.
 
@@ -20,16 +20,16 @@ Read existing chapters before adding another one. Keep introductory routes reada
 
 Use `rg` and `rg --files` to locate symbols, declarations, callers, configuration guards and build selection. Read surrounding implementation and cleanup code, not only search hits. Follow function pointers, operation tables, generated-interface declarations and assembly entry points when they are part of the path.
 
-Current documentation originated from the `xnu-12377.121.6` snapshot, now stored under `xnu/`. Do not assume that folder names, old chapter counts or earlier research conclusions describe a newly supplied tree. Establish which checkout is actually being documented.
+Current documentation originated from the `xnu-12377.121.6` snapshot, now stored under `platydoc-data/xnu/`. Do not assume that folder names, old chapter counts or earlier research conclusions describe a newly supplied tree. Establish which checkout is actually being documented.
 
-The project root contains `make_docs.py`, `AGENTS.md`, `docs-ai/` and `xnu/`. Run documentation commands from that root. Run kernel-only searches from `xnu/`, or prefix their source paths with `xnu/` when remaining at the project root. Unless explicitly project-relative, kernel paths shown in prose and source-inventory metadata (for example `osfmk/vm/vm_map.c`) are relative to `xnu/`.
+The project root contains `make_docs.py`, `AGENTS.md`, `docs-ai/` and `platydoc-data/xnu/`. Run documentation commands from that root. Run kernel-only searches from `platydoc-data/xnu/`, or prefix their source paths with `platydoc-data/xnu/` when remaining at the project root. Unless explicitly project-relative, kernel paths shown in prose and source-inventory metadata (for example `osfmk/vm/vm_map.c`) are relative to `platydoc-data/xnu/`.
 
 ## 2. File ownership and sources of truth
 
 | Location | Ownership and update rule |
 | --- | --- |
-| `xnu/`, including its upstream `README.md`, `doc/`, licenses and build files | Read-only XNU input. Never put Platydoc files, caches or generated output here. Updating the selected release/submodule is a separate, explicit operation. |
-| Root `README.md` | Platydoc project introduction and build entry points; distinct from `xnu/README.md`. |
+| `platydoc-data/xnu/`, including its upstream `README.md`, `doc/`, licenses and build files | Read-only XNU input. Never put Platydoc files, caches or generated output here. Updating the selected release/submodule is a separate, explicit operation. |
+| Root `README.md` | Platydoc project introduction and build entry points; distinct from `platydoc-data/xnu/README.md`. |
 | `docs-ai/README.md`, orientation pages, `subsystems/`, `cross-cutting/`, `development/` | Authored explanations. Edit these directly, with evidence from the current source. |
 | `docs-ai/interfaces/README.md`, `machine-entry-points.md` | Authored interface and architecture explanations. |
 | `docs-ai/interfaces/bsd-syscalls/README.md` | Authored catalog introduction and dispatch explanation; update its counts and limits after regeneration. |
@@ -40,10 +40,10 @@ The project root contains `make_docs.py`, `AGENTS.md`, `docs-ai/` and `xnu/`. Ru
 | `docs-ai/interfaces/mach-messages/descriptions.tsv`, `mechanisms-*.json` | Authored MIG purpose and implementation explanations. Preserve tab-separated description records and unique mechanism keys across JSON files. |
 | `docs-ai/interfaces/mach-messages/inventory.json`, `code-index.json`, `summary.json`, `subsystems.md`, subsystem catalog `.md` files | Generated by `build_mig_catalog.py`. Do not put durable authored additions only in these outputs. |
 | `docs-ai/table-of-contents.md`, `source-index.md` | Generated navigation. Edit the underlying pages or generators. |
-| `docs-ai/coverage.md`, `coverage-audit.md`, `expansion-audit.md`, `audits/*.md` | Authored scope, history, findings and backlog. Distinguish current status from historical measurements. |
-| `docs-ai/audits/inventory.json` | Preserved historical coverage-audit baseline. It is not the current catalog inventory and must not be refreshed during routine maintenance. |
+| `.private/handbook-tracking/` reports and `audits/*.md` | Authored scope, history, findings and backlog. Distinguish current status from historical measurements. |
+| `.private/handbook-tracking/audits/inventory.json` | Preserved historical coverage-audit baseline. It is not the current catalog inventory and must not be refreshed during routine maintenance. |
 | `make_docs.py`, `docs-ai/tools/` | Documentation build/check/generation tools. Inspect their actual behavior before using or modifying them. |
-| `docs-ai/tools/paths.py` | Shared `PROJECT_ROOT`, `SOURCE_ROOT = PROJECT_ROOT / "xnu"` and `DOCS` definitions, plus source-presence validation. Use these instead of assuming documentation lives inside XNU or resolving paths from the current directory. |
+| `docs-ai/tools/paths.py` | Shared `PROJECT_ROOT`, `SOURCE_ROOT = PROJECT_ROOT / "platydoc-data" / "xnu"` and `DOCS` definitions, plus source-presence validation. Use these instead of assuming documentation lives inside XNU or resolving paths from the current directory. |
 | `docs-ai/tools/book/assets/` | Authored HTML reader CSS and JavaScript. |
 | `docs-ai/tools/book/vendor/mermaid/` | Pinned third-party build dependency with integrity manifest and notices. Treat upgrades as dependency changes. |
 | `docs-ai-html/`, any custom HTML output, `.docs-cache/` | Derived artifacts. Rebuild them; do not hand-edit them as the lasting fix. |
@@ -53,7 +53,7 @@ The project root contains `make_docs.py`, `AGENTS.md`, `docs-ai/` and `xnu/`. Ru
 
 ### Documentation and software licenses
 
-Original Platydoc text and diagrams, including authored/generated Markdown and their HTML rendering, use **CC BY 4.0**; the full text is in [LICENSE-DOCS](LICENSE-DOCS). Build tools and browser software use **GPL-2.0-only**, in [LICENSE](LICENSE). XNU, copied source excerpts and bundled dependencies retain their upstream licenses and notices. Never apply a blanket CC notice to the contents of `xnu/` or vendor files.
+Original Platydoc text and diagrams, including authored/generated Markdown and their HTML rendering, use **CC BY 4.0**; the full text is in [LICENSE-DOCS](LICENSE-DOCS). Build tools and browser software use **GPL-2.0-only**, in [LICENSE](LICENSE). XNU, copied source excerpts and bundled dependencies retain their upstream licenses and notices. Never apply a blanket CC notice to the contents of `platydoc-data/xnu/` or vendor files.
 
 `docs-ai/tools/doc_license.py` owns the marked, visible Markdown notice. Markdown generators must use its `with_license_notice()` helper so regeneration preserves the license. The normal book build synchronizes handbook notices before validation; `python3 docs-ai/tools/doc_license.py --check` checks them without writing. Preserve the notice when editing chapters and keep exact source-excerpt blocks unchanged.
 
@@ -100,7 +100,7 @@ Use links relative to the Markdown file, with the symbol or its role in the labe
 
 A chapter under `docs-ai/subsystems/<area>/` links to XNU with `../../../xnu/osfmk/...`; a chapter directly under `docs-ai/` uses `../xnu/osfmk/...`. Links to Platydoc tools, other chapters and root instructions resolve within the project instead: for example `../../../AGENTS.md` from a subsystem chapter. Compute paths rather than copying another page's depth blindly.
 
-Keep source-inventory and implementation-location fields in authored catalog JSON/TSV relative to `SOURCE_ROOT` (for example `bsd/kern/kern_proc.c`), without adding `xnu/`. Embedded Markdown links in metadata are different: they must resolve from the generated chapter and therefore include the appropriate `../../../xnu/...` destination. Generated book source records use project-relative paths, including `xnu/` for kernel files.
+Keep source-inventory and implementation-location fields in authored catalog JSON/TSV relative to `SOURCE_ROOT` (for example `bsd/kern/kern_proc.c`), without adding `platydoc-data/xnu/`. Embedded Markdown links in metadata are different: they must resolve from the generated chapter and therefore include the appropriate `../../../xnu/...` destination. Generated book source records use project-relative paths, including `platydoc-data/xnu/` for kernel files.
 
 Keep citations near the claims they support. Link important type definitions, field declarations, dispatcher entries, decision branches and cleanup bodies. A link to the start of a large file is usually insufficient for a detailed assertion. Avoid workstation-specific absolute paths in the handbook.
 
@@ -160,7 +160,7 @@ A normal `python3 make_docs.py` already runs those three steps before HTML conve
 
 ### BSD system calls
 
-`xnu/bsd/kern/syscalls.master` supplies numbers, signatures, conditions and audit/output declarations. Read the actual handler and helpers before updating `docs-ai/interfaces/bsd-syscalls/descriptions.json`. Its keys and implementation locations are checked, but its prose still requires human/agent source review.
+`platydoc-data/xnu/bsd/kern/syscalls.master` supplies numbers, signatures, conditions and audit/output declarations. Read the actual handler and helpers before updating `docs-ai/interfaces/bsd-syscalls/descriptions.json`. Its keys and implementation locations are checked, but its prose still requires human/agent source review.
 
 ```sh
 python3 docs-ai/tools/build_bsd_syscall_catalog.py --inventory-only
@@ -184,7 +184,7 @@ The current extractor contains version-specific assumptions, including a 128-slo
 
 ### MIG messages
 
-The collector reads declarations only below the shared `SOURCE_ROOT` (`xnu/`); see the source-discovery contract in the next section.
+The collector reads declarations only below the shared `SOURCE_ROOT` (`platydoc-data/xnu/`); see the source-discovery contract in the next section.
 
 ```sh
 python3 docs-ai/tools/build_mig_catalog.py
@@ -206,26 +206,26 @@ python3 docs-ai/tools/build_mig_catalog.py --render-only
 
 ### Keep source discovery clean
 
-Source discovery is rooted in `xnu/` through `docs-ai/tools/paths.py`. Documentation, generated books, caches and archived releases outside that directory are not kernel input. Keep this boundary explicit when adding scanners: source inventories and declaration/body discovery must use `SOURCE_ROOT`; documentation discovery uses `DOCS`; book links and output paths use `PROJECT_ROOT`.
+Source discovery is rooted in `platydoc-data/xnu/` through `docs-ai/tools/paths.py`. Documentation, generated books, caches and archived releases outside that directory are not kernel input. Keep this boundary explicit when adding scanners: source inventories and declaration/body discovery must use `SOURCE_ROOT`; documentation discovery uses `DOCS`; book links and output paths use `PROJECT_ROOT`.
 
-Do not place another release, generated source copies or documentation output inside `xnu/`. A recursive scan confined to the selected source root can still discover files placed there. Preserve the source-only input boundary, including when initializing or updating a submodule. The presence check verifies required XNU directories and license material; it does not prove the checkout matches the release cited by the prose.
+Do not place another release, generated source copies or documentation output inside `platydoc-data/xnu/`. A recursive scan confined to the selected source root can still discover files placed there. Preserve the source-only input boundary, including when initializing or updating a submodule. The presence check verifies required XNU directories and license material; it does not prove the checkout matches the release cited by the prose.
 
 BSD implementation discovery, MIG declaration/profile collection and implementation-body indexing, and coverage inventory have different selection/filtering rules within that root. Review those rules when a release changes; a shared root does not make the tools exhaustive or equivalent.
 
 ### Release procedure
 
-1. **Establish provenance.** Record the release identifier, source origin, available commit/archive identity and old/new tree locations. If Git history is unavailable, say so; do not invent a commit. Keep old trees outside `xnu/`, and record the selected submodule commit when one is available.
+1. **Establish provenance.** Record the release identifier, source origin, available commit/archive identity and old/new tree locations. If Git history is unavailable, say so; do not invent a commit. Keep old trees outside `platydoc-data/xnu/`, and record the selected submodule commit when one is available.
 2. **Preserve the previous state.** Retain the last good Markdown/metadata and generated manifest/book through the repository's available versioning or a separate copy. Do not overwrite user edits while importing a release.
 3. **Inventory changes.** Use a source diff when possible. Compare added/deleted/renamed files and declarations, not just line counts. The previous HTML `build-manifest.json` provides hashes for cited files and documentation/tool inputs; it does not inventory every kernel file.
 4. **Map impact to chapters.** Use `source-index.md`, incoming citations, the catalogs and the subsystem guides. Include callers, dispatch tables, structure layouts, configuration/build files, assembly offsets and external boundary changes. Newly added uncited code still needs triage.
 5. **Review changed behavior.** Re-read affected operations, predicates, lifetime/locking rules, errors and teardown. A function keeping its name does not establish unchanged semantics. A successful excerpt comparison does not validate uncopied branches.
 6. **Reconcile interfaces.** Make discovery source-only, regenerate declaration inventories, update authored metadata and any parser/profile assumptions, then regenerate catalogs. Review additions, removals, renames, changed signatures/conditions and reserved slots. Remove stale generated pages only after review.
 7. **Update narrative and evidence.** Re-find source locations, refresh exact snippets, revise diagrams and explanations, and adjust cross-links. Avoid blanket line-offset replacements or copying new code without reconsidering the prose.
-8. **Record partial migration honestly.** If only some subsystems have been reviewed, identify the new target snapshot and list reviewed/unreviewed areas in coverage or a release-specific audit page. Do not imply all retained chapters were revalidated. A new `audits/release-<version>.md` can record changed paths, findings, unresolved boundaries and checks.
+8. **Record partial migration honestly.** If only some subsystems have been reviewed, identify the new target snapshot and list reviewed/unreviewed areas in coverage or a release-specific audit page. Do not imply all retained chapters were revalidated. A new `.private/handbook-tracking/audits/release-<version>.md` can record changed paths, findings, unresolved boundaries and checks.
 9. **Update current version labels.** Check `docs-ai/README.md`, relevant introductions, coverage records and release-specific text. The HTML builder currently hardcodes the snapshot in its footer, landing-page edition and manifest in `docs-ai/tools/book/build.py`; update all three coherently. Search for the old identifier, but preserve intentional historical references and baseline labels.
 10. **Regenerate, validate and review.** Refresh navigation, run Markdown/excerpt/catalog checks, build the HTML when requested, review generated diffs and test changed browser features. Report remaining stale areas and unavailable implementation explicitly.
 
-After the selected `xnu/` input and authored catalog metadata are ready, the integrated refresh/build command from the Platydoc root is:
+After the selected `platydoc-data/xnu/` input and authored catalog metadata are ready, the integrated refresh/build command from the Platydoc root is:
 
 ```sh
 python3 make_docs.py --refresh-catalogs
@@ -235,7 +235,7 @@ This command runs the three catalog generators and the book build. It does not r
 
 ### Coverage and audit history
 
-Preserve `docs-ai/audits/inventory.json` and the historical scope described by `coverage-audit.md`. The current `audit_inventory.py` overwrites that baseline path and has no alternate-output option. Do not run it as a routine “refresh all” step. To create a new baseline, first provide a separate destination/workflow, verify its `SOURCE_ROOT` selection and label both snapshots unambiguously.
+Preserve `.private/handbook-tracking/audits/inventory.json` and the historical scope described by `.private/handbook-tracking/coverage-audit.md`. The current `audit_inventory.py` overwrites that baseline path and has no alternate-output option. Do not run it as a routine “refresh all” step. To create a new baseline, first provide a separate destination/workflow, verify its `SOURCE_ROOT` selection and label both snapshots unambiguously.
 
 Use `check_links.py`'s counts and the audit helper's `explanatory()`/`source_links()` functions for current navigation/citation measurements without overwriting the baseline. Update counts from actual results, not remembered totals.
 
@@ -251,7 +251,7 @@ The stable entry point is:
 python3 make_docs.py
 ```
 
-Default output is `docs-ai-html/index.html`; default reusable cache is `.docs-cache/`, both under the Platydoc root and outside `xnu/`. Options include `--output`, `--cache`, `--jobs`, `--refresh-catalogs` and `--check`. Use `python3 make_docs.py --help` for the current interface.
+Default output is `docs-ai-html/index.html`; default reusable cache is `.docs-cache/`, both under the Platydoc root and outside `platydoc-data/xnu/`. Options include `--output`, `--cache`, `--jobs`, `--refresh-catalogs` and `--check`. Use `python3 make_docs.py --help` for the current interface.
 
 Build dependencies are Python 3.10+, Pygments from `docs-ai/tools/book/requirements.txt`, `cmark-gfm`, Node.js 20+, and Chromium or Graphviz as appropriate. MIG refresh additionally uses `cpp`; inventory tooling uses `rg`. Install missing dependencies through the available environment's normal mechanism; avoid repeated unbounded network/download attempts.
 
@@ -284,7 +284,7 @@ The book is local by default. Do not introduce hosting, publication, account req
 - Source tokenization is cached under `.docs-cache/source-codec/` by file content, basename, Pygments version and `CODEC_VERSION` in `book/source_codec.py`. Bump that constant if changing tokenization or record semantics. After a successful compact build, the obsolete `.docs-cache/highlight/` cache from older builds may be removed without invalidating diagram caches.
 - Diagram caches hash source/label, renderer configuration, requested backend, renderer code and the vendored Mermaid manifest. Installed Chromium/Graphviz/font versions are not included. Use a fresh cache directory when validating those upgrades or a change in which backend `auto` can use.
 - The Mermaid bundle is pinned by per-file hashes and provenance/license records. Preserve notices and embedded licenses. A runtime upgrade must update the manifest, entry module and transitive imports, and check the fallback adapter's dependency on internal module/export names. Do not patch minified vendor files as a substitute for fixing authored input or renderer code.
-- Keep output/cache directories separate from Markdown sources and outside the read-only `xnu/` input. The builder stages and checks output before replacing the last book; `.xnu-book` marks generated output/staging/backup directories. Do not bypass protections by deleting an unmarked directory.
+- Keep output/cache directories separate from Markdown sources and outside the read-only `platydoc-data/xnu/` input. The builder stages and checks output before replacing the last book; `.xnu-book` marks generated output/staging/backup directories. Do not bypass protections by deleting an unmarked directory.
 - Preserve Apple source notices and the generated book's license/provenance links. Do not remove source headers from copied source pages.
 
 ## 10. Validation and completion
@@ -308,14 +308,17 @@ within those suites first. A successful build already validates its output;
 do not repeat `--check`, independently rehash the ZIP, or rebuild solely for a
 second reviewer. Reviewers reuse existing evidence and inspect the diff.
 
-Keep local preparation separate from Pages publication. Generate structure
-layouts and validate them locally, then export the completed layout/browser
-assets with `docs-ai/tools/layouts/prepared.py export`. GitHub Actions consumes
-that archive to render the HTML handbook and publish it. It must not build or
-run a native layout compiler, regenerate structure layouts, run comparisons,
-tests or validation. The browser uses the supplied compiled Wasm runtime.
-`--prepared-layouts ... --publish-only` selects this publication path; default
-local builds retain their preparation and validation behavior.
+Keep local preparation separate from handbook rendering and Pages publication.
+The `platydoc-data/` submodule (a separate repository) owns compiler builds, structure inventories,
+header/configuration generators, native/Wasm comparisons and package publication.
+Platydoc consumes its versioned release archive; it must not import producer tools
+or depend on producer cache paths. `make_docs.py --update-data TAG` explicitly
+selects/downloads a release. Default local builds use the locked cached package
+without a native compiler; `--prepared-layouts PATH` accepts unpublished local data.
+GitHub Actions downloads the committed release reference and uses `--publish-only`.
+It must not build/run a native layout compiler, regenerate layouts, or run tests
+or validation suites. Keep browser presentation and chapter bindings here so UI
+and prose changes can reuse the same data package.
 
 | Change | Required evidence |
 | --- | --- |
@@ -323,7 +326,7 @@ local builds retain their preparation and validation behavior.
 | BSD/Mach catalog inputs or extractor | Regenerate affected output, run its `--check`, inspect the resulting catalog and run handbook checks. |
 | MIG input/profile/extractor | Source-only discovery, full collection when source changed, inspect inventories/summary/output diffs, then handbook checks. Metadata-only `--render-only` requires unchanged inventories. |
 | New/changed diagram | Strict SVG rendering and inspection of the result, not merely a balanced Markdown fence. |
-| Structure catalog additions | Changed-context native/Wasm smoke checks and a representative size/nested offset; see `docs-ai/tools/layouts/README.txt`. |
+| Structure catalog additions | Implement and validate in platydoc-data; then select its package here. See `docs-ai/tools/layouts/README.txt`. |
 | HTML generator/index/source-preview logic | Relevant focused Python/JavaScript tests and one affected browser interaction; full build when output generation changes or explicitly requested. |
 | New XNU release | The release procedure above, updated scope/provenance and explicit accounting of areas not revalidated. |
 

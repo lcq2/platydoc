@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/clock_reply.defs](../../../xnu/osfmk/mach/clock_reply.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/clock_reply.defs](../../../platydoc-data/xnu/osfmk/mach/clock_reply.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > Reply routine for clock_alarm.
 
-**Mechanism:** Clock alarm servicing forms this one-way completion with alarm result/type/time and sends it on the supplied reply capability. Both immediate/invalid-time handling and later alarm completion have local send sites. The receiver consumes the notification; it is not a request to program the clock. [Local path](../../../xnu/osfmk/kern/clock_oldops.c#L419).
+**Mechanism:** Clock alarm servicing forms this one-way completion with alarm result/type/time and sends it on the supplied reply capability. Both immediate/invalid-time handling and later alarm completion have local send sites. The receiver consumes the notification; it is not a request to program the clock. [Local path](../../../platydoc-data/xnu/osfmk/kern/clock_oldops.c#L419).
 
-**Declarations:** [`clock_alarm_reply`](../../../xnu/osfmk/mach/clock_reply.defs#L50) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`clock_alarm_reply`](../../../platydoc-data/xnu/osfmk/mach/clock_reply.defs#L50) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -34,7 +34,7 @@ simpleroutine clock_alarm_reply(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/clock_oldops.c:419](../../../xnu/osfmk/kern/clock_oldops.c#L419), [osfmk/kern/clock_oldops.c:676](../../../xnu/osfmk/kern/clock_oldops.c#L676). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/clock_oldops.c:419](../../../platydoc-data/xnu/osfmk/kern/clock_oldops.c#L419), [osfmk/kern/clock_oldops.c:676](../../../platydoc-data/xnu/osfmk/kern/clock_oldops.c#L676). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

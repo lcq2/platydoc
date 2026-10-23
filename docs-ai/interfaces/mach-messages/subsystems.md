@@ -60,52 +60,52 @@ This table covers every non-test `.defs` file containing a subsystem declaration
 
 These files are accounted for separately; they do not create an additional independent routine catalog.
 
-- [libsyscall/mach/clock.defs](../../../xnu/libsyscall/mach/clock.defs#L1): includes `mach/clock.defs`.
-- [libsyscall/mach/clock_priv.defs](../../../xnu/libsyscall/mach/clock_priv.defs#L1): includes `mach/clock_priv.defs`.
-- [libsyscall/mach/clock_reply.defs](../../../xnu/libsyscall/mach/clock_reply.defs#L1): includes `mach/clock_reply.defs`.
-- [libsyscall/mach/exc.defs](../../../xnu/libsyscall/mach/exc.defs#L1): includes `mach/exc.defs`.
-- [libsyscall/mach/host_priv.defs](../../../xnu/libsyscall/mach/host_priv.defs#L1): includes `mach/host_priv.defs`.
-- [libsyscall/mach/host_security.defs](../../../xnu/libsyscall/mach/host_security.defs#L1): includes `mach/host_security.defs`.
-- [libsyscall/mach/ledger.defs](../../../xnu/libsyscall/mach/ledger.defs#L1): includes `mach/ledger.defs`.
-- [libsyscall/mach/mach_eventlink.defs](../../../xnu/libsyscall/mach/mach_eventlink.defs#L1): includes `mach/mach_eventlink.defs`.
-- [libsyscall/mach/mach_host.defs](../../../xnu/libsyscall/mach/mach_host.defs#L1): includes `mach/mach_host.defs`.
-- [libsyscall/mach/mach_port.defs](../../../xnu/libsyscall/mach/mach_port.defs#L1): includes `mach/mach_port.defs`.
-- [libsyscall/mach/mach_vm.defs](../../../xnu/libsyscall/mach/mach_vm.defs#L1): includes `mach/mach_vm.defs`.
-- [libsyscall/mach/mach_voucher.defs](../../../xnu/libsyscall/mach/mach_voucher.defs#L1): includes `mach/mach_voucher.defs`.
-- [libsyscall/mach/memory_entry.defs](../../../xnu/libsyscall/mach/memory_entry.defs#L1): includes `mach/memory_entry.defs`.
-- [libsyscall/mach/notify.defs](../../../xnu/libsyscall/mach/notify.defs#L1): includes `mach/notify.defs`.
-- [libsyscall/mach/processor.defs](../../../xnu/libsyscall/mach/processor.defs#L1): includes `mach/processor.defs`.
-- [libsyscall/mach/processor_set.defs](../../../xnu/libsyscall/mach/processor_set.defs#L1): includes `mach/processor_set.defs`.
-- [libsyscall/mach/restartable.defs](../../../xnu/libsyscall/mach/restartable.defs#L1): includes `mach/restartable.defs`.
-- [libsyscall/mach/task.defs](../../../xnu/libsyscall/mach/task.defs#L1): includes `mach/task.defs`.
-- [libsyscall/mach/thread_act.defs](../../../xnu/libsyscall/mach/thread_act.defs#L1): includes `mach/thread_act.defs`.
-- [libsyscall/mach/vm_map.defs](../../../xnu/libsyscall/mach/vm_map.defs#L1): includes `mach/mach_vm.defs`, `mach/vm_map.defs`.
-- [osfmk/mach/mach_notify.defs](../../../xnu/osfmk/mach/mach_notify.defs#L1): includes `mach/notify.defs`.
+- [libsyscall/mach/clock.defs](../../../platydoc-data/xnu/libsyscall/mach/clock.defs#L1): includes `mach/clock.defs`.
+- [libsyscall/mach/clock_priv.defs](../../../platydoc-data/xnu/libsyscall/mach/clock_priv.defs#L1): includes `mach/clock_priv.defs`.
+- [libsyscall/mach/clock_reply.defs](../../../platydoc-data/xnu/libsyscall/mach/clock_reply.defs#L1): includes `mach/clock_reply.defs`.
+- [libsyscall/mach/exc.defs](../../../platydoc-data/xnu/libsyscall/mach/exc.defs#L1): includes `mach/exc.defs`.
+- [libsyscall/mach/host_priv.defs](../../../platydoc-data/xnu/libsyscall/mach/host_priv.defs#L1): includes `mach/host_priv.defs`.
+- [libsyscall/mach/host_security.defs](../../../platydoc-data/xnu/libsyscall/mach/host_security.defs#L1): includes `mach/host_security.defs`.
+- [libsyscall/mach/ledger.defs](../../../platydoc-data/xnu/libsyscall/mach/ledger.defs#L1): includes `mach/ledger.defs`.
+- [libsyscall/mach/mach_eventlink.defs](../../../platydoc-data/xnu/libsyscall/mach/mach_eventlink.defs#L1): includes `mach/mach_eventlink.defs`.
+- [libsyscall/mach/mach_host.defs](../../../platydoc-data/xnu/libsyscall/mach/mach_host.defs#L1): includes `mach/mach_host.defs`.
+- [libsyscall/mach/mach_port.defs](../../../platydoc-data/xnu/libsyscall/mach/mach_port.defs#L1): includes `mach/mach_port.defs`.
+- [libsyscall/mach/mach_vm.defs](../../../platydoc-data/xnu/libsyscall/mach/mach_vm.defs#L1): includes `mach/mach_vm.defs`.
+- [libsyscall/mach/mach_voucher.defs](../../../platydoc-data/xnu/libsyscall/mach/mach_voucher.defs#L1): includes `mach/mach_voucher.defs`.
+- [libsyscall/mach/memory_entry.defs](../../../platydoc-data/xnu/libsyscall/mach/memory_entry.defs#L1): includes `mach/memory_entry.defs`.
+- [libsyscall/mach/notify.defs](../../../platydoc-data/xnu/libsyscall/mach/notify.defs#L1): includes `mach/notify.defs`.
+- [libsyscall/mach/processor.defs](../../../platydoc-data/xnu/libsyscall/mach/processor.defs#L1): includes `mach/processor.defs`.
+- [libsyscall/mach/processor_set.defs](../../../platydoc-data/xnu/libsyscall/mach/processor_set.defs#L1): includes `mach/processor_set.defs`.
+- [libsyscall/mach/restartable.defs](../../../platydoc-data/xnu/libsyscall/mach/restartable.defs#L1): includes `mach/restartable.defs`.
+- [libsyscall/mach/task.defs](../../../platydoc-data/xnu/libsyscall/mach/task.defs#L1): includes `mach/task.defs`.
+- [libsyscall/mach/thread_act.defs](../../../platydoc-data/xnu/libsyscall/mach/thread_act.defs#L1): includes `mach/thread_act.defs`.
+- [libsyscall/mach/vm_map.defs](../../../platydoc-data/xnu/libsyscall/mach/vm_map.defs#L1): includes `mach/mach_vm.defs`, `mach/vm_map.defs`.
+- [osfmk/mach/mach_notify.defs](../../../platydoc-data/xnu/osfmk/mach/mach_notify.defs#L1): includes `mach/notify.defs`.
 
 ## Supporting type definitions
 
 These files are accounted for separately; they do not create an additional independent routine catalog.
 
-- [osfmk/UserNotification/UNDTypes.defs](../../../xnu/osfmk/UserNotification/UNDTypes.defs#L1): includes `mach/std_types.defs`.
-- [osfmk/device/device_types.defs](../../../xnu/osfmk/device/device_types.defs#L1): includes `mach/std_types.defs`, `mach/mach_types.defs`.
-- [osfmk/mach/clock_types.defs](../../../xnu/osfmk/mach/clock_types.defs#L1): includes `mach/std_types.defs`.
-- [osfmk/mach/mach_types.defs](../../../xnu/osfmk/mach/mach_types.defs#L1): includes `mach/std_types.defs`.
-- [osfmk/mach/machine/machine_types.defs](../../../xnu/osfmk/mach/machine/machine_types.defs#L1).
-- [osfmk/mach/std_types.defs](../../../xnu/osfmk/mach/std_types.defs#L1): includes `mach/machine/machine_types.defs`.
-- [osfmk/mach_debug/mach_debug_types.defs](../../../xnu/osfmk/mach_debug/mach_debug_types.defs#L1): includes `mach/std_types.defs`.
+- [osfmk/UserNotification/UNDTypes.defs](../../../platydoc-data/xnu/osfmk/UserNotification/UNDTypes.defs#L1): includes `mach/std_types.defs`.
+- [osfmk/device/device_types.defs](../../../platydoc-data/xnu/osfmk/device/device_types.defs#L1): includes `mach/std_types.defs`, `mach/mach_types.defs`.
+- [osfmk/mach/clock_types.defs](../../../platydoc-data/xnu/osfmk/mach/clock_types.defs#L1): includes `mach/std_types.defs`.
+- [osfmk/mach/mach_types.defs](../../../platydoc-data/xnu/osfmk/mach/mach_types.defs#L1): includes `mach/std_types.defs`.
+- [osfmk/mach/machine/machine_types.defs](../../../platydoc-data/xnu/osfmk/mach/machine/machine_types.defs#L1).
+- [osfmk/mach/std_types.defs](../../../platydoc-data/xnu/osfmk/mach/std_types.defs#L1): includes `mach/machine/machine_types.defs`.
+- [osfmk/mach_debug/mach_debug_types.defs](../../../platydoc-data/xnu/osfmk/mach_debug/mach_debug_types.defs#L1): includes `mach/std_types.defs`.
 
 ## Test interfaces
 
 Test-specific exception servers and replacement declarations are not production kernel entry surfaces.
 
-- [tests/excserver.defs](../../../xnu/tests/excserver.defs#L1)
-- [tests/excserver_backtrace.defs](../../../xnu/tests/excserver_backtrace.defs#L1)
-- [tests/excserver_protect.defs](../../../xnu/tests/excserver_protect.defs#L1)
-- [tests/mach_exc.defs](../../../xnu/tests/mach_exc.defs#L1)
-- [tests/notifyserver.defs](../../../xnu/tests/notifyserver.defs#L1)
-- [tests/rnserver.defs](../../../xnu/tests/rnserver.defs#L1)
-- [tests/vm/vm_parameter_validation_replacement_host_priv.defs](../../../xnu/tests/vm/vm_parameter_validation_replacement_host_priv.defs#L1)
-- [tests/vm/vm_parameter_validation_replacement_mach_host.defs](../../../xnu/tests/vm/vm_parameter_validation_replacement_mach_host.defs#L1)
+- [tests/excserver.defs](../../../platydoc-data/xnu/tests/excserver.defs#L1)
+- [tests/excserver_backtrace.defs](../../../platydoc-data/xnu/tests/excserver_backtrace.defs#L1)
+- [tests/excserver_protect.defs](../../../platydoc-data/xnu/tests/excserver_protect.defs#L1)
+- [tests/mach_exc.defs](../../../platydoc-data/xnu/tests/mach_exc.defs#L1)
+- [tests/notifyserver.defs](../../../platydoc-data/xnu/tests/notifyserver.defs#L1)
+- [tests/rnserver.defs](../../../platydoc-data/xnu/tests/rnserver.defs#L1)
+- [tests/vm/vm_parameter_validation_replacement_host_priv.defs](../../../platydoc-data/xnu/tests/vm/vm_parameter_validation_replacement_host_priv.defs#L1)
+- [tests/vm/vm_parameter_validation_replacement_mach_host.defs](../../../platydoc-data/xnu/tests/vm/vm_parameter_validation_replacement_mach_host.defs#L1)
 
 ## Reconciliation
 

@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/mach_eventlink.defs](../../../xnu/osfmk/mach/mach_eventlink.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/mach_eventlink.defs](../../../platydoc-data/xnu/osfmk/mach/mach_eventlink.defs#L1). Listed in the kernel kobject subsystem table, subject to the registration guards and per-slot skips. The destination's typed capability still controls admission.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Create an eventlink pair for count-based synchronization and return endpoint capabilities.
 
-**Mechanism:** Accepts only the current task and `MELC_OPTION_NO_COPYIN`. Allocation creates one shared base, two `IKOT_EVENTLINK` ports with send rights, two endpoint counters/association fields and a FIFO waitq. Returns both ports as the endpoint pair. Counter wait/signal operations use the separate BSD entries described in the syscall catalog. [`Implementation`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L155).
+**Mechanism:** Accepts only the current task and `MELC_OPTION_NO_COPYIN`. Allocation creates one shared base, two `IKOT_EVENTLINK` ports with send rights, two endpoint counters/association fields and a FIFO waitq. Returns both ports as the endpoint pair. Counter wait/signal operations use the separate BSD entries described in the syscall catalog. [`Implementation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L155).
 
-**Declarations:** [`mach_eventlink_create`](../../../xnu/osfmk/mach/mach_eventlink.defs#L39) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`mach_eventlink_create`](../../../platydoc-data/xnu/osfmk/mach/mach_eventlink.defs#L39) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -30,16 +30,16 @@ routine mach_eventlink_create(
  out eventlink_pair : eventlink_port_pair_t);
 ```
 
-**Local body:** [`mach_eventlink_create`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L205).
+**Local body:** [`mach_eventlink_create`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L205).
 Calls visible in this body include `current_task`, `ipc_eventlink_alloc`.
 
 ### 716201: mach_eventlink_destroy
 
 Destroy an eventlink endpoint/pair according to its active-state protocol.
 
-**Mechanism:** Calls internal pair teardown and returns success unconditionally, including when teardown reports termination. Under the shared base lock at scheduler priority, teardown clears both associations/port pointers, forces wakeups and invalidates the waitq. After unlocking it deallocates only the local endpoint port, disables the remote port's kobject without destroying that port, releases associated thread references and drops both port-owned base references. [Wrapper and teardown](../../../xnu/osfmk/ipc/ipc_eventlink.c#L239).
+**Mechanism:** Calls internal pair teardown and returns success unconditionally, including when teardown reports termination. Under the shared base lock at scheduler priority, teardown clears both associations/port pointers, forces wakeups and invalidates the waitq. After unlocking it deallocates only the local endpoint port, disables the remote port's kobject without destroying that port, releases associated thread references and drops both port-owned base references. [Wrapper and teardown](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L239).
 
-**Declarations:** [`mach_eventlink_destroy`](../../../xnu/osfmk/mach/mach_eventlink.defs#L44) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`mach_eventlink_destroy`](../../../platydoc-data/xnu/osfmk/mach/mach_eventlink.defs#L44) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -48,11 +48,11 @@ routine mach_eventlink_destroy(
   eventlink : eventlink_consume_ref_t);
 ```
 
-**Local body:** [`mach_eventlink_destroy`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L239).
+**Local body:** [`mach_eventlink_destroy`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L239).
 Calls visible in this body include `ipc_eventlink_destroy_internal`.
 
-[Implementation excerpt](../../../xnu/osfmk/ipc/ipc_eventlink.c#L239-L246):
-<!-- source-excerpt: ../../../xnu/osfmk/ipc/ipc_eventlink.c#L239-L246 -->
+[Implementation excerpt](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L239-L246):
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L239-L246 -->
 ```c
 mach_eventlink_destroy(
 	struct ipc_eventlink *ipc_eventlink)
@@ -68,9 +68,9 @@ mach_eventlink_destroy(
 
 Associate a thread with an eventlink endpoint, retaining the thread and validating endpoint state under the eventlink lock.
 
-**Mechanism:** Rejects nonzero copyin addresses/masks and incompatible thread/associate-on-wait combinations. Under the shared eventlink lock at scheduler priority, requires an active unassociated endpoint and stores either a retained thread or the wildcard sentinel consumed on wait. Reassociation returns `KERN_NAME_EXISTS`. [`Implementation`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L361).
+**Mechanism:** Rejects nonzero copyin addresses/masks and incompatible thread/associate-on-wait combinations. Under the shared eventlink lock at scheduler priority, requires an active unassociated endpoint and stores either a retained thread or the wildcard sentinel consumed on wait. Reassociation returns `KERN_NAME_EXISTS`. [`Implementation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L361).
 
-**Declarations:** [`mach_eventlink_associate`](../../../xnu/osfmk/mach/mach_eventlink.defs#L48) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`mach_eventlink_associate`](../../../platydoc-data/xnu/osfmk/mach/mach_eventlink.defs#L48) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -85,16 +85,16 @@ routine mach_eventlink_associate(
   option : mach_eventlink_associate_option_t);
 ```
 
-**Local body:** [`mach_eventlink_associate`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L361).
+**Local body:** [`mach_eventlink_associate`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L361).
 Calls visible in this body include `splsched`, `ipc_eventlink_lock`, `ipc_eventlink_active`, `ipc_eventlink_unlock`, `splx`, `thread_reference`.
 
 ### 716203: mach_eventlink_disassociate
 
 Remove an endpoint's thread association and wake/adjust wait state as required.
 
-**Mechanism:** Requires `MELD_OPTION_NONE` and an active associated endpoint. Clears `el_thread` and forces a wake while holding the base lock, then restores priority and releases the retained thread unless it was the wildcard sentinel. Disassociation therefore also affects an already waiting caller. [`Implementation`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L428).
+**Mechanism:** Requires `MELD_OPTION_NONE` and an active associated endpoint. Clears `el_thread` and forces a wake while holding the base lock, then restores priority and releases the retained thread unless it was the wildcard sentinel. Disassociation therefore also affects an already waiting caller. [`Implementation`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L428).
 
-**Declarations:** [`mach_eventlink_disassociate`](../../../xnu/osfmk/mach/mach_eventlink.defs#L57) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`mach_eventlink_disassociate`](../../../platydoc-data/xnu/osfmk/mach/mach_eventlink.defs#L57) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -104,7 +104,7 @@ routine mach_eventlink_disassociate(
   option : mach_eventlink_disassociate_option_t);
 ```
 
-**Local body:** [`mach_eventlink_disassociate`](../../../xnu/osfmk/ipc/ipc_eventlink.c#L428).
+**Local body:** [`mach_eventlink_disassociate`](../../../platydoc-data/xnu/osfmk/ipc/ipc_eventlink.c#L428).
 Calls visible in this body include `splsched`, `ipc_eventlink_lock`, `ipc_eventlink_active`, `ipc_eventlink_unlock`, `splx`, `ipc_eventlink_signal_internal_locked`, `thread_deallocate`.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->

@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/task_access.defs](../../../xnu/osfmk/mach/task_access.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/task_access.defs](../../../platydoc-data/xnu/osfmk/mach/task_access.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -21,7 +21,7 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 **Mechanism:** This older declaration omits the explicit requested flavor. Current visible task-port acquisition uses `check_task_access_with_flavor`; no same-symbol local receiver was resolved. Policy and authentication must be supplied by the external task-access service, not inferred from the argument list.
 
-**Declarations:** [`check_task_access`](../../../xnu/osfmk/mach/task_access.defs#L45) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`check_task_access`](../../../platydoc-data/xnu/osfmk/mach/task_access.defs#L45) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -42,9 +42,9 @@ routine check_task_access(
 
 > Search for a code signature for unsigned executables
 
-**Mechanism:** Exec can ask the task-access service to locate/attach signing information for the new PID through a synchronous wrapper. The source contains this call boundary and subsequent exec signing policy, not the daemon's signature search/database. See [executable signature policy](../../subsystems/security/executable-signature-policy.md). [Local path](../../../xnu/bsd/kern/kern_exec.c#L8477).
+**Mechanism:** Exec can ask the task-access service to locate/attach signing information for the new PID through a synchronous wrapper. The source contains this call boundary and subsequent exec signing policy, not the daemon's signature search/database. See [executable signature policy](../../subsystems/security/executable-signature-policy.md). [Local path](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8477).
 
-**Declarations:** [`find_code_signature`](../../../xnu/osfmk/mach/task_access.defs#L55) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`find_code_signature`](../../../platydoc-data/xnu/osfmk/mach/task_access.defs#L55) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -55,15 +55,15 @@ routine find_code_signature(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [bsd/kern/kern_exec.c:8480](../../../xnu/bsd/kern/kern_exec.c#L8480). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [bsd/kern/kern_exec.c:8480](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8480). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 ### 27002: check_task_access_with_flavor
 
 Ask the external task-access policy service whether a caller may obtain the requested task-port flavor.
 
-**Mechanism:** The task-port acquisition path invokes the taskgated upcall with calling PID/GID, target PID and requested task-port flavor. The source shows the privileged access decision boundary; the external daemon implements its policy. Local process/credential checks and subsequent task-right conversion still surround that request. [Local path](../../../xnu/bsd/kern/kern_proc.c#L5845).
+**Mechanism:** The task-port acquisition path invokes the taskgated upcall with calling PID/GID, target PID and requested task-port flavor. The source shows the privileged access decision boundary; the external daemon implements its policy. Local process/credential checks and subsequent task-right conversion still surround that request. [Local path](../../../platydoc-data/xnu/bsd/kern/kern_proc.c#L5845).
 
-**Declarations:** [`check_task_access_with_flavor`](../../../xnu/osfmk/mach/task_access.defs#L59) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`check_task_access_with_flavor`](../../../platydoc-data/xnu/osfmk/mach/task_access.defs#L59) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -78,7 +78,7 @@ routine check_task_access_with_flavor(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [bsd/kern/kern_proc.c:5848](../../../xnu/bsd/kern/kern_proc.c#L5848). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [bsd/kern/kern_proc.c:5848](../../../platydoc-data/xnu/bsd/kern/kern_proc.c#L5848). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

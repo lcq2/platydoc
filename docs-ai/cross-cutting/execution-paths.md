@@ -31,7 +31,7 @@ flowchart TD
     CACHE --> DONE[Account transferred bytes and release references]
 ```
 
-Start at [openat_internal()/open1()](../../xnu/bsd/vfs/vfs_syscalls.c), then follow [namei](../../xnu/bsd/vfs/vfs_lookup.c), vnode authorization and operation dispatch. On read, [sys_generic.c](../../xnu/bsd/kern/sys_generic.c#L264) constructs/uses a `uio`, acquires an I/O reference, and reaches [fo_read()](../../xnu/bsd/kern/kern_descrip.c#L6262). The file operation table selects the implementation; a socket descriptor would take a different branch from a vnode descriptor.
+Start at [openat_internal()/open1()](../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c), then follow [namei](../../platydoc-data/xnu/bsd/vfs/vfs_lookup.c), vnode authorization and operation dispatch. On read, [sys_generic.c](../../platydoc-data/xnu/bsd/kern/sys_generic.c#L264) constructs/uses a `uio`, acquires an I/O reference, and reaches [fo_read()](../../platydoc-data/xnu/bsd/kern/kern_descrip.c#L6262). The file operation table selects the implementation; a socket descriptor would take a different branch from a vnode descriptor.
 
 The persistent connection is `proc.p_fd → fileproc → fileglob → vnode`. `fileglob` holds shared offset/status/credentials and operations; the descriptor's I/O reference protects an active call against close. Vnode lifetime and filesystem operation ownership add their own contracts. See [descriptors](../subsystems/processes/descriptors-ipc.md) and [VFS](../subsystems/vfs/README.md).
 
@@ -64,7 +64,7 @@ sequenceDiagram
 
 The last return represents the surrounding exception-return path; pmap itself does not return directly to user code. Likewise, the filesystem's storage read can involve components outside this tree.
 
-BSD [kern_mman.c](../../xnu/bsd/kern/kern_mman.c) obtains the vnode's UBC association and calls VM. [ubc_info_init_internal()](../../xnu/bsd/kern/ubc_subr.c#L1096) connects vnode, pager, and named memory object. [vm_fault.c](../../xnu/osfmk/vm/vm_fault.c) handles entry/object/page resolution; [memory_object_data_request()](../../xnu/osfmk/vm/memory_object.c#L1971) dispatches through pager operations. The vnode pager in [bsd_vm.c](../../xnu/osfmk/vm/bsd_vm.c) reaches [vnode_pagein](../../xnu/bsd/vm/vnode_pager.c).
+BSD [kern_mman.c](../../platydoc-data/xnu/bsd/kern/kern_mman.c) obtains the vnode's UBC association and calls VM. [ubc_info_init_internal()](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L1096) connects vnode, pager, and named memory object. [vm_fault.c](../../platydoc-data/xnu/osfmk/vm/vm_fault.c) handles entry/object/page resolution; [memory_object_data_request()](../../platydoc-data/xnu/osfmk/vm/memory_object.c#L1971) dispatches through pager operations. The vnode pager in [bsd_vm.c](../../platydoc-data/xnu/osfmk/vm/bsd_vm.c) reaches [vnode_pagein](../../platydoc-data/xnu/bsd/vm/vnode_pager.c).
 
 The direct operation-table dispatch matters: the pager boundary here is not necessarily a message to a user-space pager. UPL commit/abort completes page-state obligations, and the fault can have to revalidate the map after dropping locks. See [the file-mapping walkthrough](../subsystems/vm/mapping-walkthroughs.md), [fault revalidation](../subsystems/vm/fault-resolution.md), [pagers/UPL](../subsystems/vm/pagers-and-upl.md), and [VFS](../subsystems/vfs/README.md). Once a physical page is ready, [pmap installation](../subsystems/vm/pmap-mapping-lifecycle.md) establishes the hardware mapping; [TLB completion](../subsystems/vm/pmap-tlb-and-cache.md) constrains later replacement and removal.
 
@@ -74,9 +74,9 @@ The [worked file mapping](mapped-file-to-arm64-fault.md) follows one 16 KiB ARM6
 
 ## 3. Fork and then exec
 
-Fork crosses BSD identity/descriptor state, Mach task/thread initialization, VM inheritance, and machine thread state. In this checkout, [fork1()](../../xnu/bsd/kern/kern_fork.c) reaches `cloneproc()`, `forkproc()`, and `fork_create_child()`. These initialize the combined proc/task allocation, establish descriptor sharing, call `task_create_internal()`, and create the initial thread behind return gates. For fork, VM inheritance invokes [vm_map_fork()](../../xnu/osfmk/vm/vm_map.c), and the child receives the calling thread's machine state. The other parent threads are not each cloned.
+Fork crosses BSD identity/descriptor state, Mach task/thread initialization, VM inheritance, and machine thread state. In this checkout, [fork1()](../../platydoc-data/xnu/bsd/kern/kern_fork.c) reaches `cloneproc()`, `forkproc()`, and `fork_create_child()`. These initialize the combined proc/task allocation, establish descriptor sharing, call `task_create_internal()`, and create the initial thread behind return gates. For fork, VM inheritance invokes [vm_map_fork()](../../platydoc-data/xnu/osfmk/vm/vm_map.c), and the child receives the calling thread's machine state. The other parent threads are not each cloned.
 
-Exec is a separate replacement operation. [__mac_execve()](../../xnu/bsd/kern/kern_exec.c) creates a shadow proc/task pair; image activation resolves the executable through VFS, dispatches format activators, and loads the Mach-O image. [proc_exec_switch_task()](../../xnu/bsd/kern/kern_exec.c#L5795) transfers process state and replaces the process-hash entry while preserving logical PID identity. Credential/code-signing policy and task/thread return setup surround this handoff.
+Exec is a separate replacement operation. [__mac_execve()](../../platydoc-data/xnu/bsd/kern/kern_exec.c) creates a shadow proc/task pair; image activation resolves the executable through VFS, dispatches format activators, and loads the Mach-O image. [proc_exec_switch_task()](../../platydoc-data/xnu/bsd/kern/kern_exec.c#L5795) transfers process state and replaces the process-hash entry while preserving logical PID identity. Credential/code-signing policy and task/thread return setup surround this handoff.
 
 For the parser and image-building details, read [executable loading](executable-loading.md). Read [process lifecycle](../subsystems/processes/lifecycle.md) with [runtime lifecycle](../subsystems/runtime/objects-and-lifecycle.md), [VM copy-on-write](../subsystems/vm/maps-and-faults.md), and [security](../subsystems/security/README.md). An important invariant is that being visible in an allocation or list is not equivalent to being allowed to run user code.
 
@@ -84,7 +84,7 @@ For the parser and image-building details, read [executable loading](executable-
 
 ## 4. Send and receive a Mach message
 
-[mach_msg2_trap()](../../xnu/osfmk/ipc/mach_msg.c#L927) unpacks arguments, checks message options, and performs selected send/receive work. The send side imports message data and rights into an `ipc_kmsg`; queueing or kernel-object dispatch then determines the destination path. Receiving makes a message available to a receiving thread and exports rights/data into its IPC space and address map. Follow [ipc_kmsg.c](../../xnu/osfmk/ipc/ipc_kmsg.c), [ipc_mqueue.c](../../xnu/osfmk/ipc/ipc_mqueue.c), and the [IPC guide](../subsystems/ipc/README.md).
+[mach_msg2_trap()](../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L927) unpacks arguments, checks message options, and performs selected send/receive work. The send side imports message data and rights into an `ipc_kmsg`; queueing or kernel-object dispatch then determines the destination path. Receiving makes a message available to a receiving thread and exports rights/data into its IPC space and address map. Follow [ipc_kmsg.c](../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c), [ipc_mqueue.c](../../platydoc-data/xnu/osfmk/ipc/ipc_mqueue.c), and the [IPC guide](../subsystems/ipc/README.md).
 
 Three boundaries are easy to miss:
 
@@ -94,7 +94,7 @@ Three boundaries are easy to miss:
 
 The combined send/receive API is also not an all-or-nothing transaction. The `mach_msg2_trap()` vector path explicitly validates send-related arguments before sending, then validates receive-related arguments for receiving; an invalid receive argument can therefore be reported after a successful send. Read the return code in the context of the completed phase.
 
-For kernel-object messages, [ipc_kobject.c](../../xnu/osfmk/kern/ipc_kobject.c) and generated server dispatch connect a port to a specific implementation. For user-server messages, queue and receiver state remain central. Mach exceptions and IOKit user-client requests reuse parts of this infrastructure but have different higher-level contracts.
+For kernel-object messages, [ipc_kobject.c](../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c) and generated server dispatch connect a port to a specific implementation. For user-server messages, queue and receiver state remain central. Mach exceptions and IOKit user-client requests reuse parts of this infrastructure but have different higher-level contracts.
 
 The detailed route is [port names and rights](../subsystems/ipc/names-and-rights.md) → [message layouts and trap arguments](../subsystems/ipc/message-path.md) → [send, delivery, receive, and reply](../subsystems/ipc/message-send-receive.md). Each phase identifies the structures, held resources, receiver-visible names, and cleanup obligations.
 
@@ -106,7 +106,7 @@ Read [Mach exception delivery](../subsystems/ipc/exception-delivery.md) for acti
 
 ## 5. Receive data and deliver readiness
 
-A traditional network packet moves from interface input through protocol processing to a socket's receive state. For TCP, the input path updates `inpcb`/`tcpcb` state, acknowledges/sequences data, and makes accepted bytes available through socket buffers. Socket wakeups notify blocked readers and event filters; a later `read`/`recv` consumes available data. Follow [networking](../subsystems/networking/README.md), [tcp_input.c](../../xnu/bsd/netinet/tcp_input.c), [uipc_socket2.c](../../xnu/bsd/kern/uipc_socket2.c), and [uipc_socket.c](../../xnu/bsd/kern/uipc_socket.c).
+A traditional network packet moves from interface input through protocol processing to a socket's receive state. For TCP, the input path updates `inpcb`/`tcpcb` state, acknowledges/sequences data, and makes accepted bytes available through socket buffers. Socket wakeups notify blocked readers and event filters; a later `read`/`recv` consumes available data. Follow [networking](../subsystems/networking/README.md), [tcp_input.c](../../platydoc-data/xnu/bsd/netinet/tcp_input.c), [uipc_socket2.c](../../platydoc-data/xnu/bsd/kern/uipc_socket2.c), and [uipc_socket.c](../../platydoc-data/xnu/bsd/kern/uipc_socket.c).
 
 ```mermaid
 flowchart LR
@@ -121,7 +121,7 @@ flowchart LR
     E --> C
 ```
 
-The event path is not a second copy of every packet. [knote_post()](../../xnu/bsd/kern/kern_event.c) invokes a filter to decide whether the registration should be active. Delivery can represent current readiness or accumulated state. Workloop/workqueue servicing can also affect requested QoS and priority dependencies. See [events and threads](../subsystems/processes/events-threads.md).
+The event path is not a second copy of every packet. [knote_post()](../../platydoc-data/xnu/bsd/kern/kern_event.c) invokes a filter to decide whether the registration should be active. Delivery can represent current readiness or accumulated state. Workloop/workqueue servicing can also affect requested QoS and priority dependencies. See [events and threads](../subsystems/processes/events-threads.md).
 
 Skywalk introduces channel/ring/nexus/packet-pool paths alongside traditional socket/mbuf processing. Do not force every packet through the exact diagram above; the [networking guide](../subsystems/networking/README.md) distinguishes the representative paths and their integration points.
 
@@ -131,9 +131,9 @@ The [worked channel operation](skywalk-channel-operation.md) follows an in-tree 
 
 ## 6. A user process asks a driver to operate on memory
 
-The IOKit route connects an IPC-visible service/user-client object, method validation, driver lifecycle/serialization, and memory preparation. [IOUserClient.cpp](../../xnu/iokit/Kernel/IOUserClient.cpp) implements connection-facing operations and method dispatch support. [iokit_rpc.c](../../xnu/osfmk/device/iokit_rpc.c) bridges Mach object conversions. The driver's implementation decides what a particular request means and which additional policy checks and work-loop rules apply.
+The IOKit route connects an IPC-visible service/user-client object, method validation, driver lifecycle/serialization, and memory preparation. [IOUserClient.cpp](../../platydoc-data/xnu/iokit/Kernel/IOUserClient.cpp) implements connection-facing operations and method dispatch support. [iokit_rpc.c](../../platydoc-data/xnu/osfmk/device/iokit_rpc.c) bridges Mach object conversions. The driver's implementation decides what a particular request means and which additional policy checks and work-loop rules apply.
 
-If the operation exposes or transfers memory, [IOMemoryDescriptor.cpp](../../xnu/iokit/Kernel/IOMemoryDescriptor.cpp) describes ranges, prepares pages, and supports mappings; [IODMACommand.cpp](../../xnu/iokit/Kernel/IODMACommand.cpp) supplies DMA-related mapping/segment machinery. CPU virtual mappings, physical page ownership, and addresses visible to a device are distinct. The concrete hardware driver and mapper may be external to this checkout.
+If the operation exposes or transfers memory, [IOMemoryDescriptor.cpp](../../platydoc-data/xnu/iokit/Kernel/IOMemoryDescriptor.cpp) describes ranges, prepares pages, and supports mappings; [IODMACommand.cpp](../../platydoc-data/xnu/iokit/Kernel/IODMACommand.cpp) supplies DMA-related mapping/segment machinery. CPU virtual mappings, physical page ownership, and addresses visible to a device are distinct. The concrete hardware driver and mapper may be external to this checkout.
 
 For pageable backing, the descriptor's `prepare()` acquires the pages needed by the transfer. The DMA command's `prepare()` establishes device mapping and segment state; it does not replace descriptor preparation. Complete device use and the command's preparation interval before completing the descriptor's interval. The [memory and DMA guide](../subsystems/drivers/memory-and-dma.md) follows these separate lifetimes.
 
@@ -143,7 +143,7 @@ The [worked DMA operation](user-buffer-to-dma-completion.md) grounds that path i
 
 ## 7. Memory pressure crosses from pages to processes
 
-VM tries to recover pages through queues, discardable clean contents, file writeback, compression, and configured swap behavior. These mechanisms operate on objects/pages and backing storage. BSD memorystatus adds process-level priorities, limits, pressure notification, and configured termination/freezing decisions. [vm_pageout.c](../../xnu/osfmk/vm/vm_pageout.c), [vm_compressor.c](../../xnu/osfmk/vm/vm_compressor.c), and [kern_memorystatus.c](../../xnu/bsd/kern/kern_memorystatus.c) occupy different parts of this path.
+VM tries to recover pages through queues, discardable clean contents, file writeback, compression, and configured swap behavior. These mechanisms operate on objects/pages and backing storage. BSD memorystatus adds process-level priorities, limits, pressure notification, and configured termination/freezing decisions. [vm_pageout.c](../../platydoc-data/xnu/osfmk/vm/vm_pageout.c), [vm_compressor.c](../../platydoc-data/xnu/osfmk/vm/vm_compressor.c), and [kern_memorystatus.c](../../platydoc-data/xnu/bsd/kern/kern_memorystatus.c) occupy different parts of this path.
 
 Process termination then returns to task/thread lifecycle and VM/IPC/resource teardown. This is why memory-pressure debugging cannot stop at a page queue, and why a process kill should not be described as the ordinary implementation of every pageout. Configuration and policy determine which mechanisms are present and when they act. See [reclamation and pressure](../subsystems/vm/reclaim-and-pressure.md) and [process lifecycle](../subsystems/processes/lifecycle.md).
 

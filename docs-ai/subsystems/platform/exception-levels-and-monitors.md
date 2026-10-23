@@ -13,7 +13,7 @@ This checkout shows several privileged transitions with different implementation
 | XNU ↔ SPTM | `SPTM_DOMAIN_ENTER` at boot; `sptm_*` library calls; XNU pre-entry/post-exit hooks | C/assembly continuation after the external call | Macro expansion, transport/library bodies, monitor vectors, monitor validation and return |
 | XNU ↔ legacy PPL | Generated `*_ppl` wrapper, PPL dispatch/state/stack fragments | PPL cleanup, AST handling, function epilogue | Protected crossing machinery is incomplete in the public assembly |
 
-The build selects SPTM versus legacy ARM sources in [`files.arm64`](../../../xnu/osfmk/conf/files.arm64#L10-L25). `APPLEVIRTUALPLATFORM`, `HAS_PARAVIRTUALIZED_PAC`, `XNU_MONITOR`, and `CONFIG_SPTM` guard different code. The presence of all these files does not imply that one kernel executes all their branches.
+The build selects SPTM versus legacy ARM sources in [`files.arm64`](../../../platydoc-data/xnu/osfmk/conf/files.arm64#L10-L25). `APPLEVIRTUALPLATFORM`, `HAS_PARAVIRTUALIZED_PAC`, `XNU_MONITOR`, and `CONFIG_SPTM` guard different code. The presence of all these files does not imply that one kernel executes all their branches.
 
 ## Architectural EL1 → EL2 → EL1 contract
 
@@ -37,11 +37,11 @@ The middle of this diagram is deliberately an architectural/external boundary. T
 
 ## A concrete guest hypercall
 
-[`hvg_hcall_get_mabs_offset()`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L254-L266) supplies `VMAPPLE_GET_MABS_OFFSET` and the local absolute-time offset. `hvc_2()` forwards two values through the five-register helper. The call's function ID is in a general register; the instruction immediate remains zero.
+[`hvg_hcall_get_mabs_offset()`](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L254-L266) supplies `VMAPPLE_GET_MABS_OFFSET` and the local absolute-time offset. `hvc_2()` forwards two values through the five-register helper. The call's function ID is in a general register; the instruction immediate remains zero.
 
-[Source: arm64_hypercall.c, lines 254–266](../../../xnu/osfmk/arm64/arm64_hypercall.c#L254-L266)
+[Source: arm64_hypercall.c, lines 254–266](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L254-L266)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/arm64_hypercall.c#L254-L266 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L254-L266 -->
 ```c
 hvg_hcall_return_t
 hvg_hcall_get_mabs_offset(uint64_t *mabs_offset)
@@ -60,9 +60,9 @@ hvg_hcall_get_mabs_offset(uint64_t *mabs_offset)
 
 The implementation copies inputs into `x0`–`x4`, executes the transition instruction, and copies the returned registers back to C storage:
 
-[Source: arm64_hypercall.c, lines 53–67](../../../xnu/osfmk/arm64/arm64_hypercall.c#L53-L67)
+[Source: arm64_hypercall.c, lines 53–67](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L53-L67)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/arm64_hypercall.c#L53-L67 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L53-L67 -->
 ```c
 static inline bool
 hvc_5(uint64_t *x0, uint64_t *x1, uint64_t *x2, uint64_t *x3, uint64_t *x4)
@@ -81,25 +81,25 @@ hvc_5(uint64_t *x0, uint64_t *x1, uint64_t *x2, uint64_t *x3, uint64_t *x4)
                 "str   x4, %[o4]"    "\n"
 ```
 
-This is an excerpt of the inline-assembly statement; its remaining [constraints/clobbers and success test](../../../xnu/osfmk/arm64/arm64_hypercall.c#L68-L81) are part of the function. The helper treats a negative returned `x0` as failure for its normal status-return convention. UID queries have an explicit different sentinel rule, and `hvc32_4()` handles 32-bit register results. Do not extend that one success convention to every hypercall. [`hvg_get_uid()`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L132-L149).
+This is an excerpt of the inline-assembly statement; its remaining [constraints/clobbers and success test](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L68-L81) are part of the function. The helper treats a negative returned `x0` as failure for its normal status-return convention. UID queries have an explicit different sentinel rule, and `hvc32_4()` handles 32-bit register results. Do not extend that one success convention to every hypercall. [`hvg_get_uid()`](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L132-L149).
 
-[`hv_hvc.h`](../../../xnu/osfmk/arm64/hv_hvc.h#L31-L78) composes IDs from a fast-call bit, width bit, service namespace, and function number. CPU services include paravirtualized pointer-authentication operations; OEM services include time offset, boot-session UUID, virtual-CPU wait and kick. [`hvg_is_hcall_available()`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L176-L234) queries host identity/version/features before selected use. The nonvirtual-platform implementations return unsupported rather than executing this helper.
+[`hv_hvc.h`](../../../platydoc-data/xnu/osfmk/arm64/hv_hvc.h#L31-L78) composes IDs from a fast-call bit, width bit, service namespace, and function number. CPU services include paravirtualized pointer-authentication operations; OEM services include time offset, boot-session UUID, virtual-CPU wait and kick. [`hvg_is_hcall_available()`](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L176-L234) queries host identity/version/features before selected use. The nonvirtual-platform implementations return unsupported rather than executing this helper.
 
-For another concrete call, `hvg_hc_kick_cpu()` translates a logical CPU index to the topology's physical ID and calls `VMAPPLE_VCPU_KICK`. `hvg_hc_wait_for_kick()` passes its interrupt-enable argument to `VMAPPLE_VCPU_WFK`. These functions communicate with the external host; they are not ordinary Mach messages delivered to an `ipc_port`. [`virtual CPU calls`](../../../xnu/osfmk/arm64/arm64_hypercall.c#L269-L291).
+For another concrete call, `hvg_hc_kick_cpu()` translates a logical CPU index to the topology's physical ID and calls `VMAPPLE_VCPU_KICK`. `hvg_hc_wait_for_kick()` passes its interrupt-enable argument to `VMAPPLE_VCPU_WFK`. These functions communicate with the external host; they are not ordinary Mach messages delivered to an `ipc_port`. [`virtual CPU calls`](../../../platydoc-data/xnu/osfmk/arm64/arm64_hypercall.c#L269-L291).
 
-Not every `hvc` has a normal returning contract. The virtual-platform branch of `arm64_prepare_for_sleep()` invokes PSCI CPU-off or system-suspend functions and places an infinite branch immediately afterward. That caller is not expecting the ordinary C-return sequence. [`power hypercalls`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L1551-L1574). PAC assembly also issues hypercalls and checks their result before continuing: [`pac_asm.h`](../../../xnu/osfmk/arm64/pac_asm.h#L94-L165).
+Not every `hvc` has a normal returning contract. The virtual-platform branch of `arm64_prepare_for_sleep()` invokes PSCI CPU-off or system-suspend functions and places an infinite branch immediately afterward. That caller is not expecting the ordinary C-return sequence. [`power hypercalls`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L1551-L1574). PAC assembly also issues hypercalls and checks their result before continuing: [`pac_asm.h`](../../../platydoc-data/xnu/osfmk/arm64/pac_asm.h#L94-L165).
 
 ## SPTM has a distinct, partly external transition interface
 
 For the expanded security and ownership model, see [SPTM](../security/sptm.md), [TXM](../security/txm.md), and [Exclaves execution](../security/exclaves-execution.md). The [entry/exit map](../security/protected-execution.md) distinguishes their ordinary calls, upcalls and interrupted-domain returns.
 
-The SPTM boot source includes `<sptm/sptm_xnu.h>`. The local [`sptm.h`](../../../xnu/osfmk/arm64/sptm/sptm.h#L30-L46) includes the same external interface, and the [build](../../../xnu/makedefs/MakeInc.def#L1182-L1186) links `sptm_xnu` and `TrustedExecutionMonitor_Kernel` archives. Their implementations are not supplied here. Test mocks elsewhere in the tree are not the production monitor.
+The SPTM boot source includes `<sptm/sptm_xnu.h>`. The local [`sptm.h`](../../../platydoc-data/xnu/osfmk/arm64/sptm/sptm.h#L30-L46) includes the same external interface, and the [build](../../../platydoc-data/xnu/makedefs/MakeInc.def#L1182-L1186) links `sptm_xnu` and `TrustedExecutionMonitor_Kernel` archives. Their implementations are not supplied here. Test mocks elsewhere in the tree are not the production monitor.
 
 At cold boot XNU writes its exception-vector address, then invokes the external entry macro:
 
-[Source: start_sptm.s, lines 146–161](../../../xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161)
+[Source: start_sptm.s, lines 146–161](../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/sptm/start_sptm.s#L146-L161 -->
 ```asm
 	/**
 	 * Now setup final XNU exception vectors. This is the closest we can do this
@@ -119,7 +119,7 @@ At cold boot XNU writes its exception-vector address, then invokes the external 
 	SPTM_DOMAIN_ENTER	x16
 ```
 
-The comment says **GL2**, Apple's guarded execution terminology. Preserve that qualification: this source does not show the macro becoming the guest's `hvc #0`, nor does it supply the monitor's complete register-bank semantics. `CurrentG` checks and `KERNEL_MODE_*` / `GUARDED_MODE_*` aliases are additional evidence that protected execution is more than an ordinary software call between two C functions. [`register aliases`](../../../xnu/osfmk/arm64/exception_asm.h#L34-L56), [`pre-entry guard check`](../../../xnu/osfmk/arm64/locore.s#L2725-L2730).
+The comment says **GL2**, Apple's guarded execution terminology. Preserve that qualification: this source does not show the macro becoming the guest's `hvc #0`, nor does it supply the monitor's complete register-bank semantics. `CurrentG` checks and `KERNEL_MODE_*` / `GUARDED_MODE_*` aliases are additional evidence that protected execution is more than an ordinary software call between two C functions. [`register aliases`](../../../platydoc-data/xnu/osfmk/arm64/exception_asm.h#L34-L56), [`pre-entry guard check`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2725-L2730).
 
 The boot contract is concrete even without the external macro body: XNU finishes image fixups, supplies the final `VBAR_EL1`, reports fixup completion, and afterward expects the executable region to have its final monitor type. The source says the monitor validates and locks VBAR after that report. This is not an instruction-by-instruction account of the monitor.
 
@@ -127,9 +127,9 @@ The boot contract is concrete even without the external macro body: XNU finishes
 
 `_sptm_pre_entry_hook` saves a frame, callee-saved temporaries, the dispatch ID in `x16`, and arguments `x0`–`x7`. When a current thread exists, it increments `ACT_PREEMPT_CNT`:
 
-[Source: locore.s, lines 2688–2700](../../../xnu/osfmk/arm64/locore.s#L2688-L2700)
+[Source: locore.s, lines 2688–2700](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2688-L2700)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L2688-L2700 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2688-L2700 -->
 ```asm
 	/* Save arguments to SPTM function and SPTM function id. */
 	mov		x20, x16
@@ -146,13 +146,13 @@ The boot contract is concrete even without the external macro body: XNU finishes
 	str		w10, [x9, ACT_PREEMPT_CNT]
 ```
 
-It performs optional scheduler-hygiene measurement, checks that the caller is not already in guarded mode, restores arguments, and returns to the library's entry sequence. This hook is not itself the missing protected transition instruction. Early boot can have no `TPIDR_EL1` thread, which explains the explicit zero test. [`full pre-entry hook`](../../../xnu/osfmk/arm64/locore.s#L2678-L2744).
+It performs optional scheduler-hygiene measurement, checks that the caller is not already in guarded mode, restores arguments, and returns to the library's entry sequence. This hook is not itself the missing protected transition instruction. Early boot can have no `TPIDR_EL1` thread, which explains the explicit zero test. [`full pre-entry hook`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2678-L2744).
 
 `_sptm_post_exit_hook` preserves returned `x0`–`x7`, decrements the current thread's preemption count with underflow detection, and checks whether urgent AST handling is now permitted. When it does call `ast_taken_kernel`, it masks exceptions for the call and restores DAIF afterward:
 
-[Source: locore.s, lines 2806–2815](../../../xnu/osfmk/arm64/locore.s#L2806-L2815)
+[Source: locore.s, lines 2806–2815](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2806-L2815)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L2806-L2815 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2806-L2815 -->
 ```asm
 	/* IF there is no urgent AST, skip the AST. */
 	ldr		x12, [x0, ACT_CPUDATAP]
@@ -166,15 +166,15 @@ It performs optional scheduler-hygiene measurement, checks that the caller is no
 	msr		DAIF, x20
 ```
 
-The post-hook finally restores the monitor results and its stack frame. It can therefore perform XNU scheduler work **after the protected call has returned**, before the original caller continues. Its function epilogue is distinct from whatever return mechanism the monitor used. [`post-exit hook`](../../../xnu/osfmk/arm64/locore.s#L2746-L2830).
+The post-hook finally restores the monitor results and its stack frame. It can therefore perform XNU scheduler work **after the protected call has returned**, before the original caller continues. Its function epilogue is distinct from whatever return mechanism the monitor used. [`post-exit hook`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2746-L2830).
 
 ### A mapping request shows the data crossing this interface
 
-[`pmap_enter_pte()`](../../../xnu/osfmk/arm64/sptm/pmap/pmap.c#L6328-L6379) constructs/checks a mapping under the relevant reverse-map and epoch protections. It supplies the root-table physical address, virtual address, proposed PTE, and flags to `sptm_map_page()`. The ordinary status result and the per-CPU result area are different outputs. On success it reads the prior PTE and installed PTE pointer:
+[`pmap_enter_pte()`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c#L6328-L6379) constructs/checks a mapping under the relevant reverse-map and epoch protections. It supplies the root-table physical address, virtual address, proposed PTE, and flags to `sptm_map_page()`. The ordinary status result and the per-CPU result area are different outputs. On success it reads the prior PTE and installed PTE pointer:
 
-[Source: pmap.c, lines 6471–6477](../../../xnu/osfmk/arm64/sptm/pmap/pmap.c#L6471-L6477)
+[Source: pmap.c, lines 6471–6477](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c#L6471-L6477)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/sptm/pmap/pmap.c#L6471-L6477 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c#L6471-L6477 -->
 ```c
 	assert(!preemption_enabled());
 	const sptm_map_page_output_t *map_page_out = (const sptm_map_page_output_t *)
@@ -192,15 +192,15 @@ The post-hook finally restores the monitor results and its stack frame. It can t
 | `pmap_epoch_t` | Keeps concurrent table removal/unnesting from invalidating the operation's assumptions |
 | `pmap_sptm_percpu_data_t.sptm_prev_ptes` | Per-CPU monitor output storage, populated from bootstrap-provided memory |
 | `sptm_map_page_output_t` | External interface type interpreted as previous PTE plus PTE pointer |
-| `thread.machine.preemption_count` / assembly `ACT_PREEMPT_CNT` | Prevents migration while the caller relies on that per-CPU storage; see [`machine_thread`](../../../xnu/osfmk/arm/thread.h#L166) |
+| `thread.machine.preemption_count` / assembly `ACT_PREEMPT_CNT` | Prevents migration while the caller relies on that per-CPU storage; see [`machine_thread`](../../../platydoc-data/xnu/osfmk/arm/thread.h#L166) |
 
-The local per-CPU layout is in [`pmap_data.h`](../../../xnu/osfmk/arm64/sptm/pmap/pmap_data.h#L1173-L1228); [`initialization`](../../../xnu/osfmk/arm64/sptm/pmap/pmap_data.c#L2050-L2081) computes each CPU's result-area pointer from `SPTMArgs`. The call and failure cleanup are in [`pmap.c`](../../../xnu/osfmk/arm64/sptm/pmap/pmap.c#L6438-L6469). These are source-visible ownership and concurrency contracts. They do not reveal how the monitor validates page types internally or programs its own privileged registers.
+The local per-CPU layout is in [`pmap_data.h`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap_data.h#L1173-L1228); [`initialization`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap_data.c#L2050-L2081) computes each CPU's result-area pointer from `SPTMArgs`. The call and failure cleanup are in [`pmap.c`](../../../platydoc-data/xnu/osfmk/arm64/sptm/pmap/pmap.c#L6438-L6469). These are source-visible ownership and concurrency contracts. They do not reveal how the monitor validates page types internally or programs its own privileged registers.
 
 ### Resume a protected domain after XNU handles its interrupt
 
-An interrupt can occur while a thread is executing in SPTM, TXM, or the secure kernel (SK). XNU handles the interrupt, then must resume the correct domain. During `arm_init`, XNU registers the stripped address of `xnu_return_to_gl2` with `sptm_register_xnu_exc_return`. This is a return-dispatch address supplied to the monitor, distinct from the ordinary application's saved PC. [`registration`](../../../xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763).
+An interrupt can occur while a thread is executing in SPTM, TXM, or the secure kernel (SK). XNU handles the interrupt, then must resume the correct domain. During `arm_init`, XNU registers the stripped address of `xnu_return_to_gl2` with `sptm_register_xnu_exc_return`. This is a return-dispatch address supplied to the monitor, distinct from the ordinary application's saved PC. [`registration`](../../../platydoc-data/xnu/osfmk/arm64/sptm/arm_init_sptm.c#L761-L763).
 
-The saved state visible to XNU does not necessarily contain the protected domain's real interrupted PC in its `pc` field. `ml_get_backtrace_pc` explicitly documents a fixed re-entry handler there and the actual interrupted PC in `x14`; it uses that value when `ml_addr_in_non_xnu_stack` recognizes the saved frame pointer. In the SPTM branch, that helper checks the bootstrap-supplied SPTM per-CPU and TXM thread-stack ranges; otherwise the accessor returns the ordinary saved `pc`. This lets a backtrace recover the interrupted location without confusing the resume handler with the interrupted instruction. [`stack-range checks`](../../../xnu/osfmk/arm64/machine_routines.c#L3145-L3172), [`backtrace interpretation`](../../../xnu/osfmk/arm64/machine_routines.c#L3176-L3194).
+The saved state visible to XNU does not necessarily contain the protected domain's real interrupted PC in its `pc` field. `ml_get_backtrace_pc` explicitly documents a fixed re-entry handler there and the actual interrupted PC in `x14`; it uses that value when `ml_addr_in_non_xnu_stack` recognizes the saved frame pointer. In the SPTM branch, that helper checks the bootstrap-supplied SPTM per-CPU and TXM thread-stack ranges; otherwise the accessor returns the ordinary saved `pc`. This lets a backtrace recover the interrupted location without confusing the resume handler with the interrupted instruction. [`stack-range checks`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines.c#L3145-L3172), [`backtrace interpretation`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines.c#L3176-L3194).
 
 `xnu_return_to_gl2` reads the current `thread` through `TPIDR_EL1` and chooses the resume interface:
 
@@ -212,9 +212,9 @@ The saved state visible to XNU does not necessarily contain the protected domain
 
 The first branch is short enough to read directly:
 
-[Source: locore.s, lines 1711–1717](../../../xnu/osfmk/arm64/locore.s#L1711-L1717)
+[Source: locore.s, lines 1711–1717](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1711-L1717)
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/locore.s#L1711-L1717 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1711-L1717 -->
 ```asm
 	mrs		x8, TPIDR_EL1
 	ldr		x8, [x8, TH_TXM_THREAD_STACK]
@@ -225,23 +225,23 @@ The first branch is short enough to read directly:
 	b .
 ```
 
-The [remaining selector](../../../xnu/osfmk/arm64/locore.s#L1719-L1743) contains the SK and SPTM branches. All three use `b`, without setting a new link register, and mark the following infinite branch unreachable. The selector expects the external interface to resume protected execution rather than return to this dispatch site as an ordinary function. The actual implementations of these resume interfaces are external to this checkout.
+The [remaining selector](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L1719-L1743) contains the SK and SPTM branches. All three use `b`, without setting a new link register, and mark the following infinite branch unreachable. The selector expects the external interface to resume protected execution rather than return to this dispatch site as an ordinary function. The actual implementations of these resume interfaces are external to this checkout.
 
-The relevant fields and their synchronization contract are in [`thread.h`](../../../xnu/osfmk/kern/thread.h#L1106-L1122). The interrupt-safe Exclaves flags may be modified only by the current thread with interrupts disabled; `TH_EXCLAVES_EXECUTION` includes execution interrupted or preempted while in the secure kernel or Exclaves userspace. [`flag definition`](../../../xnu/osfmk/kern/thread.h#L291-L297). Consequently, interpreting only `CurrentEL` or only the saved `pc` misses state that this local return path explicitly consults.
+The relevant fields and their synchronization contract are in [`thread.h`](../../../platydoc-data/xnu/osfmk/kern/thread.h#L1106-L1122). The interrupt-safe Exclaves flags may be modified only by the current thread with interrupts disabled; `TH_EXCLAVES_EXECUTION` includes execution interrupted or preempted while in the secure kernel or Exclaves userspace. [`flag definition`](../../../platydoc-data/xnu/osfmk/kern/thread.h#L291-L297). Consequently, interpreting only `CurrentEL` or only the saved `pc` misses state that this local return path explicitly consults.
 
 ## Legacy PPL: read the state machine, recognize the missing crossing
 
-The legacy `PMAP_SUPPORT_PROTOTYPES_WITH_ASM_INTERNAL` macro constructs a wrapper that loads a call index into `x15` and branches to `_aprr_ppl_enter`. The checked-in code does not provide that entry body. [`wrapper generation`](../../../xnu/osfmk/arm/pmap/pmap_internal.h#L98-L107). Likewise, `ppl_return_to_kernel_mode` is referenced without its implementation, and [`gxf_exceptions.s`](../../../xnu/osfmk/arm64/gxf_exceptions.s) consists of includes rather than the complete protected-vector machinery.
+The legacy `PMAP_SUPPORT_PROTOTYPES_WITH_ASM_INTERNAL` macro constructs a wrapper that loads a call index into `x15` and branches to `_aprr_ppl_enter`. The checked-in code does not provide that entry body. [`wrapper generation`](../../../platydoc-data/xnu/osfmk/arm/pmap/pmap_internal.h#L98-L107). Likewise, `ppl_return_to_kernel_mode` is referenced without its implementation, and [`gxf_exceptions.s`](../../../platydoc-data/xnu/osfmk/arm64/gxf_exceptions.s) consists of includes rather than the complete protected-vector machinery.
 
-The remaining assembly still exposes useful contracts. [`pmap_cpu_data`](../../../xnu/osfmk/arm/pmap/pmap.h#L172-L221) stores `ppl_kern_saved_sp`, `ppl_stack`, an `arm_context_t *save_area`, `ppl_state`, and in-flight pmap state. The dispatch fragment checks the request against `PMAP_COUNT`, validates KERNEL/DISPATCH/EXCEPTION state transitions, selects the per-CPU PPL stack, and loads `ppl_handler_table[index]`. The handler runs through an indirect authenticated branch when pointer authentication is enabled. [`dispatch setup`](../../../xnu/osfmk/arm64/locore.s#L2280-L2337), [`handler invocation`](../../../xnu/osfmk/arm64/locore.s#L2513-L2549).
+The remaining assembly still exposes useful contracts. [`pmap_cpu_data`](../../../platydoc-data/xnu/osfmk/arm/pmap/pmap.h#L172-L221) stores `ppl_kern_saved_sp`, `ppl_stack`, an `arm_context_t *save_area`, `ppl_state`, and in-flight pmap state. The dispatch fragment checks the request against `PMAP_COUNT`, validates KERNEL/DISPATCH/EXCEPTION state transitions, selects the per-CPU PPL stack, and loads `ppl_handler_table[index]`. The handler runs through an indirect authenticated branch when pointer authentication is enabled. [`dispatch setup`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2280-L2337), [`handler invocation`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2513-L2549).
 
-On an ordinary completion it restores the original stack, clears the in-flight pmap pointer and saved stack, changes DISPATCH back to KERNEL, then branches to the missing crossing routine. The later `ppl_exit` fragment distinguishes ordinary completion, bad call, panic, and an exception; it decreases preemption protection and can process an urgent kernel AST before its C-level return. [`completion`](../../../xnu/osfmk/arm64/locore.s#L2354-L2383), [`exit handling`](../../../xnu/osfmk/arm64/locore.s#L2388-L2511).
+On an ordinary completion it restores the original stack, clears the in-flight pmap pointer and saved stack, changes DISPATCH back to KERNEL, then branches to the missing crossing routine. The later `ppl_exit` fragment distinguishes ordinary completion, bad call, panic, and an exception; it decreases preemption protection and can process an urgent kernel AST before its C-level return. [`completion`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2354-L2383), [`exit handling`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2388-L2511).
 
-This path is not fully reconstructable from these fragments: `locore.s` contains explicit `#error "XPRR configuration error"` sites where protected entry/return support would be needed. The nearby panic code also explicitly distinguishes PPL running at GL2 from GL1 on a guest or pre-H13 platform; it checks `CurrentEL` before choosing legal TLB invalidation operations. The unconditional statement “PPL always runs at EL2” would contradict this source. [`configuration gap`](../../../xnu/osfmk/arm64/locore.s#L2264-L2273), [`GL1/GL2 distinction`](../../../xnu/osfmk/arm64/locore.s#L2632-L2656).
+This path is not fully reconstructable from these fragments: `locore.s` contains explicit `#error "XPRR configuration error"` sites where protected entry/return support would be needed. The nearby panic code also explicitly distinguishes PPL running at GL2 from GL1 on a guest or pre-H13 platform; it checks `CurrentEL` before choosing legal TLB invalidation operations. The unconditional statement “PPL always runs at EL2” would contradict this source. [`configuration gap`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2264-L2273), [`GL1/GL2 distinction`](../../../platydoc-data/xnu/osfmk/arm64/locore.s#L2632-L2656).
 
 ## SMC and Mach exceptions are separate routes
 
-The `MONITOR`-guarded `monitor_call` is explicitly described as an EL3 call and executes `smc 0x11` before returning to its caller. It is not the source's EL2 guest hypercall helper. [`monitor_call`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L1768-L1785).
+The `MONITOR`-guarded `monitor_call` is explicitly described as an EL3 call and executes `smc 0x11` before returning to its caller. It is not the source's EL2 guest hypercall helper. [`monitor_call`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L1768-L1785).
 
 A **Mach exception message** is a higher-level IPC operation constructed after XNU classifies a fault. It can go to a userspace debugger/server or the kernel's Unix exception handler. It does not itself mean entering EL2. Conversely, an `hvc` or protected mapping call need not create a Mach message at all. Follow [Mach exception delivery](../ipc/exception-delivery.md) for that object/port path, and [EL0 entry](arm64-exception-entry.md) and [return](arm64-exception-return.md) for the fully visible XNU saved-state path.
 

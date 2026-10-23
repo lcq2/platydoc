@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/prof.defs](../../../xnu/osfmk/mach/prof.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/prof.defs](../../../platydoc-data/xnu/osfmk/mach/prof.defs#L1). Not listed as a separate subsystem in this checkout's `mig_e` table. Local bodies, generated interfaces and compatibility aliases are distinguished below; a declaration alone does not establish an active kernel message endpoint.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,7 +19,7 @@ Deliver a batch of program-counter profiling samples to the external profiling r
 
 **Mechanism:** This profiling-output protocol declares one-way delivery to an external profile-server destination. The local source inventory resolves no same-symbol receiver/body, and the subsystem is not registered in `mig_e`. The payload contract is retained without asserting an active modern kernel producer or reconstructing the collector.
 
-**Declarations:** [`samples`](../../../xnu/osfmk/mach/prof.defs#L126) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`samples`](../../../platydoc-data/xnu/osfmk/mach/prof.defs#L126) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -37,7 +37,7 @@ Deliver profiling notices to the external profiling receiver.
 
 **Mechanism:** This profiling-output protocol declares one-way delivery to an external profile-server destination. The local source inventory resolves no same-symbol receiver/body, and the subsystem is not registered in `mig_e`. The payload contract is retained without asserting an active modern kernel producer or reconstructing the collector.
 
-**Declarations:** [`notices`](../../../xnu/osfmk/mach/prof.defs#L130) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`notices`](../../../platydoc-data/xnu/osfmk/mach/prof.defs#L130) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 

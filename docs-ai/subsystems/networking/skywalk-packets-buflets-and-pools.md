@@ -8,13 +8,13 @@ A Skywalk packet handle is not a payload address. It identifies metadata whose b
 
 | Object | Important state |
 | --- | --- |
-| [`__quantum` and user quantum](../../../xnu/bsd/skywalk/packet/os_packet_private.h#L387) | Common length, flags and metadata identity fields for the representation. |
-| [`__kern_quantum`](../../../xnu/bsd/skywalk/packet/packet_var.h#L204) | Common state plus owning pool, user-metadata mirror, kernel slot association, user-allocation hash link/PID and kernel buflet state. |
-| [`__kern_packet`](../../../xnu/bsd/skywalk/packet/packet_var.h#L352) | Quantum plus packet fields/options, flow/classification data, timestamp, queue linkage, completion state and optional attached mbuf/packet representation. |
-| [`__buflet`](../../../xnu/bsd/skywalk/packet/os_packet_private.h#L243) | Buffer address/index, data offset and length, data limit, next-buflet address/index and flags. |
-| [`__kern_buflet`](../../../xnu/bsd/skywalk/packet/packet_var.h#L47) | Common buflet plus `buf_ctl`, which identifies the actual allocated buffer object and its shared-use accounting. |
-| [`__kern_buflet_ext`](../../../xnu/bsd/skywalk/packet/packet_var.h#L62) | Separately allocated buflet with its user mirror, outstanding-user hash linkage and PID accounting. |
-| [`kern_pbufpool`](../../../xnu/bsd/skywalk/packet/pbufpool_var.h#L57) | Pool lock/refcount/flags, buffer sizes, max fragments, metadata/buflet/buffer caches and regions, user-allocation hash tables and segment callbacks. |
+| [`__quantum` and user quantum](../../../platydoc-data/xnu/bsd/skywalk/packet/os_packet_private.h#L387) | Common length, flags and metadata identity fields for the representation. |
+| [`__kern_quantum`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_var.h#L204) | Common state plus owning pool, user-metadata mirror, kernel slot association, user-allocation hash link/PID and kernel buflet state. |
+| [`__kern_packet`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_var.h#L352) | Quantum plus packet fields/options, flow/classification data, timestamp, queue linkage, completion state and optional attached mbuf/packet representation. |
+| [`__buflet`](../../../platydoc-data/xnu/bsd/skywalk/packet/os_packet_private.h#L243) | Buffer address/index, data offset and length, data limit, next-buflet address/index and flags. |
+| [`__kern_buflet`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_var.h#L47) | Common buflet plus `buf_ctl`, which identifies the actual allocated buffer object and its shared-use accounting. |
+| [`__kern_buflet_ext`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_var.h#L62) | Separately allocated buflet with its user mirror, outstanding-user hash linkage and PID accounting. |
+| [`kern_pbufpool`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool_var.h#L57) | Pool lock/refcount/flags, buffer sizes, max fragments, metadata/buflet/buffer caches and regions, user-allocation hash tables and segment callbacks. |
 
 A buflet's data begins at `buf_addr + buf_doff` and spans `buf_dlen` bytes, subject to its validated limit. For kernel shared buffers, `buf_addr` can identify a span within the underlying object, whose beginning is `buf_ctl->bc_addr`. Distinct buflets can refer to the same buffer with separate use references. The user-facing internalization path in this version explicitly asserts the simpler nonshared buffer relationship; kernel sharing support is not permission to submit arbitrary shared spans from userspace.
 
@@ -34,7 +34,7 @@ The handle encoding returned by kernel pool APIs contains metadata type/subtype 
 
 ## Creating the pool chooses the ownership model
 
-[`kern_pbufpool_create()`](../../../xnu/bsd/skywalk/packet/pbufpool_kern.c#L43) validates version, requested packet/buffer counts, buffer size, fragment limit and segment callback pairing. It selects kernel-only versus user-accessible metadata, I/O direction and on-demand buffer behavior, configures regions, and calls [`pp_create()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1028). The declarations include quantum selection, but the packet pool/common channel code has packet-specific assertions and restrictions; supported combinations must be followed through the actual caller and configuration rather than generalized from one flag.
+[`kern_pbufpool_create()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool_kern.c#L43) validates version, requested packet/buffer counts, buffer size, fragment limit and segment callback pairing. It selects kernel-only versus user-accessible metadata, I/O direction and on-demand buffer behavior, configures regions, and calls [`pp_create()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1028). The declarations include quantum selection, but the packet pool/common channel code has packet-specific assertions and restrictions; supported combinations must be followed through the actual caller and configuration rather than generalized from one flag.
 
 `pp_create()` chooses shared/RX/TX region sets, checks matching geometry for user/kernel mirrors, retains the optional provider context, records constructor/destructor callbacks and builds the buffer/metadata caches. User-accessible pools have user metadata and optional user-buflet regions paired with kernel regions. Kernel-only pools do not need that mirror. [Memory arenas](skywalk-memory-arenas-and-mapping.md) assemble these regions into mappings; pool construction alone does not map every pool into a process.
 
@@ -43,21 +43,21 @@ The allocation contract distinguishes two modes:
 - **Preconstructed buffers:** cached metadata already has the configured number of buffers. Kernel allocation requests must match `pp_max_frags`.
 - **On-demand buffers:** metadata can be allocated with zero attached buffers, or a requested number up to the maximum; separate constructed buflet objects supply backing.
 
-[`kern_pbufpool_alloc_common()`](../../../xnu/bsd/skywalk/packet/pbufpool_kern.c#L281) rejects unsupported buffer counts, zeroes the output handle and encodes a successfully allocated kernel metadata pointer. Sleeping and non-sleeping wrappers select different `skmem` flags. A valid pool handle does not make every allocation infallible.
+[`kern_pbufpool_alloc_common()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool_kern.c#L281) rejects unsupported buffer counts, zeroes the output handle and encodes a successfully allocated kernel metadata pointer. Sleeping and non-sleeping wrappers select different `skmem` flags. A valid pool handle does not make every allocation infallible.
 
 ## Constructors versus reuse initialization
 
-[`pp_metadata_ctor_common()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L642) builds a raw cache object's long-lived metadata relationships. It computes kernel/user quantum addresses after the metadata preamble, initializes the user redzone, and associates pool identity, metadata index and required optional state. The constructor can receive object-info records stored inside the object being initialized, so it copies them locally before overwriting those bytes.
+[`pp_metadata_ctor_common()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L642) builds a raw cache object's long-lived metadata relationships. It computes kernel/user quantum addresses after the metadata preamble, initializes the user redzone, and associates pool identity, metadata index and required optional state. The constructor can receive object-info records stored inside the object being initialized, so it copies them locally before overwriting those bytes.
 
-[`pp_metadata_init()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1899) performs per-allocation reset on a constructed object: verifies the pool/mirror relationship, attaches on-demand buffers when requested, sanitizes flags, reinitializes packet metadata and initializes the chosen buflets. Reusing a cached packet is therefore not identical to constructing all backing objects from scratch.
+[`pp_metadata_init()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1899) performs per-allocation reset on a constructed object: verifies the pool/mirror relationship, attaches on-demand buffers when requested, sanitizes flags, reinitializes packet metadata and initializes the chosen buflets. Reusing a cached packet is therefore not identical to constructing all backing objects from scratch.
 
-[`pp_alloc_packet_common()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1984) obtains a metadata batch, obtains the requested on-demand buflet batch, then initializes one packet at a time. If buffer construction fails partway through, remaining buflets and uninitialized metadata return to their caches while successfully initialized packets remain caller-owned.
+[`pp_alloc_packet_common()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1984) obtains a metadata batch, obtains the requested on-demand buflet batch, then initializes one packet at a time. If buffer construction fails partway through, remaining buflets and uninitialized metadata return to their caches while successfully initialized packets remain caller-owned.
 
 The batch result makes partial success explicit:
 
-[`bsd/skywalk/packet/pbufpool.c:2096–2106`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L2096-L2106):
+[`bsd/skywalk/packet/pbufpool.c:2096–2106`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L2096-L2106):
 
-<!-- source-excerpt: ../../../xnu/bsd/skywalk/packet/pbufpool.c#L2096-L2106 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L2096-L2106 -->
 ```c
 	*size = i;
 
@@ -76,27 +76,27 @@ For example, requesting eight packets and receiving three with `EAGAIN` means th
 
 ## Allocation rings establish ownership before exposing indices
 
-The existing [channel lifecycle guide](skywalk-lifecycles.md) traces the alloc/free ring callbacks. At the pool boundary, [`pp_insert_upp_common()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1542) sets the recorded PID, inserts packet metadata into the pool's outstanding-user hash and increments usage; external buflets are inserted into their own hash. Batch insertion is protected by `pp_lock`.
+The existing [channel lifecycle guide](skywalk-lifecycles.md) traces the alloc/free ring callbacks. At the pool boundary, [`pp_insert_upp_common()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1542) sets the recorded PID, inserts packet metadata into the pool's outstanding-user hash and increments usage; external buflets are inserted into their own hash. Batch insertion is protected by `pp_lock`.
 
-Externalizing metadata then copies only permitted common fields into the user mirror. [`_QUM_EXTERNALIZE`](../../../xnu/bsd/skywalk/packet/packet_var.h#L309) excludes kernel-only flags and resets user-visible identity fields from kernel truth. [`kr_externalize_metadata_internal()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L1850) exports packet fields, sanitizes buflet count/max, exports buflet identity/offset/length state, marks user metadata finalized and clears the kernel internalized bit. Kernel pointers, optional kernel structures and private ownership state are not blindly copied into userspace.
+Externalizing metadata then copies only permitted common fields into the user mirror. [`_QUM_EXTERNALIZE`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_var.h#L309) excludes kernel-only flags and resets user-visible identity fields from kernel truth. [`kr_externalize_metadata_internal()`](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L1850) exports packet fields, sanitizes buflet count/max, exports buflet identity/offset/length state, marks user metadata finalized and clears the kernel internalized bit. Kernel pointers, optional kernel structures and private ownership state are not blindly copied into userspace.
 
 The user receives a pool-owned allocation represented by indices plus mapped bytes. Its storage remains accessible according to arena permissions, but protocol ownership changes when it submits the index through TX or FREE.
 
 ## TX submission is lookup, removal and validation
 
-[`kr_txsync_prologue()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L656) snapshots shared indices and validates them against the kernel's saved ring state before invoking the nexus-specific prologue. [`kr_txprologue_upp()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L516) holds the pool lock, resolves each submitted metadata index through `pp_remove_upp_locked()`, validates the user/kernel metadata identity, internalizes the packet, resets the user slot and attaches the packet to the kernel slot.
+[`kr_txsync_prologue()`](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L656) snapshots shared indices and validates them against the kernel's saved ring state before invoking the nexus-specific prologue. [`kr_txprologue_upp()`](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L516) holds the pool lock, resolves each submitted metadata index through `pp_remove_upp_locked()`, validates the user/kernel metadata identity, internalizes the packet, resets the user slot and attaches the packet to the kernel slot.
 
-[`pp_remove_upp_locked()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1690) removes the allocation from the hash and decrements accounting before validating/removing external buflet ownership. PID is used for accounting and purge; the lookup comparison here is the metadata index, not a fresh per-call PID authentication check. Removing the allocation means a second ordinary submission of the same still-unallocated index cannot succeed as another independent transfer.
+[`pp_remove_upp_locked()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1690) removes the allocation from the hash and decrements accounting before validating/removing external buflet ownership. PID is used for accounting and purge; the lookup comparison here is the metadata index, not a fresh per-call PID authentication check. Removing the allocation means a second ordinary submission of the same still-unallocated index cannot succeed as another independent transfer.
 
-Buflet-chain removal follows indices through the outstanding buflet hash and bounds traversal by the expected count/max. It cuts links on malformed or absent entries and reports `ERANGE`; it can have already removed earlier objects. Failure is not an all-or-nothing rollback of hash membership. The enclosing ring error path records a concrete guard/kill reason and preserves cleanup distinctions for partially reclaimed packets. See [chain validation](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1627-L1687) and [TX cleanup](../../../xnu/bsd/skywalk/channel/channel_ring.c#L536-L607).
+Buflet-chain removal follows indices through the outstanding buflet hash and bounds traversal by the expected count/max. It cuts links on malformed or absent entries and reports `ERANGE`; it can have already removed earlier objects. Failure is not an all-or-nothing rollback of hash membership. The enclosing ring error path records a concrete guard/kill reason and preserves cleanup distinctions for partially reclaimed packets. See [chain validation](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1627-L1687) and [TX cleanup](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L536-L607).
 
 ## What metadata validation actually establishes
 
-[`kr_internalize_metadata()`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L1632) preserves kernel-private state while copying allowed fields. It rejects an already-dropped user quantum; validates nonzero fragment count and kernel maximum; uses kernel buflet/mirror relationships; copies only mutable data length/offset into trusted kernel buflets; checks buffer range, object index and next-buflet index; detects total-length overflow; checks the advertised packet length; validates headroom/L2 placement and partial-checksum offsets.
+[`kr_internalize_metadata()`](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L1632) preserves kernel-private state while copying allowed fields. It rejects an already-dropped user quantum; validates nonzero fragment count and kernel maximum; uses kernel buflet/mirror relationships; copies only mutable data length/offset into trusted kernel buflets; checks buffer range, object index and next-buflet index; detects total-length overflow; checks the advertised packet length; validates headroom/L2 placement and partial-checksum offsets.
 
-[`bsd/skywalk/channel/channel_ring.c:1745–1766`](../../../xnu/bsd/skywalk/channel/channel_ring.c#L1745-L1766):
+[`bsd/skywalk/channel/channel_ring.c:1745–1766`](../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L1745-L1766):
 
-<!-- source-excerpt: ../../../xnu/bsd/skywalk/channel/channel_ring.c#L1745-L1766 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/skywalk/channel/channel_ring.c#L1745-L1766 -->
 ```c
 		kbuf->buf_dlen = ubuf->buf_dlen;
 		kbuf->buf_doff = ubuf->buf_doff;
@@ -128,15 +128,15 @@ A worked malformed request is a user changing a buflet's `buf_doff` so its lengt
 
 ## Kernel sharing and copy modes
 
-[`kern_packet_clone_internal()`](../../../xnu/bsd/skywalk/packet/packet_kern.c#L557) distinguishes heavy copying from light sharing. The examined implementation rejects dropped/empty sources and asserts a single buflet; its TODOs are real implementation boundaries, not evidence of general multi-fragment cloning.
+[`kern_packet_clone_internal()`](../../../platydoc-data/xnu/bsd/skywalk/packet/packet_kern.c#L557) distinguishes heavy copying from light sharing. The examined implementation rejects dropped/empty sources and asserts a single buflet; its TODOs are real implementation boundaries, not evidence of general multi-fragment cloning.
 
 Heavy clone allocates backing, copies selected packet metadata and payload bytes, and duplicates an attached mbuf when present. Light clone requires allocation of empty metadata, currently relying on on-demand pools, then copies the buflet relationship and increments shared buffer use through `_KBUF_COPY`. It does not duplicate payload bytes. Clone initialization clears finalized/classified state and trace identity as specified by the body; the recipient must establish its subsequent valid packet state.
 
-Shared use affects destruction. [`pp_metadata_destruct_common()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L741) separates buflets whose buffer control shows multiple users into **no-cache** lists. Otherwise reusing a cached buflet with its still-shared backing could overwrite data another packet still uses. That branch connects buffer reference counting directly to cache reuse policy, rather than treating refcounts as passive statistics.
+Shared use affects destruction. [`pp_metadata_destruct_common()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L741) separates buflets whose buffer control shows multiple users into **no-cache** lists. Otherwise reusing a cached buflet with its still-shared backing could overwrite data another packet still uses. That branch connects buffer reference counting directly to cache reuse policy, rather than treating refcounts as passive statistics.
 
-[`bsd/skywalk/packet/pbufpool.c:794–809`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L794-L809):
+[`bsd/skywalk/packet/pbufpool.c:794–809`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L794-L809):
 
-<!-- source-excerpt: ../../../xnu/bsd/skywalk/packet/pbufpool.c#L794-L809 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L794-L809 -->
 ```c
 			/*
 			 * bc_usecnt larger than 1 means the buffer has been cloned and is
@@ -158,11 +158,11 @@ Shared use affects destruction. [`pp_metadata_destruct_common()`](../../../xnu/b
 
 ## Freeing a packet can release other packet representations
 
-[`pp_metadata_fini()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L2210) performs pending completion callbacks where requested, detaches an attached mbuf or packet, clears representation flags and verifies that the packet is no longer linked into a queue or slot. For on-demand pools it destructs attached buflet state before returning metadata to the cache. Fixed preconstructed pools can retain their construction for reuse.
+[`pp_metadata_fini()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L2210) performs pending completion callbacks where requested, detaches an attached mbuf or packet, clears representation flags and verifies that the packet is no longer linked into a queue or slot. For on-demand pools it destructs attached buflet state before returning metadata to the cache. Fixed preconstructed pools can retain their construction for reuse.
 
-[`pp_free_packet_array()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L2399) verifies pool identity for every entry, finalizes packets, clears caller array slots, batch-frees metadata/buflets and then frees accumulated attached mbuf or packet chains. Attached packets can come from other pools, so their cleanup groups runs by owning pool. Freeing the visible wrapper can therefore release storage in another representation; treating it as “just free this descriptor” misses ownership.
+[`pp_free_packet_array()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L2399) verifies pool identity for every entry, finalizes packets, clears caller array slots, batch-frees metadata/buflets and then frees accumulated attached mbuf or packet chains. Attached packets can come from other pools, so their cleanup groups runs by owning pool. Freeing the visible wrapper can therefore release storage in another representation; treating it as “just free this descriptor” misses ownership.
 
-The user FREE path validates ring indices and removes packet/buflet allocation ownership, but it does not run the TX metadata internalization and datapath. The [free-ring implementation](../../../xnu/bsd/skywalk/nexus/nexus_adapter.c#L3497-L3541) clears finalized state, detaches the user slot, collects successfully reclaimed packets and batch-frees them. An invalid later slot can leave earlier frees completed. The distinction matters when following the two branches below.
+The user FREE path validates ring indices and removes packet/buflet allocation ownership, but it does not run the TX metadata internalization and datapath. The [free-ring implementation](../../../platydoc-data/xnu/bsd/skywalk/nexus/nexus_adapter.c#L3497-L3541) clears finalized state, detaches the user slot, collects successfully reclaimed packets and batch-frees them. An invalid later slot can leave earlier frees completed. The distinction matters when following the two branches below.
 
 ```mermaid
 flowchart TD
@@ -181,11 +181,11 @@ flowchart TD
 
 ## Device ownership and closing the pool
 
-[`pp_buf_seg_ctor()`/`pp_buf_seg_dtor()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L915-L935) forward region segment lifecycle to provider callbacks with the pool, segment and IOKit memory descriptor. Wiring/IOMMU setup belongs at this explicit boundary. Packet buflet addresses are CPU views; device-visible addresses and completion obligations require the actual provider/DMA mapping contract. The previously traced flowswitch TX path can copy from a user pool into a device pool, so shared rings alone are not evidence of end-to-end zero-copy.
+[`pp_buf_seg_ctor()`/`pp_buf_seg_dtor()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L915-L935) forward region segment lifecycle to provider callbacks with the pool, segment and IOKit memory descriptor. Wiring/IOMMU setup belongs at this explicit boundary. Packet buflet addresses are CPU views; device-visible addresses and completion obligations require the actual provider/DMA mapping contract. The previously traced flowswitch TX path can copy from a user pool into a device pool, so shared rings alone are not evidence of end-to-end zero-copy.
 
-[`pp_close()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L320) sets `PPF_CLOSED` and releases the owner's reference. Reference release, not the flag alone, determines final destruction. [`pp_purge_upp()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1807) cleans outstanding user packets and external buflets for the specified PID, including allocations absent from current ring slots. [`pp_destroy()`](../../../xnu/bsd/skywalk/packet/pbufpool.c#L1355) destroys metadata and buflet caches before buffer caches because their destructors still release attached buffers, then releases regions and provider context.
+[`pp_close()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L320) sets `PPF_CLOSED` and releases the owner's reference. Reference release, not the flag alone, determines final destruction. [`pp_purge_upp()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1807) cleans outstanding user packets and external buflets for the specified PID, including allocations absent from current ring slots. [`pp_destroy()`](../../../platydoc-data/xnu/bsd/skywalk/packet/pbufpool.c#L1355) destroys metadata and buflet caches before buffer caches because their destructors still release attached buffers, then releases regions and provider context.
 
-These mechanisms form the packet/memory foundation of the existing [whole-Skywalk program](../../audits/processes-vfs-networking.md#a12--p1-complete-skywalk-expansion-program). Full protocol classification, every packet accessor/checksum operation, netif queues and hardware callbacks remain neighboring tracks. The in-tree code supports precise ownership claims above; no live channel, malformed-ring or device test was executed for this chapter.
+Full protocol classification, every packet accessor/checksum operation, netif queues and hardware callbacks are described in companion chapters. The in-tree code supports precise ownership claims above; no live channel, malformed-ring or device test was executed for this chapter.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

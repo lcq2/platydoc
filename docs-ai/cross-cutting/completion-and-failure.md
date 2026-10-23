@@ -24,9 +24,9 @@ These are separate axes. A reference protects a specific allocation or associati
 
 A combined Mach send/receive call contains two phases. After successful send, a receive interruption does not mean the server never received or executed the request. The userspace library retries only the receive portion:
 
-[Source: mach_msg.c, lines 133–144](../../xnu/libsyscall/mach/mach_msg.c#L133-L144)
+[Source: mach_msg.c, lines 133–144](../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L133-L144)
 
-<!-- source-excerpt: ../../xnu/libsyscall/mach/mach_msg.c#L133-L144 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L133-L144 -->
 ```c
 	if ((option64 & MACH64_RCV_INTERRUPT) == 0) {
 		while (mr == MACH_RCV_INTERRUPTED) {
@@ -42,7 +42,7 @@ A combined Mach send/receive call contains two phases. After successful send, a 
 	}
 ```
 
-[`mach_msg_options_after_interruption`](../../xnu/libsyscall/mach/mach_msg.c#L76) removes send and synchronous-receive linkage as appropriate. This prevents a receive retry from accidentally creating another request. Send interruption has a separate retry branch using the send arguments.
+[`mach_msg_options_after_interruption`](../../platydoc-data/xnu/libsyscall/mach/mach_msg.c#L76) removes send and synchronous-receive linkage as appropriate. This prevents a receive retry from accidentally creating another request. Send interruption has a separate retry branch using the send arguments.
 
 The kernel has further phase-specific error rules:
 
@@ -51,15 +51,15 @@ The kernel has further phase-specific error rules:
 * After message selection, receive copyout can install some rights or mappings and then encounter a descriptor or byte-copy error. It does not generally roll back every already-installed result.
 * A port dying after successful right translation can result in successful send followed by message destruction. Successful send therefore does not universally promise server execution.
 
-See [message transfer and phase-specific errors](../subsystems/ipc/message-send-receive.md), [`mach_msg_trap_send`](../../xnu/osfmk/ipc/mach_msg.c#L652), [`ipc_kmsg_copyout_pseudo`](../../xnu/osfmk/ipc/ipc_kmsg.c#L4293), and [`ipc_kmsg_put_to_user`](../../xnu/osfmk/ipc/ipc_kmsg.c#L4740). Application-level exactly-once execution is not supplied by treating the combined trap as a transaction.
+See [message transfer and phase-specific errors](../subsystems/ipc/message-send-receive.md), [`mach_msg_trap_send`](../../platydoc-data/xnu/osfmk/ipc/mach_msg.c#L652), [`ipc_kmsg_copyout_pseudo`](../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4293), and [`ipc_kmsg_put_to_user`](../../platydoc-data/xnu/osfmk/ipc/ipc_kmsg.c#L4740). Application-level exactly-once execution is not supplied by treating the combined trap as a transaction.
 
 ## Socket I/O: local acceptance, remote acknowledgment and copyout
 
-The socket send path clears its local `top` and `control` pointers after calling the protocol's `pru_send`, even when the protocol returns an error. The protocol/filter ownership contract determines who releases them. Retrying with the same kernel mbuf pointers would be invalid once ownership has crossed that boundary. See [`sosend` handoff](../../xnu/bsd/kern/uipc_socket.c#L2445) and [socket I/O ownership](../subsystems/networking/socket-lifecycle-and-io.md).
+The socket send path clears its local `top` and `control` pointers after calling the protocol's `pru_send`, even when the protocol returns an error. The protocol/filter ownership contract determines who releases them. Retrying with the same kernel mbuf pointers would be invalid once ownership has crossed that boundary. See [`sosend` handoff](../../platydoc-data/xnu/bsd/kern/uipc_socket.c#L2445) and [socket I/O ownership](../subsystems/networking/socket-lifecycle-and-io.md).
 
 For TCP, accepted stream bytes can remain in the send buffer for retransmission. Interface enqueue, device completion, peer ACK and peer application consumption are subsequent, distinct events. A successful socket write reports local progress. See [TCP state, retransmission and close](../subsystems/networking/tcp-connections-and-timers.md).
 
-Receive can remove data from the queue before every output copy finishes. The payload may be consumed before sender-address or ancillary-data copyout fails. `SCM_RIGHTS` also has a domain-specific externalization step that creates receiving descriptors; it is not just a byte string. Conversely, `MSG_PEEK` preserves queue ownership and sanitizes internal rights representation. See [`recvit`](../../xnu/bsd/kern/uipc_syscalls.c#L2195), [`soreceive_ctl`](../../xnu/bsd/kern/uipc_socket.c#L2971), and [ancillary-data handling](../subsystems/networking/socket-lifecycle-and-io.md#ancillary-data-can-carry-references-not-just-bytes).
+Receive can remove data from the queue before every output copy finishes. The payload may be consumed before sender-address or ancillary-data copyout fails. `SCM_RIGHTS` also has a domain-specific externalization step that creates receiving descriptors; it is not just a byte string. Conversely, `MSG_PEEK` preserves queue ownership and sanitizes internal rights representation. See [`recvit`](../../platydoc-data/xnu/bsd/kern/uipc_syscalls.c#L2195), [`soreceive_ctl`](../../platydoc-data/xnu/bsd/kern/uipc_socket.c#L2971), and [ancillary-data handling](../subsystems/networking/socket-lifecycle-and-io.md#ancillary-data-can-carry-references-not-just-bytes).
 
 ```mermaid
 flowchart LR
@@ -76,9 +76,9 @@ This is a TCP reading route, not a universal ordered list of callbacks: packet l
 
 `wait4_nocancel` provides a useful contrast within the same kernel. It claims a zombie using `P_LIST_WAITING`, performs policy checks and copies status/rusage, and only then calls `reap_child_locked`. A copyout error takes the release path without consuming the zombie's status through reaping:
 
-[Source: kern_exit.c, lines 3110–3120](../../xnu/bsd/kern/kern_exit.c#L3110-L3120)
+[Source: kern_exit.c, lines 3110–3120](../../platydoc-data/xnu/bsd/kern/kern_exit.c#L3110-L3120)
 
-<!-- source-excerpt: ../../xnu/bsd/kern/kern_exit.c#L3110-L3120 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/kern_exit.c#L3110-L3120 -->
 ```c
 			retval[0] = proc_getpid(p);
 			if (uap->status) {
@@ -93,9 +93,9 @@ This is a TCP reading route, not a universal ordered list of callbacks: packet l
 			}
 ```
 
-See [the complete wait/reap ordering](../../xnu/bsd/kern/kern_exit.c#L3043) and [process transition details](../subsystems/processes/process-transitions.md#7-wait-consumes-status-then-reaping-releases-the-identity). This behavior must be established from this caller's code; it cannot be inferred from a general rule that all syscall errors roll back state.
+See [the complete wait/reap ordering](../../platydoc-data/xnu/bsd/kern/kern_exit.c#L3043) and [process transition details](../subsystems/processes/process-transitions.md#7-wait-consumes-status-then-reaping-releases-the-identity). This behavior must be established from this caller's code; it cannot be inferred from a general rule that all syscall errors roll back state.
 
-Exec has the opposite kind of irreversible boundary. It constructs a shadow proc/task, prepares the image, replaces PID-visible process state, enables task IPC and releases return gates at separate points. Late image-activation failure cannot necessarily resume the original executable as an ordinary failed syscall. The old task's `DID_EXEC` state participates in deciding termination. See [exec publication and failure](../subsystems/processes/process-transitions.md#4-exec-replace-the-proctask-pair-while-preserving-identity), [`proc_exec_switch_task`](../../xnu/bsd/kern/kern_exec.c#L5795), and [late failure](../../xnu/bsd/kern/kern_exec.c#L2865).
+Exec has the opposite kind of irreversible boundary. It constructs a shadow proc/task, prepares the image, replaces PID-visible process state, enables task IPC and releases return gates at separate points. Late image-activation failure cannot necessarily resume the original executable as an ordinary failed syscall. The old task's `DID_EXEC` state participates in deciding termination. See [exec publication and failure](../subsystems/processes/process-transitions.md#4-exec-replace-the-proctask-pair-while-preserving-identity), [`proc_exec_switch_task`](../../platydoc-data/xnu/bsd/kern/kern_exec.c#L5795), and [late failure](../../platydoc-data/xnu/bsd/kern/kern_exec.c#L2865).
 
 ## Writeback: the device result is not the last cleanup step
 
@@ -105,7 +105,7 @@ The buffered writer commits its initial UPL dirty and releases it before taking 
 
 In particular, `clios.io_completed` advances before the main UPL commit/free work later in `cluster_iodone_finish`. Waiting on that stream condition establishes the condition the stream caller requires; it is not a universal callback-return barrier. Likewise, a dirty-range map being empty does not prove all dirty pages were written successfully. Selected failed ranges can remain dirty in VM after tracking storage changes.
 
-See [clustered writeback](../subsystems/vfs/clustered-writeback.md), [`buf_biodone`](../../xnu/bsd/vfs/vfs_bio.c#L4343), [`cluster_iodone_finish`](../../xnu/bsd/vfs/vfs_cluster.c#L1109), and [`cluster_push_err`](../../xnu/bsd/vfs/vfs_cluster.c#L6545). Filesystem/device durability requires the relevant synchronization and storage contract beyond these generic buffer events.
+See [clustered writeback](../subsystems/vfs/clustered-writeback.md), [`buf_biodone`](../../platydoc-data/xnu/bsd/vfs/vfs_bio.c#L4343), [`cluster_iodone_finish`](../../platydoc-data/xnu/bsd/vfs/vfs_cluster.c#L1109), and [`cluster_push_err`](../../platydoc-data/xnu/bsd/vfs/vfs_cluster.c#L6545). Filesystem/device durability requires the relevant synchronization and storage contract beyond these generic buffer events.
 
 ## DMA and channels: publishing addresses is not completing their use
 
@@ -132,13 +132,13 @@ The two walkthroughs cite the concrete operations and failure cleanup behind the
 | `thread_call_cancel_wait`, ordinary call | If nothing was canceled, wait for the submitted-count snapshot; if pending work was canceled, this body returns without that wait | An earlier overlapping invocation can remain active in the successful-cancel branch. |
 | AIO cancellation | Successfully removing the request from its execution queue produces an `ECANCELED` completion | Work already claimed by a worker is not canceled by this helper; close/exit can need to wait. |
 
-Sources: [`timer_call_cancel`](../../xnu/osfmk/kern/timer_call.c#L780), [`thread_call_cancel_wait`](../../xnu/osfmk/kern/thread_call.c#L1413), [`do_aio_cancel_locked`](../../xnu/bsd/kern/kern_aio.c#L1036). Follow the complete [timer/thread-call protocol](../subsystems/runtime/timer-and-thread-call-lifetime.md) and [AIO cancellation/draining](../subsystems/processes/async-io.md).
+Sources: [`timer_call_cancel`](../../platydoc-data/xnu/osfmk/kern/timer_call.c#L780), [`thread_call_cancel_wait`](../../platydoc-data/xnu/osfmk/kern/thread_call.c#L1413), [`do_aio_cancel_locked`](../../platydoc-data/xnu/bsd/kern/kern_aio.c#L1036). Follow the complete [timer/thread-call protocol](../subsystems/runtime/timer-and-thread-call-lifetime.md) and [AIO cancellation/draining](../subsystems/processes/async-io.md).
 
 The ordinary thread-call case is especially easy to misread from its name. The implementation's successful queued cancellation can coexist with an older running invocation. `thread_call_free` can also release the client's call-object reference while an invocation reference keeps that object alive. Neither fact automatically retains or releases the external object stored in a callback argument.
 
 For IOKit callbacks, compare [notifier selection, disable and removal](../subsystems/drivers/service-notifications-and-arbitration.md) with the [shared-queue notification protocols](../subsystems/drivers/shared-data-queues-and-notifications.md). A retained selected notifier can still be disabled before invocation. Queue publication, notification acceptance and consumer progress likewise establish different conditions; the actual cancellation body determines whether callbacks are drained.
 
-AIO exit adds admission control and a full active-request drain. Process exit marks the workqueue exiting, drains AIO, invalidates descriptors and their event objects, then tears down remaining workqueue state. The ordering lets detach/completion code use the structures it still depends on. See [`proc_exit`](../../xnu/bsd/kern/kern_exit.c#L2371) and [pthread/workqueue lifetime](../subsystems/processes/pthread-workqueue-lifecycle.md).
+AIO exit adds admission control and a full active-request drain. Process exit marks the workqueue exiting, drains AIO, invalidates descriptors and their event objects, then tears down remaining workqueue state. The ordering lets detach/completion code use the structures it still depends on. See [`proc_exit`](../../platydoc-data/xnu/bsd/kern/kern_exit.c#L2371) and [pthread/workqueue lifetime](../subsystems/processes/pthread-workqueue-lifecycle.md).
 
 ## Teardown closes discovery, drains users and releases storage
 

@@ -15,9 +15,9 @@ There is no single “check the signature” call covering the lifetime of an ex
 | VM map/entry/pmap | Protections, enforcement, switch protection, COW backing, `csm_associated` | What this address space is allowed to map and which validation backend participates |
 | Resident `vm_page` | Checked, tainted and NX masks, writable-mapping history | Cached evidence about a physical page's contents/exposure |
 
-[Image parameters](../../../xnu/bsd/sys/imgact.h), [load result](../../../xnu/bsd/kern/mach_loader.h#L63), [UBC/blob structures](../../../xnu/bsd/sys/ubc_internal.h#L106-L195), [exec flag transfer](../../../xnu/bsd/kern/kern_exec.c#L2162-L2195), [final process setup](../../../xnu/bsd/kern/kern_exec.c#L8562-L8593), [VM page state](../../../xnu/osfmk/vm/vm_page.h#L390-L410).
+[Image parameters](../../../platydoc-data/xnu/bsd/sys/imgact.h), [load result](../../../platydoc-data/xnu/bsd/kern/mach_loader.h#L63), [UBC/blob structures](../../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L106-L195), [exec flag transfer](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L2162-L2195), [final process setup](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8562-L8593), [VM page state](../../../platydoc-data/xnu/osfmk/vm/vm_page.h#L390-L410).
 
-`CS_SIGNED` explicitly permits the possibility that the process has since become invalid. `CS_VALID` describes dynamic validity at the layer storing it. `CS_HARD` and `CS_KILL` control invalid-page consequences; `CS_REQUIRE_LV` requests library validation; `CS_ENTITLEMENTS_VALIDATED` carries a distinct restricted-entitlement property. None is a replacement for checking whether a particular page's expected hash matches its bytes. [Flag definitions](../../../xnu/osfmk/kern/cs_blobs.h#L35-L75).
+`CS_SIGNED` explicitly permits the possibility that the process has since become invalid. `CS_VALID` describes dynamic validity at the layer storing it. `CS_HARD` and `CS_KILL` control invalid-page consequences; `CS_REQUIRE_LV` requests library validation; `CS_ENTITLEMENTS_VALIDATED` carries a distinct restricted-entitlement property. None is a replacement for checking whether a particular page's expected hash matches its bytes. [Flag definitions](../../../platydoc-data/xnu/osfmk/kern/cs_blobs.h#L35-L75).
 
 ```mermaid
 sequenceDiagram
@@ -44,23 +44,23 @@ The sequence is an orientation view. The concrete final process routine sets map
 
 ## 2. Execution access is checked before signature acceptance
 
-`exec_check_permissions()` requires a regular nonempty file, obtains ownership/mode/size attributes, checks that an execute bit exists for filesystems without opaque authorization, adjusts set-ID and spawn behavior, invokes `mac_vnode_check_exec()` and then `vnode_authorize(KAUTH_VNODE_EXECUTE)`. A traced image also requires read access. The function's old write-open/`ETXTBSY` check is inside `#if 0`; it must not be presented as the active generic defense against every concurrent write. [Permission path](../../../xnu/bsd/kern/kern_exec.c#L7385-L7495).
+`exec_check_permissions()` requires a regular nonempty file, obtains ownership/mode/size attributes, checks that an execute bit exists for filesystems without opaque authorization, adjusts set-ID and spawn behavior, invokes `mac_vnode_check_exec()` and then `vnode_authorize(KAUTH_VNODE_EXECUTE)`. A traced image also requires read access. The function's old write-open/`ETXTBSY` check is inside `#if 0`; it must not be presented as the active generic defense against every concurrent write. [Permission path](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L7385-L7495).
 
-The exec MAC hook receives the vnode, possible script vnode and labels, execution label, component-name state, spawn-specific policy data and a pointer to `ip_csflags`. The wrapper iterates installed policy providers and combines errors. This is a launch/access-policy opportunity, separate from the later hook that receives a parsed `cs_blob`. Scripts also explain why “the path initially passed to exec” and “the Mach-O image ultimately loaded” need not be the same file. This chapter follows the Mach-O activation branch; interpreter selection and all script-policy combinations are not reconstructed here. [Exec hook dispatch](../../../xnu/security/mac_vfs.c#L1219-L1293), [image activation context](../../../xnu/bsd/kern/kern_exec.c#L1923).
+The exec MAC hook receives the vnode, possible script vnode and labels, execution label, component-name state, spawn-specific policy data and a pointer to `ip_csflags`. The wrapper iterates installed policy providers and combines errors. This is a launch/access-policy opportunity, separate from the later hook that receives a parsed `cs_blob`. Scripts also explain why “the path initially passed to exec” and “the Mach-O image ultimately loaded” need not be the same file. This chapter follows the Mach-O activation branch; interpreter selection and all script-policy combinations are not reconstructed here. [Exec hook dispatch](../../../platydoc-data/xnu/security/mac_vfs.c#L1219-L1293), [image activation context](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L1923).
 
 A pathname/name-cache hit or cached authorization result does not supply signature hashes. Those caches can make object resolution or an access check cheaper, but the signature and page paths still operate on the vnode and VM relationships they return. [Vnode and authorization caches](../vfs/vnode-cache-identity-and-reuse.md).
 
 ## 3. The loader accepts signature metadata before mapping segments
 
-`parse_machfile()` obtains the file's UBC control, checks that header plus load commands fit the selected slice, allocates a page-rounded kernel buffer and reads it through `vn_rdwr()`. An error or short read fails this initial load-command read. It scans commands in four passes: layout/platform information, thread/UUID/signature information, segments, then dynamic-linker/encryption-related work. `LC_CODE_SIGNATURE` is processed in pass 1, before segment mapping in pass 2. [Initial command read](../../../xnu/bsd/kern/mach_loader.c#L1374-L1415), [signature dispatch](../../../xnu/bsd/kern/mach_loader.c#L1750-L1782), [parser overview](../../cross-cutting/executable-loading.md).
+`parse_machfile()` obtains the file's UBC control, checks that header plus load commands fit the selected slice, allocates a page-rounded kernel buffer and reads it through `vn_rdwr()`. An error or short read fails this initial load-command read. It scans commands in four passes: layout/platform information, thread/UUID/signature information, segments, then dynamic-linker/encryption-related work. `LC_CODE_SIGNATURE` is processed in pass 1, before segment mapping in pass 2. [Initial command read](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1374-L1415), [signature dispatch](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1750-L1782), [parser overview](../../cross-cutting/executable-loading.md).
 
-`load_code_signature()` first asks UBC for a blob matching vnode, CPU context and slice offset. A valid, architecture-specific blob with a current generation can avoid rereading signature bytes. A stale or architecture-neutral blob goes through revalidation; a successful neutral-CPU revalidation updates the stored CPU information using the read-only zone update interface. `EAGAIN` specifically means reread and attempt attachment again; other revalidation errors fail. The new-data path checks command size and offset-plus-size bounds, allocates storage, reads exactly the command's signature byte count, and rejects a nonzero residual. [Cache/revalidation branch](../../../xnu/bsd/kern/mach_loader.c#L3787-L3848), [new read and add](../../../xnu/bsd/kern/mach_loader.c#L3850-L3903).
+`load_code_signature()` first asks UBC for a blob matching vnode, CPU context and slice offset. A valid, architecture-specific blob with a current generation can avoid rereading signature bytes. A stale or architecture-neutral blob goes through revalidation; a successful neutral-CPU revalidation updates the stored CPU information using the read-only zone update interface. `EAGAIN` specifically means reread and attempt attachment again; other revalidation errors fail. The new-data path checks command size and offset-plus-size bounds, allocates storage, reads exactly the command's signature byte count, and rejects a nonzero residual. [Cache/revalidation branch](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3787-L3848), [new read and add](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3850-L3903).
 
 The cached success branch is short:
 
-[Source: bsd/kern/mach_loader.c, lines 3810–3814](../../../xnu/bsd/kern/mach_loader.c#L3810-L3814)
+[Source: bsd/kern/mach_loader.c, lines 3810–3814](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3810-L3814)
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/mach_loader.c#L3810-L3814 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3810-L3814 -->
 ```c
 		if (!anyCPU && ubc_cs_generation_check(vp) == 0) {
 			/* No need to revalidate, we're good! */
@@ -69,17 +69,17 @@ The cached success branch is short:
 		}
 ```
 
-The loader passes `CS_BLOB_ADD_ALLOW_MAIN_BINARY` to `ubc_cs_blob_add()`. That routine consumes signature storage, validates its structure, runs the appropriate MAC/monitor steps, resolves duplicate or conflicting attachment, and publishes accepted metadata. These operations and their failure ownership are covered in [vnode signature lifecycle](vnode-signature-lifecycle.md). On success the loader copies blob flags, platform status and signed end offset into `load_result_t`. That does not copy the blob into the process or eagerly validate every instruction page. [Attachment call](../../../xnu/bsd/kern/mach_loader.c#L3883-L3903), [result transfer](../../../xnu/bsd/kern/mach_loader.c#L3910-L3924).
+The loader passes `CS_BLOB_ADD_ALLOW_MAIN_BINARY` to `ubc_cs_blob_add()`. That routine consumes signature storage, validates its structure, runs the appropriate MAC/monitor steps, resolves duplicate or conflicting attachment, and publishes accepted metadata. These operations and their failure ownership are covered in [vnode signature lifecycle](vnode-signature-lifecycle.md). On success the loader copies blob flags, platform status and signed end offset into `load_result_t`. That does not copy the blob into the process or eagerly validate every instruction page. [Attachment call](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3883-L3903), [result transfer](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3910-L3924).
 
-There are two important enforcement distinctions in the parser. A signature-load failure can be changed back to `LOAD_SUCCESS` when global process enforcement is disabled; the parser does not set `got_code_signatures` on that failure path. After all passes, absence of accepted code-signature information fails the load when global enforcement is enabled. A deferred fatal reason in `ip_cs_error` is also handled later, so ignoring the immediate parser return is not a universal promise that launch proceeds. [Immediate failure handling](../../../xnu/bsd/kern/mach_loader.c#L1770-L1782), [missing signature](../../../xnu/bsd/kern/mach_loader.c#L1934-L1941), [deferred fatal reason](../../../xnu/bsd/kern/kern_exec.c#L8610-L8615).
+There are two important enforcement distinctions in the parser. A signature-load failure can be changed back to `LOAD_SUCCESS` when global process enforcement is disabled; the parser does not set `got_code_signatures` on that failure path. After all passes, absence of accepted code-signature information fails the load when global enforcement is enabled. A deferred fatal reason in `ip_cs_error` is also handled later, so ignoring the immediate parser return is not a universal promise that launch proceeds. [Immediate failure handling](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1770-L1782), [missing signature](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1934-L1941), [deferred fatal reason](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8610-L8615).
 
 ## 4. Initial command bytes are validated separately from later faults
 
-Once the signature has been accepted, the loader checks the already copied header/load-command buffer with `cs_validate_range()`. It iterates by VM pages, passing the slice file offset plus iteration offset and the corresponding kernel-buffer address. It treats either “no hash validated” or `CS_VALIDATE_TAINTED` as a problem, clears `CS_VALID`, and fails when global enforcement or the result's hard/kill/enforcement flags demand it. [Initial validation loop](../../../xnu/bsd/kern/mach_loader.c#L1784-L1816).
+Once the signature has been accepted, the loader checks the already copied header/load-command buffer with `cs_validate_range()`. It iterates by VM pages, passing the slice file offset plus iteration offset and the corresponding kernel-buffer address. It treats either “no hash validated” or `CS_VALIDATE_TAINTED` as a problem, clears `CS_VALID`, and fails when global enforcement or the result's hard/kill/enforcement flags demand it. [Initial validation loop](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1784-L1816).
 
-[Source: bsd/kern/mach_loader.c, lines 1797–1813](../../../xnu/bsd/kern/mach_loader.c#L1797-L1813)
+[Source: bsd/kern/mach_loader.c, lines 1797–1813](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1797-L1813)
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/mach_loader.c#L1797-L1813 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1797-L1813 -->
 ```c
 						valid = cs_validate_range(vp,
 						    NULL,
@@ -102,11 +102,11 @@ Once the signature has been accepted, the loader checks the already copied heade
 
 This check protects bytes the parser already consumed into a kernel buffer. It is not the resident-page mask update performed by `vm_page_validate_cs_mapped_slow()`, and it does not imply all mapped segments have been read. The code's `cs_validate_range()` Boolean and taint result must both be examined. In this loop NX alone is not the mismatch predicate; later execute mapping applies NX policy. [Hash result semantics](page-signature-validation.md#2-how-a-file-offset-becomes-a-hash-comparison).
 
-`map_segment()` installs file-backed VM ranges through `vm_map_enter_mem_object_control()` with copy semantics, requested protections and `VM_INHERIT_DEFAULT`. Anonymous zero-fill uses a separate mapping path. On the OSX branch, it supplies an explicit signing-enforcement override derived from the **new image's** `load_result` because the current process does not yet have those new flags. Otherwise using the old process flags during image construction could apply the wrong policy. [Segment mapping](../../../xnu/bsd/kern/mach_loader.c#L2294-L2376).
+`map_segment()` installs file-backed VM ranges through `vm_map_enter_mem_object_control()` with copy semantics, requested protections and `VM_INHERIT_DEFAULT`. Anonymous zero-fill uses a separate mapping path. On the OSX branch, it supplies an explicit signing-enforcement override derived from the **new image's** `load_result` because the current process does not yet have those new flags. Otherwise using the old process flags during image construction could apply the wrong policy. [Segment mapping](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L2294-L2376).
 
-[Source: bsd/kern/mach_loader.c, lines 2342–2347](../../../xnu/bsd/kern/mach_loader.c#L2342-L2347)
+[Source: bsd/kern/mach_loader.c, lines 2342–2347](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L2342-L2347)
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/mach_loader.c#L2342-L2347 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L2342-L2347 -->
 ```c
 	if (result->csflags & CS_ENFORCEMENT) {
 		vmk_flags.vmkf_cs_enforcement = TRUE;
@@ -116,19 +116,19 @@ This check protects bytes the parser already consumed into a kernel buffer. It i
 	vmk_flags.vmkf_cs_enforcement_override = TRUE;
 ```
 
-`load_machfile()` marks the post-parse point as safe for vnode entitlement queries and then configures initial entitlement-based security state. The dynamic linker is itself parsed through the loader path, but the full user-space selection, dependency loading and linking algorithms are outside this checkout's kernel loader. [Post-parse setup](../../../xnu/bsd/kern/mach_loader.c#L872-L892), [dyld loading](../../../xnu/bsd/kern/mach_loader.c#L3390), [image loading guide](../../cross-cutting/executable-loading.md).
+`load_machfile()` marks the post-parse point as safe for vnode entitlement queries and then configures initial entitlement-based security state. The dynamic linker is itself parsed through the loader path, but the full user-space selection, dependency loading and linking algorithms are outside this checkout's kernel loader. [Post-parse setup](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L872-L892), [dyld loading](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3390), [image loading guide](../../cross-cutting/executable-loading.md).
 
 ## 5. Exec publishes process flags and performs final launch checks
 
 For commands that inspect or change a running process's signing state after exec, continue with [code-signing process controls](code-signing-process-controls.md). That chapter separates PID/version identity checks, command authority, process flags, VM enforcement and boot-derived CSR allowances.
 
-The Mach-O activator transfers a selected mask of signature flags into `ip_csflags` only when `load_result.csflags` contains `CS_VALID`; otherwise it clears validity. Parent-requested exec-hard, exec-kill and exec-enforcement flags can add restrictions independently. This is neither a blind copy of all signature fields nor proof that all flags originate inside a CodeDirectory. [Activator transfer](../../../xnu/bsd/kern/kern_exec.c#L2162-L2195).
+The Mach-O activator transfers a selected mask of signature flags into `ip_csflags` only when `load_result.csflags` contains `CS_VALID`; otherwise it clears validity. Parent-requested exec-hard, exec-kill and exec-enforcement flags can add restrictions independently. This is neither a blind copy of all signature fields nor proof that all flags originate inside a CodeDirectory. [Activator transfer](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L2162-L2195).
 
-Later `process_signature()` publishes `ip_csflags` under the process lock. It sets map switch protection for hard/kill policy and sets the map's signing enforcement from `CS_ENFORCEMENT`. It then handles saved MAC activation failure, a fatal signature reason, launch constraints, subsystem-root restrictions and selected platform checks. Only after those gates does `CS_SIGNED` from image activation skip the external-signature/task-access-port route. [Final setup](../../../xnu/bsd/kern/kern_exec.c#L8562-L8682).
+Later `process_signature()` publishes `ip_csflags` under the process lock. It sets map switch protection for hard/kill policy and sets the map's signing enforcement from `CS_ENFORCEMENT`. It then handles saved MAC activation failure, a fatal signature reason, launch constraints, subsystem-root restrictions and selected platform checks. Only after those gates does `CS_SIGNED` from image activation skip the external-signature/task-access-port route. [Final setup](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8562-L8682).
 
-[Source: bsd/kern/kern_exec.c, lines 8579–8593](../../../xnu/bsd/kern/kern_exec.c#L8579-L8593)
+[Source: bsd/kern/kern_exec.c, lines 8579–8593](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8579-L8593)
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/kern_exec.c#L8579-L8593 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8579-L8593 -->
 ```c
 	proc_lock(p);
 	proc_csflags_update(p, imgp->ip_csflags);
@@ -147,15 +147,15 @@ Later `process_signature()` publishes `ip_csflags` under the process lock. It se
 
 ```
 
-The launch-constraint hook receives process/image context and can provide an exit reason. The local kernel wrapper establishes when it is called and how failure propagates; it does not disclose a complete platform launch policy. Likewise, successful signature attachment alone cannot establish that a later launch constraint or architecture-dependent task setup will succeed. [Constraint gate](../../../xnu/bsd/kern/kern_exec.c#L8617-L8622), [machine setup](../../../xnu/bsd/kern/kern_exec.c#L8488-L8525).
+The launch-constraint hook receives process/image context and can provide an exit reason. The local kernel wrapper establishes when it is called and how failure propagates; it does not disclose a complete platform launch policy. Likewise, successful signature attachment alone cannot establish that a later launch constraint or architecture-dependent task setup will succeed. [Constraint gate](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8617-L8622), [machine setup](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8488-L8525).
 
-On the successful tail, `proc_process_signature()` invokes `machine_task_process_signature()` using the process platform and SDK, and `thread_process_signature()` updates the new main thread. Failure can create a reason and arrange termination. For the spawn branch, the routine can return zero after scheduling a kill on the new thread/process; therefore its integer return alone is not a complete description of whether the new image will execute. The enclosing exec/spawn lifecycle and its return gates remain necessary context. [Final thread/process setup and failure](../../../xnu/bsd/kern/kern_exec.c#L8770-L8825), [process transitions](../processes/process-transitions.md).
+On the successful tail, `proc_process_signature()` invokes `machine_task_process_signature()` using the process platform and SDK, and `thread_process_signature()` updates the new main thread. Failure can create a reason and arrange termination. For the spawn branch, the routine can return zero after scheduling a kill on the new thread/process; therefore its integer return alone is not a complete description of whether the new image will execute. The enclosing exec/spawn lifecycle and its return gates remain necessary context. [Final thread/process setup and failure](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8770-L8825), [process transitions](../processes/process-transitions.md).
 
 ## 6. The external-signature route has narrower acceptance
 
-For an image not marked `CS_SIGNED` by activation, `process_signature()` obtains the task access port. The visible `require_success` local starts false and is not made true in this body; an absent usable port can therefore end this portion successfully. It is inaccurate to summarize the routine as “every executable must receive taskgated approval.” Other parser, platform and mapping gates still apply. [Port branch](../../../xnu/bsd/kern/kern_exec.c#L8562-L8572), [port acquisition](../../../xnu/bsd/kern/kern_exec.c#L8683-L8700).
+For an image not marked `CS_SIGNED` by activation, `process_signature()` obtains the task access port. The visible `require_success` local starts false and is not made true in this body; an absent usable port can therefore end this portion successfully. It is inaccurate to summarize the routine as “every executable must receive taskgated approval.” Other parser, platform and mapping gates still apply. [Port branch](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8562-L8572), [port acquisition](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8683-L8700).
 
-When a port exists, the explicit upcall wrapper calls `find_code_signature(port, pid)`. `KERN_SUCCESS` allows further processing; `KERN_FAILURE` represents a rejected signature; other transport/errors are treated as unexpected failures. The daemon implementation and generated server behavior are not reconstructed from this kernel client. [Upcall wrapper](../../../xnu/bsd/kern/kern_exec.c#L8471-L8481), [reply handling](../../../xnu/bsd/kern/kern_exec.c#L8702-L8728).
+When a port exists, the explicit upcall wrapper calls `find_code_signature(port, pid)`. `KERN_SUCCESS` allows further processing; `KERN_FAILURE` represents a rejected signature; other transport/errors are treated as unexpected failures. The daemon implementation and generated server behavior are not reconstructed from this kernel client. [Upcall wrapper](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8471-L8481), [reply handling](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8702-L8728).
 
 After that route, a vnode blob can confer `CS_SIGNED | CS_VALID` only under the visible restricted predicate:
 
@@ -165,11 +165,11 @@ After that route, a vnode blob can confer `CS_SIGNED | CS_VALID` only under the 
 4. It is not a platform binary.
 5. It has neither XML nor DER entitlement blob.
 
-The code deliberately excludes a detached blob from recreating the full privileged embedded-signature path. If the predicate fails, this body logs that the detached signature is ignored; it does not itself turn that exact branch into a new unconditional launch failure. Other execution/mapping policy remains in force. [Detached acceptance](../../../xnu/bsd/kern/kern_exec.c#L8730-L8767).
+The code deliberately excludes a detached blob from recreating the full privileged embedded-signature path. If the predicate fails, this body logs that the detached signature is ignored; it does not itself turn that exact branch into a new unconditional launch failure. Other execution/mapping policy remains in force. [Detached acceptance](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8730-L8767).
 
-[Source: bsd/kern/kern_exec.c, lines 8739–8767](../../../xnu/bsd/kern/kern_exec.c#L8739-L8767)
+[Source: bsd/kern/kern_exec.c, lines 8739–8767](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8739-L8767)
 
-<!-- source-excerpt: ../../../xnu/bsd/kern/kern_exec.c#L8739-L8767 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8739-L8767 -->
 ```c
 			if (
 				/* Revalidate the blob if necessary through bumped generation count. */
@@ -206,11 +206,11 @@ This also distinguishes attaching a signature from granting process validity: `f
 
 ## 7. Mapping a library adds its own access and policy gates
 
-The `mmap` file path derives maximum protections from descriptor access and mapping mode, runs the MAC file-mmap hook with a modifiable `maxprot`, and calls `VNOP_MMAP_CHECK`. For a private mapping it removes write from that filesystem check because later private writes target COW backing. These are admission checks; successful admission is not a digest comparison of all pages. [File mapping checks](../../../xnu/bsd/kern/kern_mman.c#L641-L693), [MAC mmap wrapper](../../../xnu/security/mac_file.c#L174-L187).
+The `mmap` file path derives maximum protections from descriptor access and mapping mode, runs the MAC file-mmap hook with a modifiable `maxprot`, and calls `VNOP_MMAP_CHECK`. For a private mapping it removes write from that filesystem check because later private writes target COW backing. These are admission checks; successful admission is not a digest comparison of all pages. [File mapping checks](../../../platydoc-data/xnu/bsd/kern/kern_mman.c#L641-L693), [MAC mmap wrapper](../../../platydoc-data/xnu/security/mac_file.c#L174-L187).
 
-`ubc_map()` is a separate mapping-notification/lifetime path. Although it invokes `VNOP_MMAP`, the inspected body resets `error` to zero afterward. The earlier comment about propagating `EPERM` does not describe that current body. Use the actual `mac_file_check_mmap` and `VNOP_MMAP_CHECK` path above when identifying an admission rejection, and read UBC mapping state as a separate obligation. [UBC map behavior](../../../xnu/bsd/kern/ubc_subr.c#L2017-L2030), [UBC mapping lifetime](../vfs/file-data-cache-and-read-path.md).
+`ubc_map()` is a separate mapping-notification/lifetime path. Although it invokes `VNOP_MMAP`, the inspected body resets `error` to zero afterward. The earlier comment about propagating `EPERM` does not describe that current body. Use the actual `mac_file_check_mmap` and `VNOP_MMAP_CHECK` path above when identifying an admission rejection, and read UBC mapping state as a separate obligation. [UBC map behavior](../../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L2017-L2030), [UBC mapping lifetime](../vfs/file-data-cache-and-read-path.md).
 
-`F_CHECK_LV` provides a separate explicit library-validation entry. `fcntl` requires a vnode-backed file descriptor, imports the 32/64-bit argument structure and forwards the fileglob, slice offset and user error-message buffer to `mac_file_check_library_validation()`. The wrapper dispatches `file_check_library_validation` through MAC. These local bodies do not implement a complete “same team / platform / exception entitlement” policy. Nor do they show every user-space loader call that chooses when to issue this command. [File-control path](../../../xnu/bsd/kern/kern_descrip.c#L4389-L4422), [policy dispatch](../../../xnu/security/mac_file.c#L154-L165).
+`F_CHECK_LV` provides a separate explicit library-validation entry. `fcntl` requires a vnode-backed file descriptor, imports the 32/64-bit argument structure and forwards the fileglob, slice offset and user error-message buffer to `mac_file_check_library_validation()`. The wrapper dispatches `file_check_library_validation` through MAC. These local bodies do not implement a complete “same team / platform / exception entitlement” policy. Nor do they show every user-space loader call that chooses when to issue this command. [File-control path](../../../platydoc-data/xnu/bsd/kern/kern_descrip.c#L4389-L4422), [policy dispatch](../../../platydoc-data/xnu/security/mac_file.c#L154-L165).
 
 For investigating a library, follow its own signature attachment and coverage, the caller's process policy, file-map admission, monitor association where configured, and eventual page faults. The main executable's `p_textvp` is not a list of every loaded library, and a successful main-image signature does not hash a library's unrelated contents.
 
@@ -218,7 +218,7 @@ For investigating a library, follow its own signature attachment and coverage, t
 
 For anonymous/JIT memory and subsequent protection changes, continue with [executable-memory policy](../vm/executable-memory-policy.md). That companion connects these association results to current versus maximum permissions, fault validation, and SPTM physical-frame classification.
 
-Under `CODE_SIGNING_MONITOR`, entry insertion calls `vm_map_entry_cs_associate()` before publishing the map-store slot. The caller shown in `vm_map_store.c` discards the function's integer result; the association function itself can remove execute from the entry's current and maximum protections on a real error. This is an important observable boundary: mapping construction and retaining executable permissions are not identical success conditions. [Entry insertion](../../../xnu/osfmk/vm/vm_map_store.c#L2752-L2760), [association result](../../../xnu/osfmk/vm/vm_map.c#L21185-L21242).
+Under `CODE_SIGNING_MONITOR`, entry insertion calls `vm_map_entry_cs_associate()` before publishing the map-store slot. The caller shown in `vm_map_store.c` discards the function's integer result; the association function itself can remove execute from the entry's current and maximum protections on a real error. This is an important observable boundary: mapping construction and retaining executable permissions are not identical success conditions. [Entry insertion](../../../platydoc-data/xnu/osfmk/vm/vm_map_store.c#L2752-L2760), [association result](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21185-L21242).
 
 The helper skips submaps, missing pmaps/objects and exempt address spaces. It normally acts only on executable entries, with a debugger-style protection-copy exception. Debug and JIT association use their own calls. For ordinary file backing, it:
 
@@ -229,15 +229,15 @@ The helper skips submaps, missing pmaps/objects and exempt address spaces. It no
 5. Obtains the vnode and its blob list.
 6. Calls `cs_associate_blob_with_mapping()` with the pmap, virtual start/length and resulting file offset.
 
-[Early branches](../../../xnu/osfmk/vm/vm_map.c#L21009-L21118), [object/backing traversal](../../../xnu/osfmk/vm/vm_map.c#L21119-L21182).
+[Early branches](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21009-L21118), [object/backing traversal](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21119-L21182).
 
-The UBC association requires a **single** blob covering the entire requested file interval, live signature storage and a monitor signature object. It passes `offset - (csb_base_offset + csb_start_offset)` as the segment offset into that signed region. Choosing a blob for one page hash and associating a whole virtual interval therefore use related but different coverage tests. [Range-to-blob association](../../../xnu/bsd/kern/ubc_subr.c#L6391-L6449).
+The UBC association requires a **single** blob covering the entire requested file interval, live signature storage and a monitor signature object. It passes `offset - (csb_base_offset + csb_start_offset)` as the segment offset into that signed region. Choosing a blob for one page hash and associating a whole virtual interval therefore use related but different coverage tests. [Range-to-blob association](../../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L6391-L6449).
 
-On successful association, VM marks `csm_associated`; configured executable immutability can also mark the entry permanent. `KERN_NOT_SUPPORTED` leaves ordinary VM validation responsible. Other failures generally strip execute permissions, except for the explicitly documented immutable-overwrite case. A return through an early success branch is not automatically the same as reaching the final block that sets `csm_associated`. [Result handling](../../../xnu/osfmk/vm/vm_map.c#L21185-L21242).
+On successful association, VM marks `csm_associated`; configured executable immutability can also mark the entry permanent. `KERN_NOT_SUPPORTED` leaves ordinary VM validation responsible. Other failures generally strip execute permissions, except for the explicitly documented immutable-overwrite case. A return through an early success branch is not automatically the same as reaching the final block that sets `csm_associated`. [Result handling](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21185-L21242).
 
-[Source: osfmk/vm/vm_map.c, lines 21227–21237](../../../xnu/osfmk/vm/vm_map.c#L21227-L21237)
+[Source: osfmk/vm/vm_map.c, lines 21227–21237](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21227-L21237)
 
-<!-- source-excerpt: ../../../xnu/osfmk/vm/vm_map.c#L21227-L21237 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21227-L21237 -->
 ```c
 		if (vmk_flags.vmkf_overwrite_immutable) {
 			/*
@@ -252,7 +252,7 @@ On successful association, VM marks `csm_associated`; configured executable immu
 		}
 ```
 
-`vm_map_protect()` revisits association when an unassociated mapping becomes executable or an associated mapping becomes writable, using the debug/protection-copy contract. Fault lookup later copies `csm_associated` into fault information; JIT, explicitly exempt address spaces and resilient-code-signing entries have distinct bypass inputs. Neither association nor those fields should be described as a hash of a page that has not yet faulted in. [Protection change](../../../xnu/osfmk/vm/vm_map.c#L5997-L6036), [fault information](../../../xnu/osfmk/vm/vm_fault.c#L4773-L4789), [page/monitor check](page-signature-validation.md#6-monitor-association-and-executable-page-entry-are-separate-stages).
+`vm_map_protect()` revisits association when an unassociated mapping becomes executable or an associated mapping becomes writable, using the debug/protection-copy contract. Fault lookup later copies `csm_associated` into fault information; JIT, explicitly exempt address spaces and resilient-code-signing entries have distinct bypass inputs. Neither association nor those fields should be described as a hash of a page that has not yet faulted in. [Protection change](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L5997-L6036), [fault information](../../../platydoc-data/xnu/osfmk/vm/vm_fault.c#L4773-L4789), [page/monitor check](page-signature-validation.md#6-monitor-association-and-executable-page-entry-are-separate-stages).
 
 The [TXM chapter](txm.md) follows CSM into signature registration, verification, trusted-region association and protected calls. SPTM pmap insertion can then report a signing error for an actual physical mapping. The external monitor determines the protected implementation; XNU retains mapping, fault and lifetime bookkeeping.
 
@@ -269,7 +269,7 @@ The [TXM chapter](txm.md) follows CSM into signature registration, verification,
 | Resident page is evicted | Vnode and blob can remain | Read and validate a replacement page, with the optional bitmap/backend distinctions |
 | Vnode/UBC state is reclaimed | Earlier pages and signatures may have independent drains | Destroy attached metadata only through the documented reclaim/lifetime protocol |
 
-[Attachment failure boundaries](vnode-signature-lifecycle.md), [initial validation](../../../xnu/bsd/kern/mach_loader.c#L1784-L1816), [map association](../../../xnu/osfmk/vm/vm_map.c#L21185-L21242), [exec completion](../../../xnu/bsd/kern/kern_exec.c#L8770-L8825), [page failure](page-signature-validation.md), [vnode reuse](../vfs/vnode-cache-identity-and-reuse.md).
+[Attachment failure boundaries](vnode-signature-lifecycle.md), [initial validation](../../../platydoc-data/xnu/bsd/kern/mach_loader.c#L1784-L1816), [map association](../../../platydoc-data/xnu/osfmk/vm/vm_map.c#L21185-L21242), [exec completion](../../../platydoc-data/xnu/bsd/kern/kern_exec.c#L8770-L8825), [page failure](page-signature-validation.md), [vnode reuse](../vfs/vnode-cache-identity-and-reuse.md).
 
 For a concrete investigation, start with `(vnode identity, slice offset)`, then record the blob generation/coverage/flags, process signing flags, VM object's file offset, map-entry protections/association and page masks. A pathname alone is insufficient: replacement can produce a different vnode, different slices can select different metadata, and processes can share backing while applying separate policy.
 
@@ -285,7 +285,7 @@ For a concrete investigation, start with `(vnode identity, slice offset)`, then 
 | Filesystem | Vnode operation dispatch, UBC backing and invalidation contracts | APFS-specific on-disk signature storage, inode cache and transaction/integrity implementation |
 | Protected mapping monitor | Region association, fault deferral and pmap success/error handling | Monitor code, protected digest/trust enforcement and complete hardware transitions |
 
-[AMFI interface](../../../xnu/libkern/libkern/amfi/amfi.h), [CoreTrust interface](../../../xnu/libkern/libkern/coretrust/coretrust.h), [trust-cache frontend](../../../xnu/bsd/kern/kern_trustcache.c#L731), [signature hook](../../../xnu/security/mac_vfs.c#L1316-L1424), [TXM](txm.md), [filesystem boundaries](../vfs/README.md).
+[AMFI interface](../../../platydoc-data/xnu/libkern/libkern/amfi/amfi.h), [CoreTrust interface](../../../platydoc-data/xnu/libkern/libkern/coretrust/coretrust.h), [trust-cache frontend](../../../platydoc-data/xnu/bsd/kern/kern_trustcache.c#L731), [signature hook](../../../platydoc-data/xnu/security/mac_vfs.c#L1316-L1424), [TXM](txm.md), [filesystem boundaries](../vfs/README.md).
 
 Deep reads for this chapter cover the permission/MAC path, signature-command cache/read branch, initial-buffer check, segment mapping, process flag/constraint/task-access handling, detached acceptance, mmap/library-validation gates, VM association and its callers. The companion chapters supply blob parsing/publication and actual page hashing. No kernel or executable was run, and the guide does not infer absent policy from the existence of a hook.
 

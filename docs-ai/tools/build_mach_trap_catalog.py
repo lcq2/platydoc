@@ -7,6 +7,7 @@ This is a documentation extractor, not a C preprocessor or an ABI conformance te
 from pathlib import Path
 import argparse
 import re
+import os
 
 from paths import DOCS, SOURCE_ROOT, require_source
 from doc_license import with_license_notice
@@ -80,7 +81,7 @@ PURPOSE = {
 }
 
 def link(label, path, line):
-    return f'[{label}](../../xnu/{path}#L{line})'
+    return f'[{label}]({os.path.relpath(SOURCE_ROOT / path, OUT.parent)}#L{line})'
 
 def generate():
     table_path = Path('osfmk/kern/syscall_sw.c')

@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/resource_notify.defs](../../../xnu/osfmk/mach/resource_notify.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/resource_notify.defs](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Notify an external resource-policy receiver of CPU-time usage exceeding a threshold.
 
-**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../xnu/osfmk/kern/task_policy.c#L3958).
+**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L3958).
 
-**Declarations:** [`cpu_usage_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L58) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`cpu_usage_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L58) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -44,9 +44,9 @@ SimpleRoutine cpu_usage_violation(
 
 Notify an external resource-policy receiver of excessive wakeups during the observed interval.
 
-**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../xnu/osfmk/kern/task_policy.c#L3958).
+**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L3958).
 
-**Declarations:** [`cpu_wakes_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L78) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`cpu_wakes_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L78) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -71,9 +71,9 @@ SimpleRoutine cpu_wakes_violation(
 
 Report excessive dirty-byte/disk-write activity and its observation window.
 
-**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../xnu/osfmk/kern/task_policy.c#L3958).
+**Mechanism:** The shared sender is passed this generated `send_*` function as a function pointer. It snapshots the BSD process identity and ledger balance/refill/limit/period, timestamps the event and obtains the host resource-notify port. It sets the current thread’s honor-queue-limit option before the send, clears that bit afterward and releases the port; this is a set/clear pair, not restoration of a saved previous option value. The resource daemon's handling is external. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L3958).
 
-**Declarations:** [`disk_writes_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L98) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`disk_writes_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L98) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -98,9 +98,9 @@ SimpleRoutine disk_writes_violation(
 
 Report excessive Mach port-space consumption, including the declared fatal-action capability.
 
-**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../xnu/osfmk/kern/task_policy.c#L4027).
+**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L4027).
 
-**Declarations:** [`port_space_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L118) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`port_space_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L118) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -123,9 +123,9 @@ SimpleRoutine port_space_violation(
 
 Report excessive file-descriptor consumption and the declared fatal-action capability.
 
-**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../xnu/osfmk/kern/task_policy.c#L4027).
+**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L4027).
 
-**Declarations:** [`file_descriptors_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L138) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`file_descriptors_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L138) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -148,9 +148,9 @@ SimpleRoutine file_descriptors_violation(
 
 Report excessive kqueue workloop consumption to the resource-policy receiver.
 
-**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../xnu/osfmk/kern/task_policy.c#L4027).
+**Mechanism:** The common fatal-port sender requires the current task, forms process identity/time/current-size/limit information and prefers the task resource-notify port, falling back to the host service when no task port is set. It sends the fatal capability and flags through the supplied generated function pointer while honoring queue limits, then releases the endpoint. Notification policy is separate from resource allocation and eventual termination. [Local path](../../../platydoc-data/xnu/osfmk/kern/task_policy.c#L4027).
 
-**Declarations:** [`kqworkloops_violation`](../../../xnu/osfmk/mach/resource_notify.defs#L159) (`sender64`).
+**Declarations:** [`kqworkloops_violation`](../../../platydoc-data/xnu/osfmk/mach/resource_notify.defs#L159) (`sender64`).
 **Reserved instead in:** `server64`, `server32`, `client64`, `client32`, `libsyscall64`, `local64`.
 
 **Fields after preprocessing (`sender64`):**

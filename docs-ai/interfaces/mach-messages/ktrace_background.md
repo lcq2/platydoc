@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/ktrace_background.defs](../../../xnu/osfmk/mach/ktrace_background.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/ktrace_background.defs](../../../platydoc-data/xnu/osfmk/mach/ktrace_background.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Notify a registered tracing client that background tracing is available.
 
-**Mechanism:** The wrapper obtains the host background-tracing notification port and sends `send_ktrace_background_available`, releasing the right afterward and returning the send result. Missing/invalid endpoints produce failure. The receiving daemon's decision to start tracing is outside this tree. [Local path](../../../xnu/osfmk/kern/ktrace_background_notify.c#L43).
+**Mechanism:** The wrapper obtains the host background-tracing notification port and sends `send_ktrace_background_available`, releasing the right afterward and returning the send result. Missing/invalid endpoints produce failure. The receiving daemon's decision to start tracing is outside this tree. [Local path](../../../platydoc-data/xnu/osfmk/kern/ktrace_background_notify.c#L43).
 
-**Declarations:** [`ktrace_background_available`](../../../xnu/osfmk/mach/ktrace_background.defs#L46) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`ktrace_background_available`](../../../platydoc-data/xnu/osfmk/mach/ktrace_background.defs#L46) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -29,7 +29,7 @@ simpleroutine ktrace_background_available(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/ktrace_background_notify.c:53](../../../xnu/osfmk/kern/ktrace_background_notify.c#L53). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/ktrace_background_notify.c:53](../../../platydoc-data/xnu/osfmk/kern/ktrace_background_notify.c#L53). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

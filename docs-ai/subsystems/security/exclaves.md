@@ -12,7 +12,7 @@ Under `CONFIG_EXCLAVES`, XNU coordinates work with the secure kernel and Exclave
 | [Resources and physical memory](exclaves-resources-and-memory.md) | Resource-domain tables and send rights; task/conclave state machine; page donation and return; service permissions, SPTM frame types, device-pager mappings and copy bounds |
 | [Services and diagnostics](exclaves-services.md) | Storage to VFS, sensor/arbitrated-buffer operations, driver upcalls, Mach/kqueue notifications, always-on work and inspection/panic contexts |
 
-A *conclave* in this code is a resource associated with an XNU task and an external manager/control connection. Its local lifecycle is represented by `conclave_resource_t`; the task has an association with that resource. It is not itself the thread's IPC context or scheduling-context ID. [`conclave_resource_t`](../../../xnu/osfmk/kern/exclaves_resource.h#L131-L145), [`task attachment`](../../../xnu/osfmk/kern/exclaves_resource.c#L979-L1010).
+A *conclave* in this code is a resource associated with an XNU task and an external manager/control connection. Its local lifecycle is represented by `conclave_resource_t`; the task has an association with that resource. It is not itself the thread's IPC context or scheduling-context ID. [`conclave_resource_t`](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.h#L131-L145), [`task attachment`](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.c#L979-L1010).
 
 ## One endpoint call crosses several layers
 
@@ -54,9 +54,9 @@ Scheduler responses and RPC responses are distinct protocols. A scheduler wait c
 | Secure shared-memory handle | Service-issued mapping identity |
 | Physical frame type | Monitor-level classification checked during donation, mapping and return |
 
-Definitions and implementation: [resources](../../../xnu/osfmk/kern/exclaves_resource.h#L131-L206), [thread fields](../../../xnu/osfmk/kern/thread.h#L1111-L1129), [scheduler buffers](../../../xnu/osfmk/kern/exclaves.c#L1820-L1848), [shared-memory handle](../../../xnu/osfmk/kern/exclaves_shared_memory.c#L94-L148), [frame validation](../../../xnu/osfmk/kern/exclaves_memory.c#L294-L312).
+Definitions and implementation: [resources](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.h#L131-L206), [thread fields](../../../platydoc-data/xnu/osfmk/kern/thread.h#L1111-L1129), [scheduler buffers](../../../platydoc-data/xnu/osfmk/kern/exclaves.c#L1820-L1848), [shared-memory handle](../../../platydoc-data/xnu/osfmk/kern/exclaves_shared_memory.c#L94-L148), [frame validation](../../../platydoc-data/xnu/osfmk/kern/exclaves_memory.c#L294-L312).
 
-For example, endpoint calls in this snapshot use an authorized service ID and require `MACH_PORT_NULL` in the port argument. Buffer and sensor operations instead resolve resource send rights. A valid buffer port does not turn its numerical name into an endpoint ID. Shared physical pages then require service-level mapping permission and a suitable SPTM shared-frame type before XNU creates PTEs. [Control trap](../../../xnu/osfmk/kern/exclaves.c#L213), [resource-port resolution](../../../xnu/osfmk/kern/exclaves_resource.c#L873-L908), [mapping trace](exclaves-resources-and-memory.md).
+For example, endpoint calls in this snapshot use an authorized service ID and require `MACH_PORT_NULL` in the port argument. Buffer and sensor operations instead resolve resource send rights. A valid buffer port does not turn its numerical name into an endpoint ID. Shared physical pages then require service-level mapping permission and a suitable SPTM shared-frame type before XNU creates PTEs. [Control trap](../../../platydoc-data/xnu/osfmk/kern/exclaves.c#L213), [resource-port resolution](../../../platydoc-data/xnu/osfmk/kern/exclaves_resource.c#L873-L908), [mapping trace](exclaves-resources-and-memory.md).
 
 ## Scope of the expanded reading
 

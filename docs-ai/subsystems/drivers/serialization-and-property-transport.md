@@ -13,13 +13,13 @@ IOKit moves object graphs across several boundaries: compiled configuration into
 | `OSUnserializeXML` with length | Kernel dispatch wrapper: recognizes binary signatures, otherwise requires a final NUL and invokes the XML parser |
 | `OSUnserializeBinary` | Bounded binary stream with typed words, collection markers, payloads and object references |
 
-[`legacy parser`](../../../xnu/libkern/c++/OSUnserialize.cpp#L2294-L2337), [`XML implementation include`](../../../xnu/libkern/c++/OSUnserializeXML.cpp#L1), [`sized dispatch`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074), [`binary parser`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L347-L636).
+[`legacy parser`](../../../platydoc-data/xnu/libkern/c++/OSUnserialize.cpp#L2294-L2337), [`XML implementation include`](../../../platydoc-data/xnu/libkern/c++/OSUnserializeXML.cpp#L1), [`sized dispatch`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074), [`binary parser`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L347-L636).
 
 `OSUnserializeXML.cpp` itself is only an include of the shared implementation. Stopping at that file would miss the actual parser. Likewise, a call named `OSUnserializeXML(data, size)` can parse binary data; the overload and signature matter.
 
-The kernel dispatch is short enough to inspect directly. [`format selection`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074):
+The kernel dispatch is short enough to inspect directly. [`format selection`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074):
 
-<!-- source-excerpt: ../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3054-L3074 -->
 ```cpp
 OSUnserializeXML(const char *buffer, size_t bufferSize, OSString **errorString)
 {
@@ -46,7 +46,7 @@ OSUnserializeXML(const char *buffer, size_t bufferSize, OSString **errorString)
 
 ## 2. Serialization preserves repeated identity
 
-`OSSerialize` owns a growable byte buffer and a tag array containing objects already encountered. XML serializers call `previouslySerialized`: a prior object produces an `IDREF` rather than recursively serializing it again; a first encounter enters the tag array. The binary serializer similarly emits a `kOSSerializeObject` reference. [`serializer fields`](../../../xnu/libkern/libkern/c++/OSSerialize.h#L102-L128), [`XML references`](../../../xnu/libkern/c++/OSSerialize.cpp#L88-L114), [`binary references`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L209-L240).
+`OSSerialize` owns a growable byte buffer and a tag array containing objects already encountered. XML serializers call `previouslySerialized`: a prior object produces an `IDREF` rather than recursively serializing it again; a first encounter enters the tag array. The binary serializer similarly emits a `kOSSerializeObject` reference. [`serializer fields`](../../../platydoc-data/xnu/libkern/libkern/c++/OSSerialize.h#L102-L128), [`XML references`](../../../platydoc-data/xnu/libkern/c++/OSSerialize.cpp#L88-L114), [`binary references`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L209-L240).
 
 This supports a graph with repeated objects rather than forcing duplicate values. It does not lock the original graph. Registry snapshotting, collection mutation rules and caller locks are still needed while traversing it. Retained tag entries protect lifetime during serialization, but do not freeze dictionary contents.
 
@@ -66,19 +66,19 @@ The references in the output describe serialization identity, not kernel virtual
 
 ## 3. The legacy text parser still has callers
 
-[`IOCatalogue::initialize`](../../../xnu/iokit/Kernel/IOCatalogue.cpp#L99-L111) calls `OSUnserialize` on `gIOKernelConfigTables`. Device-tree support and BSD IOKit initialization also contain calls to this entry. It is not interchangeable with the XML grammar. [`device-tree consumer`](../../../xnu/iokit/Kernel/IODeviceTreeSupport.cpp#L1011), [`BSD initialization`](../../../xnu/iokit/bsddev/IOKitBSDInit.cpp#L233).
+[`IOCatalogue::initialize`](../../../platydoc-data/xnu/iokit/Kernel/IOCatalogue.cpp#L99-L111) calls `OSUnserialize` on `gIOKernelConfigTables`. Device-tree support and BSD IOKit initialization also contain calls to this entry. It is not interchangeable with the XML grammar. [`device-tree consumer`](../../../platydoc-data/xnu/iokit/Kernel/IODeviceTreeSupport.cpp#L1011), [`BSD initialization`](../../../platydoc-data/xnu/iokit/bsddev/IOKitBSDInit.cpp#L233).
 
-The legacy entry serializes access with a mutex because its parse buffer, cursor, tag dictionary, result and error state are global. It initializes those fields, invokes `yyparse`, returns the parsed object on success or an optional `OSString` error, releases the tag dictionary and unlocks. [`parse transaction`](../../../xnu/libkern/c++/OSUnserialize.cpp#L2294-L2337).
+The legacy entry serializes access with a mutex because its parse buffer, cursor, tag dictionary, result and error state are global. It initializes those fields, invokes `yyparse`, returns the parsed object on success or an optional `OSString` error, releases the tag dictionary and unlocks. [`parse transaction`](../../../platydoc-data/xnu/libkern/c++/OSUnserialize.cpp#L2294-L2337).
 
-The `.y` grammar is the readable place to connect syntax tokens to construction actions; the generated `.cpp` is the compiled implementation. Existing [`TestSerialization` fixtures](../../../xnu/libkern/c++/Tests/TestSerialization/test1/test1_main.cpp#L70) illustrate historical callers. Their presence does not establish that every modern property transport uses this syntax or that the parser has been tested during this documentation pass.
+The `.y` grammar is the readable place to connect syntax tokens to construction actions; the generated `.cpp` is the compiled implementation. Existing [`TestSerialization` fixtures](../../../platydoc-data/xnu/libkern/c++/Tests/TestSerialization/test1/test1_main.cpp#L70) illustrate historical callers. Their presence does not establish that every modern property transport uses this syntax or that the parser has been tested during this documentation pass.
 
 ## 4. XML parsing owns temporary nodes and an object-reference table
 
-The XML implementation allocates a per-call `parser_state_t`: input/cursor/line number, temporary-node lists, tag dictionary, optional error destination, result and object/reference counters. This differs from the legacy parser's global-state lock. [`state`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L190-L203), [`entry`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3011-L3048).
+The XML implementation allocates a per-call `parser_state_t`: input/cursor/line number, temporary-node lists, tag dictionary, optional error destination, result and object/reference counters. This differs from the legacy parser's global-state lock. [`state`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L190-L203), [`entry`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L3011-L3048).
 
-Grammar actions construct dictionaries, arrays, sets, strings, data, numbers and booleans. `ID` registers identity in the tag dictionary; `IDREF` looks it up. A missing reference is a parse failure, not an instruction to allocate a kernel object of arbitrary class. The grammar tracks parsed and retrieved object counts in addition to parser-stack growth. [`identity helpers`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L2796-L2827), [`grammar limits/actions`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L1590-L1727).
+Grammar actions construct dictionaries, arrays, sets, strings, data, numbers and booleans. `ID` registers identity in the tag dictionary; `IDREF` looks it up. A missing reference is a parse failure, not an instruction to allocate a kernel object of arbitrary class. The grammar tracks parsed and retrieved object counts in addition to parser-stack growth. [`identity helpers`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L2796-L2827), [`grammar limits/actions`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L1590-L1727).
 
-After parsing, `cleanupObjects` walks every temporary node and releases still-owned objects, data allocations, keys and strings. It then releases the tag dictionary and parser state. Successful grammar actions must transfer the result's ownership before this sweep; merely pointing at an object in temporary parser storage is not enough. [`temporary cleanup`](../../../xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L2762-L2790).
+After parsing, `cleanupObjects` walks every temporary node and releases still-owned objects, data allocations, keys and strings. It then releases the tag dictionary and parser state. Successful grammar actions must transfer the result's ownership before this sweep; merely pointing at an object in temporary parser storage is not enough. [`temporary cleanup`](../../../platydoc-data/xnu/libkern/libkern/c++/OSUnserializeXMLSharedImplementation.h#L2762-L2790).
 
 The length-aware kernel wrapper requires a terminator at the end of XML input; the underlying unsized entry has no independent byte-count argument. Transport callers must supply appropriately bounded, materialized storage before calling it.
 
@@ -95,13 +95,13 @@ The binary stream begins with a four-byte signature. Subsequent words contain a 
 | Boolean | Zero/nonzero value |
 | Object reference | Identifier interpreted by the decoder's already-created-object table |
 
-[`format constants`](../../../xnu/libkern/libkern/OSSerializeBinary.h#L32-L48), [`decode switch`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L423-L522).
+[`format constants`](../../../platydoc-data/xnu/libkern/libkern/OSSerializeBinary.h#L32-L48), [`decode switch`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L423-L522).
 
-The parser rejects a too-short header or unaligned buffer, bounds-checks record/payload consumption and verifies symbol termination. It keeps `objsArray` for object ownership/references and `stackArray` for nested collection parents. The growth macro uses bounded capacities and checks whether storage allocation succeeded. [`entry and arrays`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L329-L417).
+The parser rejects a too-short header or unaligned buffer, bounds-checks record/payload consumption and verifies symbol termination. It keeps `objsArray` for object ownership/references and `stackArray` for nested collection parents. The growth macro uses bounded capacities and checks whether storage allocation succeeded. [`entry and arrays`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L329-L417).
 
-Reference resolution is explicitly backward-looking. [`object reference case`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L448-L454):
+Reference resolution is explicitly backward-looking. [`object reference case`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L448-L454):
 
-<!-- source-excerpt: ../../../xnu/libkern/c++/OSSerializeBinary.cpp#L448-L454 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L448-L454 -->
 ```cpp
 		case kOSSerializeObject:
 			if (len >= objsIdx) {
@@ -112,19 +112,19 @@ Reference resolution is explicitly backward-looking. [`object reference case`](.
 			break;
 ```
 
-The parent state determines insertion: dictionaries alternate keys and values, converting acceptable string keys into symbols; arrays and sets insert members. A new nested collection pushes its prior parent; an end marker unwinds until a parent remains or the root completes. These transitions are why collection counts alone do not describe parser control flow. [`insertion and parent stack`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L544-L618).
+The parent state determines insertion: dictionaries alternate keys and values, converting acceptable string keys into symbols; arrays and sets insert members. A new nested collection pushes its prior parent; an end marker unwinds until a parent remains or the root completes. These transitions are why collection counts alone do not describe parser control flow. [`insertion and parent stack`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L544-L618).
 
 ## 6. Indexed output has additional representation rules
 
-`setIndexed` creates an index-data array. The serializer records each object's stream offset in 32-bit words, adds a length word to collection headers and substitutes indexed offsets in emitted references. The first output word includes the indexed signature and object-count information. [`indexed emission`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L105-L182), [`header and references`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L186-L240).
+`setIndexed` creates an index-data array. The serializer records each object's stream offset in 32-bit words, adds a length word to collection headers and substitutes indexed offsets in emitted references. The first output word includes the indexed signature and object-count information. [`indexed emission`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L105-L182), [`header and references`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L186-L240).
 
-The checked-in decoder recognizes the indexed signature and consumes collection length words, but its reference case still indexes `objsArray` by `len`; the consumed `length` does not drive a separate traversal in this body. Do not infer complete serializer/decoder round-trip equivalence for arbitrary indexed graphs from signature acceptance alone. The unindexed object-number example above follows the ordinary binary path. This is an implementation boundary visible in this source, not a claim about every external indexed-format consumer. [`indexed decode choices`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L386-L454), [`length consumption`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L524-L541).
+The checked-in decoder recognizes the indexed signature and consumes collection length words, but its reference case still indexes `objsArray` by `len`; the consumed `length` does not drive a separate traversal in this body. Do not infer complete serializer/decoder round-trip equivalence for arbitrary indexed graphs from signature acceptance alone. The unindexed object-number example above follows the ordinary binary path. This is an implementation boundary visible in this source, not a claim about every external indexed-format consumer. [`indexed decode choices`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L386-L454), [`length consumption`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L524-L541).
 
 ## 7. Temporary ownership is released after containers retain children
 
-New binary objects enter the temporary object array. Container insertion takes the container's reference; backward references reuse an existing array member rather than manufacture an unrelated object. At completion, successful root ownership is retained for the caller while temporary references to the other objects are released. On failure, the result is cleared and temporary references are released from the beginning. The parent stack is separate allocation bookkeeping. [`cleanup`](../../../xnu/libkern/c++/OSSerializeBinary.cpp#L622-L636):
+New binary objects enter the temporary object array. Container insertion takes the container's reference; backward references reuse an existing array member rather than manufacture an unrelated object. At completion, successful root ownership is retained for the caller while temporary references to the other objects are released. On failure, the result is cleared and temporary references are released from the beginning. The parent stack is separate allocation bookkeeping. [`cleanup`](../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L622-L636):
 
-<!-- source-excerpt: ../../../xnu/libkern/c++/OSSerializeBinary.cpp#L622-L636 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/libkern/c++/OSSerializeBinary.cpp#L622-L636 -->
 ```cpp
 	if (!ok) {
 		result = NULL;
@@ -147,7 +147,7 @@ This cleanup is reference-count based, not a universal graph garbage collector. 
 
 ## 8. A concrete property request crosses VM, parsing and policy
 
-[`is_io_registry_entry_set_properties`](../../../xnu/iokit/Kernel/IOUserClient.cpp#L4105-L4217) shows the complete boundary:
+[`is_io_registry_entry_set_properties`](../../../platydoc-data/xnu/iokit/Kernel/IOUserClient.cpp#L4105-L4217) shows the complete boundary:
 
 1. Verify the target is an `IORegistryEntry` and reject oversized input.
 2. Materialize the incoming `vm_map_copy_t` into `kernel_map` with `vm_map_copyout`.
@@ -170,7 +170,7 @@ flowchart TD
 
 The RPC transport return and `*result` operation return are distinct after payload materialization. A parsed dictionary can still be unauthorized, have invalid receiver-specific values, or cause partial progress before a later receiver error. NVRAM's multi-property loop is a concrete example in [the persistence chapter](nvram-variables-and-persistence.md).
 
-The userserver branch also deserves a precise reading: after the local call, `UserSetProperties` runs when the target is a service with a userserver and the parsed object is a dictionary. The branch does not test the local call's return value before forwarding, and its return replaces `res`. A single final operation status therefore does not report both stages independently. [`local call, unlocking and forwarding`](../../../xnu/iokit/Kernel/IOUserClient.cpp#L4180-L4201).
+The userserver branch also deserves a precise reading: after the local call, `UserSetProperties` runs when the target is a service with a userserver and the parsed object is a dictionary. The branch does not test the local call's return value before forwarding, and its return replaces `res`. A single final operation status therefore does not report both stages independently. [`local call, unlocking and forwarding`](../../../platydoc-data/xnu/iokit/Kernel/IOUserClient.cpp#L4180-L4201).
 
 ## Inspection boundary
 

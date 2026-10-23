@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/memory_error_notification.defs](../../../xnu/osfmk/mach/memory_error_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/memory_error_notification.defs](../../../platydoc-data/xnu/osfmk/mach/memory_error_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Send the declared generic memory-error record to the registered external receiver.
 
-**Mechanism:** This older notification slot is retained in the interface. The current local event sender switches between MCC and LLC payload routines instead, so no same-symbol local call or receiver was resolved. Do not infer another hardware-error pipeline from the historical declaration. [Local path](../../../xnu/osfmk/kern/memory_error_logging.c#L100).
+**Mechanism:** This older notification slot is retained in the interface. The current local event sender switches between MCC and LLC payload routines instead, so no same-symbol local call or receiver was resolved. Do not infer another hardware-error pipeline from the historical declaration. [Local path](../../../platydoc-data/xnu/osfmk/kern/memory_error_logging.c#L100).
 
-**Declarations:** [`memory_error_notification`](../../../xnu/osfmk/mach/memory_error_notification.defs#L21) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`memory_error_notification`](../../../platydoc-data/xnu/osfmk/mach/memory_error_notification.defs#L21) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -36,9 +36,9 @@ simpleroutine memory_error_notification(
 
 Send memory-controller error information to the registered receiver.
 
-**Mechanism:** The deferred event-notification path obtains the host memory-error endpoint and dispatches the MCC, guarded by `XNU_LOG_MCC` event payload through this message, then releases the send right. Missing endpoints are logged. The receiver's logging/diagnostic response and hardware-specific policy are not implemented by the MIG declaration. [Local path](../../../xnu/osfmk/kern/memory_error_logging.c#L90).
+**Mechanism:** The deferred event-notification path obtains the host memory-error endpoint and dispatches the MCC, guarded by `XNU_LOG_MCC` event payload through this message, then releases the send right. Missing endpoints are logged. The receiver's logging/diagnostic response and hardware-specific policy are not implemented by the MIG declaration. [Local path](../../../platydoc-data/xnu/osfmk/kern/memory_error_logging.c#L90).
 
-**Declarations:** [`mcc_memory_error_notification`](../../../xnu/osfmk/mach/memory_error_notification.defs#L26) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`mcc_memory_error_notification`](../../../platydoc-data/xnu/osfmk/mach/memory_error_notification.defs#L26) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -50,15 +50,15 @@ simpleroutine mcc_memory_error_notification(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/memory_error_logging.c:105](../../../xnu/osfmk/kern/memory_error_logging.c#L105). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/memory_error_logging.c:105](../../../platydoc-data/xnu/osfmk/kern/memory_error_logging.c#L105). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 ### 5902: llc_memory_error_notification
 
 Send last-level-cache memory-error information to the registered receiver.
 
-**Mechanism:** The deferred event-notification path obtains the host memory-error endpoint and dispatches the LLC event payload through this message, then releases the send right. Missing endpoints are logged. The receiver's logging/diagnostic response and hardware-specific policy are not implemented by the MIG declaration. [Local path](../../../xnu/osfmk/kern/memory_error_logging.c#L90).
+**Mechanism:** The deferred event-notification path obtains the host memory-error endpoint and dispatches the LLC event payload through this message, then releases the send right. Missing endpoints are logged. The receiver's logging/diagnostic response and hardware-specific policy are not implemented by the MIG declaration. [Local path](../../../platydoc-data/xnu/osfmk/kern/memory_error_logging.c#L90).
 
-**Declarations:** [`llc_memory_error_notification`](../../../xnu/osfmk/mach/memory_error_notification.defs#L31) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`llc_memory_error_notification`](../../../platydoc-data/xnu/osfmk/mach/memory_error_notification.defs#L31) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -70,7 +70,7 @@ simpleroutine llc_memory_error_notification(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/memory_error_logging.c:109](../../../xnu/osfmk/kern/memory_error_logging.c#L109). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/memory_error_logging.c:109](../../../platydoc-data/xnu/osfmk/kern/memory_error_logging.c#L109). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

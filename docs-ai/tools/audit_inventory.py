@@ -2,7 +2,7 @@
 """Inventory documentation and source citations; these are not review coverage.
 
 Audit reports are deliberately excluded from explanatory-guide citation counts.
-No source is modified. Run from any directory to regenerate audits/inventory.json.
+No source is modified. Output is private: .private/handbook-tracking/audits/inventory.json.
 """
 
 from collections import Counter, defaultdict
@@ -128,8 +128,8 @@ def main():
         "uncited_implementation_files_by_size": sorted(
             unlinked, key=lambda row: (-row["lines"], row["path"])),
     }
-    destination = DOCS / "audits" / "inventory.json"
-    destination.parent.mkdir(exist_ok=True)
+    destination = ROOT / ".private" / "handbook-tracking" / "audits" / "inventory.json"
+    destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(output, indent=2) + "\n")
     print(json.dumps(output["totals"]))
     print(f"Wrote {destination.relative_to(ROOT)}")

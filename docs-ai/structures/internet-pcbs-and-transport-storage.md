@@ -8,11 +8,11 @@ This companion documents `xnu-12377.121.6`. The existing [Internet PCB operation
 
 ## 1. TCP allocates one aggregate, UDP and raw IP allocate a plain PCB
 
-The concrete TCP allocation is private to `tcp_subr.c`. `inpcb` is its first member; the embedded `tcpcb` has a 32-byte alignment requirement. A pointer to the first member therefore also names the beginning of the allocation, but the TCP member's offset must follow the actual layout and alignment, not an assumed sum of field sizes. [Allocation layout and rationale](../../xnu/bsd/netinet/tcp_subr.c#L302-L317).
+The concrete TCP allocation is private to `tcp_subr.c`. `inpcb` is its first member; the embedded `tcpcb` has a 32-byte alignment requirement. A pointer to the first member therefore also names the beginning of the allocation, but the TCP member's offset must follow the actual layout and alignment, not an assumed sum of field sizes. [Allocation layout and rationale](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L302-L317).
 
-[Source: `bsd/netinet/tcp_subr.c`, lines 311–317](../../xnu/bsd/netinet/tcp_subr.c#L311-L317).
+[Source: `bsd/netinet/tcp_subr.c`, lines 311–317](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L311-L317).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/tcp_subr.c#L311-L317 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L311-L317 -->
 ```c
 struct  inp_tp {
 	struct  inpcb   inp;
@@ -31,7 +31,7 @@ flowchart TD
     T -->|"owned subordinate allocations"| Q["Reassembly, recovery records<br/>and bandwidth state"]
 ```
 
-The arrows name layout or pointer relationships. They are not independent reference counts for every arrow. In particular, freeing `tp` separately from its enclosing `inp_tp` would not match this allocator path. `tcp_newtcpcb()` selects the embedded member, zeroes it and initializes its queues; it does not allocate another `tcpcb`. [Embedded-member initialization](../../xnu/bsd/netinet/tcp_subr.c#L1321-L1357).
+The arrows name layout or pointer relationships. They are not independent reference counts for every arrow. In particular, freeing `tp` separately from its enclosing `inp_tp` would not match this allocator path. `tcp_newtcpcb()` selects the embedded member, zeroes it and initializes its queues; it does not allocate another `tcpcb`. [Embedded-member initialization](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1321-L1357).
 
 | Protocol storage | Selected allocation | Initialization and release boundary |
 | --- | --- | --- |
@@ -40,13 +40,13 @@ The arrows name layout or pointer relationships. They are not independent refere
 | Raw IPv4/IPv6 | `ripzone` supplies a plain `struct inpcb` through `ripcbinfo`. | Raw protocol number and family-specific options live in the PCB. Raw IPv6 additionally allocates an ICMPv6 filter and frees it in its protocol detach callback. |
 | MPTCP application endpoint | Separate `mpp_mtp` aggregate, not `inp_tp` | The application socket uses `mppcb`/session/MPTCP state. Each internal TCP subflow has the TCP aggregate described here. |
 
-Evidence: [TCP selection](../../xnu/bsd/netinet/tcp_subr.c#L694-L704), [UDP view](../../xnu/bsd/netinet/udp_usrreq.c#L161), [UDP table initialization](../../xnu/bsd/netinet/udp_usrreq.c#L300-L318), [raw view and selection](../../xnu/bsd/netinet/raw_ip.c#L134-L169), [raw IPv6 filter ownership](../../xnu/bsd/netinet6/raw_ip6.c#L1019-L1048), [MPTCP storage](../subsystems/networking/mptcp-sessions-and-subflows.md#1-one-application-socket-several-transport-identities).
+Evidence: [TCP selection](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L694-L704), [UDP view](../../platydoc-data/xnu/bsd/netinet/udp_usrreq.c#L161), [UDP table initialization](../../platydoc-data/xnu/bsd/netinet/udp_usrreq.c#L300-L318), [raw view and selection](../../platydoc-data/xnu/bsd/netinet/raw_ip.c#L134-L169), [raw IPv6 filter ownership](../../platydoc-data/xnu/bsd/netinet6/raw_ip6.c#L1019-L1048), [MPTCP storage](../subsystems/networking/mptcp-sessions-and-subflows.md#1-one-application-socket-several-transport-identities).
 
-These are writable typed allocations, not RO-zone companions. `NET_KT_DEFAULT` selects `KT_PRIV_ACCT` in development/debug and `KT_DEFAULT` otherwise. The actual object allocator uses waiting, zeroed, no-fail storage after an explicit protocol-memory admission check. Typed-allocation placement does not add a reference count or immutable-field contract. [Network allocation flags](../../xnu/bsd/net/if_var.h#L78-L84), [allocation and association](../../xnu/bsd/netinet/in_pcb.c#L693-L725).
+These are writable typed allocations, not RO-zone companions. `NET_KT_DEFAULT` selects `KT_PRIV_ACCT` in development/debug and `KT_DEFAULT` otherwise. The actual object allocator uses waiting, zeroed, no-fail storage after an explicit protocol-memory admission check. Typed-allocation placement does not add a reference count or immutable-field contract. [Network allocation flags](../../platydoc-data/xnu/bsd/net/if_var.h#L78-L84), [allocation and association](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L693-L725).
 
-[Source: `bsd/netinet/in_pcb.c`, lines 699–718](../../xnu/bsd/netinet/in_pcb.c#L699-L718).
+[Source: `bsd/netinet/in_pcb.c`, lines 699–718](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L699-L718).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/in_pcb.c#L699-L718 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L699-L718 -->
 ```c
 	if (proto_memacct_hardlimit(so->so_proto)) {
 		return ENOBUFS;
@@ -70,11 +70,11 @@ These are writable typed allocations, not RO-zone companions. `NET_KT_DEFAULT` s
 	so->so_pcb = (caddr_t)inp;
 ```
 
-Protocol memory accounting charges the selected allocation size, so TCP is charged for the aggregate rather than just `sizeof(struct inpcb)`. Final disposal subtracts that size. There is no PCB-specific cached-object fast path in these allocation/free bodies. `INPCB_STATE_CACHED` is still defined in the header, but that name is not evidence that this path inserts the object into such a cache. Allocator reuse after `zfree` and the subordinate TCP segment pool discussed below are different mechanisms. [Final allocation/accounting release](../../xnu/bsd/netinet/in_pcb.c#L2133-L2148), [state definitions](../../xnu/bsd/netinet/in_pcb.h#L893-L901).
+Protocol memory accounting charges the selected allocation size, so TCP is charged for the aggregate rather than just `sizeof(struct inpcb)`. Final disposal subtracts that size. There is no PCB-specific cached-object fast path in these allocation/free bodies. `INPCB_STATE_CACHED` is still defined in the header, but that name is not evidence that this path inserts the object into such a cache. Allocator reuse after `zfree` and the subordinate TCP segment pool discussed below are different mechanisms. [Final allocation/accounting release](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2133-L2148), [state definitions](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L893-L901).
 
 ## 2. Fields name network identity, memberships and separate state owners
 
-The complete declaration is [`struct inpcb`](../../xnu/bsd/netinet/in_pcb.h#L160-L271). Its local/foreign addresses and route are unions, while its IPv4 and IPv6 option groups are separate fields. This matters for dual-stack sockets: freeing IPv6 resources does not automatically free the distinct IPv4 option/multicast objects.
+The complete declaration is [`struct inpcb`](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L160-L271). Its local/foreign addresses and route are unions, while its IPv4 and IPv6 option groups are separate fields. This matters for dual-stack sockets: freeing IPv6 resources does not automatically free the distinct IPv4 option/multicast objects.
 
 | PCB storage | Representation / access | Ownership and synchronization consequence |
 | --- | --- | --- |
@@ -90,11 +90,11 @@ The complete declaration is [`struct inpcb`](../../xnu/bsd/netinet/in_pcb.h#L160
 | `inp_sndinprog_cnt`, waiters | Outstanding lower-layer sends across socket-lock drops | TCP close checks this count before releasing state that output may still update. |
 | Options, multicast, IPsec, NECP, namespace, offload and statistics fields | Mixture of owned allocations, retained objects, cached values, callbacks and registration tokens | Each requires its provider's cleanup, not one generic `free(inp_ppcb)` or a scalar-state reset. |
 
-Evidence: [core fields and unions](../../xnu/bsd/netinet/in_pcb.h#L160-L230), [conditional/provider fields](../../xnu/bsd/netinet/in_pcb.h#L236-L270), [field aliases](../../xnu/bsd/netinet/in_pcb.h#L581-L612), [hash definitions](../../xnu/bsd/netinet/in_pcb.h#L728-L731), [generation changes at removal](../../xnu/bsd/netinet/in_pcb.c#L2912-L2964).
+Evidence: [core fields and unions](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L160-L230), [conditional/provider fields](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L236-L270), [field aliases](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L581-L612), [hash definitions](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L728-L731), [generation changes at removal](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2912-L2964).
 
-The IPv4 address wrapper contains three 32-bit padding words followed by `struct in_addr`; the same union can hold a full `in6_addr`. `inp_laddr`/`inp_faddr` select the IPv4 tail, while `in6p_laddr`/`in6p_faddr` select the IPv6 representation. `INP_IPV4`, `INP_IPV6` and `INP_V4MAPPEDV6` are flags rather than a C union discriminator automatically enforced by the language. For example, UDP6 attachment can set both `INP_IPV6` and `INP_IPV4` when mapped addresses are enabled. [Shared address shape](../../xnu/bsd/netinet/in_pcb.h#L116-L125), [aliases and flags](../../xnu/bsd/netinet/in_pcb.h#L584-L590), [UDP6 attachment](../../xnu/bsd/netinet6/udp6_usrreq.c#L897-L919).
+The IPv4 address wrapper contains three 32-bit padding words followed by `struct in_addr`; the same union can hold a full `in6_addr`. `inp_laddr`/`inp_faddr` select the IPv4 tail, while `in6p_laddr`/`in6p_faddr` select the IPv6 representation. `INP_IPV4`, `INP_IPV6` and `INP_V4MAPPEDV6` are flags rather than a C union discriminator automatically enforced by the language. For example, UDP6 attachment can set both `INP_IPV6` and `INP_IPV4` when mapped addresses are enabled. [Shared address shape](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L116-L125), [aliases and flags](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L584-L590), [UDP6 attachment](../../platydoc-data/xnu/bsd/netinet6/udp6_usrreq.c#L897-L919).
 
-The conversion macros are deliberately small: `sotoinpcb(so)` casts `so_pcb`; `sotoin6pcb` is the same conversion; `intotcpcb(inp)` casts `inp_ppcb`; `sototcpcb` composes those operations. None locks, retains, checks the socket's protocol, tests death or allocates storage. The calling context must already establish those properties. [Socket-to-PCB macros](../../xnu/bsd/netinet/in_pcb.h#L879-L880), [TCP conversions](../../xnu/bsd/netinet/tcp_var.h#L1095-L1096).
+The conversion macros are deliberately small: `sotoinpcb(so)` casts `so_pcb`; `sotoin6pcb` is the same conversion; `intotcpcb(inp)` casts `inp_ppcb`; `sototcpcb` composes those operations. None locks, retains, checks the socket's protocol, tests death or allocates storage. The calling context must already establish those properties. [Socket-to-PCB macros](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L879-L880), [TCP conversions](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L1095-L1096).
 
 ### TCP's extension is state plus collection heads
 
@@ -111,19 +111,19 @@ The conversion macros are deliberately small: `sotoinpcb(so)` casts `so_pcb`; `s
 | `t_twentry` | Intrusive membership in the TCP TIME_WAIT queue. |
 | Conditional `t_mptcb`, `t_mpsub` | Shared MPTCP connection and this subflow's association; they do not make the parent MPTCP aggregate part of `inp_tp`. |
 
-[Core/TCP sequence fields](../../xnu/bsd/netinet/tcp_var.h#L422-L525), [SACK fields](../../xnu/bsd/netinet/tcp_var.h#L602-L650), [bandwidth/congestion/TIME_WAIT fields](../../xnu/bsd/netinet/tcp_var.h#L713-L730), [MPTCP associations](../../xnu/bsd/netinet/tcp_var.h#L772-L778), [collection initialization](../../xnu/bsd/netinet/tcp_subr.c#L1350-L1357), [embedded congestion-state selection](../../xnu/bsd/netinet/tcp_cc.c#L205-L215).
+[Core/TCP sequence fields](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L422-L525), [SACK fields](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L602-L650), [bandwidth/congestion/TIME_WAIT fields](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L713-L730), [MPTCP associations](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L772-L778), [collection initialization](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1350-L1357), [embedded congestion-state selection](../../platydoc-data/xnu/bsd/netinet/tcp_cc.c#L205-L215).
 
 ## 3. Allocation, protocol readiness and tuple publication are separate
 
-`in_pcballoc()` first checks `proto_memacct_hardlimit()` and returns `ENOBUFS` if admission fails. Otherwise it obtains the zeroed allocation, charges memory, connects `so_pcb`/`inp_socket`, records `inp_pcbinfo`, initializes the PCB mutex when required, and applies initial family/policy flags. It finally takes exclusive `ipi_lock`, assigns the publication generation, inserts `inp_list` and increments `ipi_count`. Its earlier generation assignment and later locked assignment are both visible in the body; do not treat a generation value as an acquired hold. [Allocation](../../xnu/bsd/netinet/in_pcb.c#L693-L725), [defaults and all-PCB publication](../../xnu/bsd/netinet/in_pcb.c#L728-L748).
+`in_pcballoc()` first checks `proto_memacct_hardlimit()` and returns `ENOBUFS` if admission fails. Otherwise it obtains the zeroed allocation, charges memory, connects `so_pcb`/`inp_socket`, records `inp_pcbinfo`, initializes the PCB mutex when required, and applies initial family/policy flags. It finally takes exclusive `ipi_lock`, assigns the publication generation, inserts `inp_list` and increments `ipi_count`. Its earlier generation assignment and later locked assignment are both visible in the body; do not treat a generation value as an acquired hold. [Allocation](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L693-L725), [defaults and all-PCB publication](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L728-L748).
 
 The whole allocation was zeroed. This routine does not assign `INPCB_STATE_INUSE`, despite that named constant in the header: the fresh path's `inp_state` remains zero until a later explicit transition. The inspected attach bodies add family/protocol state rather than setting it to the symbolic value `1`. Death is tested and assigned explicitly as `INPCB_STATE_DEAD`. Likewise, all-PCB-list insertion does not establish a bound port, tuple-hash membership, or finished TCP initialization.
 
-TCP attachment reserves socket buffers, invokes `in_pcballoc()`, initializes family/autosizing state, and calls `tcp_newtcpcb()`. The embedded-member selection is direct. [TCP attach](../../xnu/bsd/netinet/tcp_usrreq.c#L3094-L3150).
+TCP attachment reserves socket buffers, invokes `in_pcballoc()`, initializes family/autosizing state, and calls `tcp_newtcpcb()`. The embedded-member selection is direct. [TCP attach](../../platydoc-data/xnu/bsd/netinet/tcp_usrreq.c#L3094-L3150).
 
-[Source: `bsd/netinet/tcp_subr.c`, lines 1330–1335](../../xnu/bsd/netinet/tcp_subr.c#L1330-L1335).
+[Source: `bsd/netinet/tcp_subr.c`, lines 1330–1335](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1330-L1335).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/tcp_subr.c#L1330-L1335 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1330-L1335 -->
 ```c
 	it = (struct inp_tp *)(void *)inp;
 	tp = &it->tcb;
@@ -133,15 +133,15 @@ TCP attachment reserves socket buffers, invokes `in_pcballoc()`, initializes fam
 	tp->t_maxseg = tp->t_maxopd = isipv6 ? tcp_v6mssdflt : tcp_mssdflt;
 ```
 
-The initializer establishes queue heads, defaults, the `t_inpcb` backlink, embedded congestion-state access and bandwidth state. It publishes `inp_ppcb = tp` at the end; attach then records `TCPS_CLOSED`. The visible `tcp_newtcpcb()` body returns that embedded pointer on its ordinary return path. `tcp_attach()` retains a defensive null-result branch that suppresses `SS_NOFDREF` while detaching and then restores it; this is not evidence of a second failing TCP allocation in this snapshot. A separate null-result check around the bandwidth helper clears only its feature flag. The helper itself performs a waiting allocation, initializes its result and returns it; it has no explicit null-return path. [Defaults and subordinates](../../xnu/bsd/netinet/tcp_subr.c#L1350-L1424), [bandwidth helper body](../../xnu/bsd/netinet/tcp_subr.c#L2119-L2125), [protocol-pointer publication](../../xnu/bsd/netinet/tcp_subr.c#L1438-L1445), [defensive attach unwind](../../xnu/bsd/netinet/tcp_usrreq.c#L3132-L3149).
+The initializer establishes queue heads, defaults, the `t_inpcb` backlink, embedded congestion-state access and bandwidth state. It publishes `inp_ppcb = tp` at the end; attach then records `TCPS_CLOSED`. The visible `tcp_newtcpcb()` body returns that embedded pointer on its ordinary return path. `tcp_attach()` retains a defensive null-result branch that suppresses `SS_NOFDREF` while detaching and then restores it; this is not evidence of a second failing TCP allocation in this snapshot. A separate null-result check around the bandwidth helper clears only its feature flag. The helper itself performs a waiting allocation, initializes its result and returns it; it has no explicit null-return path. [Defaults and subordinates](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1350-L1424), [bandwidth helper body](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L2119-L2125), [protocol-pointer publication](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1438-L1445), [defensive attach unwind](../../platydoc-data/xnu/bsd/netinet/tcp_usrreq.c#L3132-L3149).
 
 ### Protocol tables own indexes, local-port heads group endpoints
 
-`inpcbinfo` is protocol-wide state shared across IPv4/IPv6: all-PCB list/count/generation, tuple and local-port bucket arrays, allocation view, port-search cursors and GC/timer callbacks. Its `ipi_lock` protects membership and shared protocol tables; the separate global `inpcb_lock` protects the registry of these `inpcbinfo` records and callout coordination. TCP initializes its arrays with `hashinit_counted_by()`, derives each mask as count minus one, assigns callbacks and registers the record. [Table layout and lock domains](../../xnu/bsd/netinet/in_pcb.h#L645-L725), [TCP initialization](../../xnu/bsd/netinet/tcp_subr.c#L694-L704), [registry insertion](../../xnu/bsd/netinet/in_pcb.c#L563-L577).
+`inpcbinfo` is protocol-wide state shared across IPv4/IPv6: all-PCB list/count/generation, tuple and local-port bucket arrays, allocation view, port-search cursors and GC/timer callbacks. Its `ipi_lock` protects membership and shared protocol tables; the separate global `inpcb_lock` protects the registry of these `inpcbinfo` records and callout coordination. TCP initializes its arrays with `hashinit_counted_by()`, derives each mask as count minus one, assigns callbacks and registers the record. [Table layout and lock domains](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L645-L725), [TCP initialization](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L694-L704), [registry insertion](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L563-L577).
 
-A local-port head is a separate typed allocation with a list of all PCBs using that port. [Source: `bsd/netinet/in_pcb.h`, lines 631–635](../../xnu/bsd/netinet/in_pcb.h#L631-L635).
+A local-port head is a separate typed allocation with a list of all PCBs using that port. [Source: `bsd/netinet/in_pcb.h`, lines 631–635](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L631-L635).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/in_pcb.h#L631-L635 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L631-L635 -->
 ```c
 struct inpcbport {
 	LIST_ENTRY(inpcbport) phd_hash;
@@ -161,19 +161,19 @@ flowchart TD
     PH -->|"inp_portlist membership"| I
 ```
 
-These are index memberships, not three extra allocations of the PCB. `in_pcbinshash()` selects the tuple bucket, finds or allocates a port head, completes configured namespace work, stores `inp_phd`, inserts both links and sets `INP2_INHASHLIST`. Its lock-acquisition fallback can drop/reacquire the socket lock; it checks death afterward. [Lock transition and bucket selection](../../xnu/bsd/netinet/in_pcb.c#L2722-L2768), [port-head allocation and publication](../../xnu/bsd/netinet/in_pcb.c#L2770-L2828).
+These are index memberships, not three extra allocations of the PCB. `in_pcbinshash()` selects the tuple bucket, finds or allocates a port head, completes configured namespace work, stores `inp_phd`, inserts both links and sets `INP2_INHASHLIST`. Its lock-acquisition fallback can drop/reacquire the socket lock; it checks death afterward. [Lock transition and bucket selection](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2722-L2768), [port-head allocation and publication](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2770-L2828).
 
-The surrounding bind transaction must revalidate after its own lock drop. If insertion fails, the IPv4 bind body resets local address/port, last interface and anonymous-port state and releases its namespace token. The insertion routine itself can return after a port head has already been allocated; do not describe all its intermediate state as one indivisible commit. On ordinary removal, an empty port head is unlinked and freed after removing the PCB's port membership. [Bind recheck/rollback](../../xnu/bsd/netinet/in_pcb.c#L1291-L1341), [insertion failure point](../../xnu/bsd/netinet/in_pcb.c#L2782-L2809), [last-port-member removal](../../xnu/bsd/netinet/in_pcb.c#L2921-L2938).
+The surrounding bind transaction must revalidate after its own lock drop. If insertion fails, the IPv4 bind body resets local address/port, last interface and anonymous-port state and releases its namespace token. The insertion routine itself can return after a port head has already been allocated; do not describe all its intermediate state as one indivisible commit. On ordinary removal, an empty port head is unlinked and freed after removing the PCB's port membership. [Bind recheck/rollback](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L1291-L1341), [insertion failure point](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2782-L2809), [last-port-member removal](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2921-L2938).
 
 Connect/disconnect can rehash a PCB as its foreign tuple changes. `in_pcbrehash()` explicitly does not handle changing the local port because the port-head membership would also need updating. Follow the [bind/connect operation chapter](../subsystems/networking/internet-pcbs-ports-and-lifetime.md) and [IPv6 socket routes](../subsystems/networking/ipv6-sockets-and-packet-options.md) for admission and namespace-reservation details.
 
 ## 4. Wanted references protect the gap between table and socket locks
 
-`inp_wantcnt` is not a conventional general-purpose “retain this TCP object” API. A table or timer walker uses it while handing a selected PCB to the socket-lock domain. `WNT_STOPUSING` is `0xffff`; acquire compares the low 16 bits against that sentinel and uses a 32-bit compare-and-swap to increment. It does not separately inspect `inp_state` in that branch, despite the broader nearby comment. [Modes and sentinel](../../xnu/bsd/netinet/in_pcb.h#L893-L907), [actual acquire branch](../../xnu/bsd/netinet/in_pcb.c#L3017-L3031).
+`inp_wantcnt` is not a conventional general-purpose “retain this TCP object” API. A table or timer walker uses it while handing a selected PCB to the socket-lock domain. `WNT_STOPUSING` is `0xffff`; acquire compares the low 16 bits against that sentinel and uses a 32-bit compare-and-swap to increment. It does not separately inspect `inp_state` in that branch, despite the broader nearby comment. [Modes and sentinel](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L893-L907), [actual acquire branch](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3017-L3031).
 
-[Source: `bsd/netinet/in_pcb.c`, lines 3023–3031](../../xnu/bsd/netinet/in_pcb.c#L3023-L3031).
+[Source: `bsd/netinet/in_pcb.c`, lines 3023–3031](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3023-L3031).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/in_pcb.c#L3023-L3031 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3023-L3031 -->
 ```c
 		do {
 			origwant = *wantcnt;
@@ -186,7 +186,7 @@ Connect/disconnect can rehash a PCB as its foreign tuple changes. `in_pcbrehash(
 		return WNT_ACQUIRE;
 ```
 
-`WNT_STOPUSING` first establishes `inp_state = DEAD` under socket protection and schedules GC. It attempts to replace a zero wanted count with the sentinel; if wanted users remain, the count can stay nonzero even though this operation returns `WNT_STOPUSING`. `WNT_RELEASE` decrements through CAS under socket protection, then checks death and revisits the stop-using logic. Thus **dead state**, **stop-using return value** and **sentinel installed in the field** are three distinguishable observations. Disposal checks the field itself. [Stop transition](../../xnu/bsd/netinet/in_pcb.c#L2983-L3015), [release/recheck](../../xnu/bsd/netinet/in_pcb.c#L3033-L3071), [disposal gates](../../xnu/bsd/netinet/in_pcb.c#L2081-L2102).
+`WNT_STOPUSING` first establishes `inp_state = DEAD` under socket protection and schedules GC. It attempts to replace a zero wanted count with the sentinel; if wanted users remain, the count can stay nonzero even though this operation returns `WNT_STOPUSING`. `WNT_RELEASE` decrements through CAS under socket protection, then checks death and revisits the stop-using logic. Thus **dead state**, **stop-using return value** and **sentinel installed in the field** are three distinguishable observations. Disposal checks the field itself. [Stop transition](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2983-L3015), [release/recheck](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3033-L3071), [disposal gates](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2081-L2102).
 
 ```mermaid
 sequenceDiagram
@@ -207,9 +207,9 @@ sequenceDiagram
     R->>S: Unlock and drop use reference
 ```
 
-The outer shared protection differs by caller. `in_pcblookup_hash()` takes shared `ipi_lock`; its exact-match helper applies family/interface/policy checks and acquires the wanted reference before returning. A timer walker instead holds the global timer-list mutex while choosing its embedded node. Neither lock may be silently replaced by a wanted reference before the object has been safely found. [Hash lookup](../../xnu/bsd/netinet/in_pcb.c#L2564-L2607), [wrapper lock](../../xnu/bsd/netinet/in_pcb.c#L2674-L2688), [timer handoff](../../xnu/bsd/netinet/tcp_timer.c#L2177-L2201).
+The outer shared protection differs by caller. `in_pcblookup_hash()` takes shared `ipi_lock`; its exact-match helper applies family/interface/policy checks and acquires the wanted reference before returning. A timer walker instead holds the global timer-list mutex while choosing its embedded node. Neither lock may be silently replaced by a wanted reference before the object has been safely found. [Hash lookup](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2564-L2607), [wrapper lock](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2674-L2688), [timer handoff](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L2177-L2201).
 
-Normal TCP locking obtains `inpcb_mtx` and optionally increments `so_usecount`; unlocking balances that count. For an MPTCP subflow, `tcp_lock()` redirects to the parent socket and rechecks the subflow flag after acquiring the candidate lock, retrying if attachment changed the lock identity. Its subflow and parent use accounting must be followed in those callbacks. The parent aggregate has a separate lifetime; the mere presence of `t_mptcb` does not create another independently lockable connection. [TCP locking and retry](../../xnu/bsd/netinet/tcp_subr.c#L3523-L3572), [unlock accounting](../../xnu/bsd/netinet/tcp_subr.c#L3576-L3618), [MPTCP lock/lifetime route](../subsystems/networking/mptcp-sessions-and-subflows.md#3-lock-switching-and-deferred-callbacks-protect-the-session).
+Normal TCP locking obtains `inpcb_mtx` and optionally increments `so_usecount`; unlocking balances that count. For an MPTCP subflow, `tcp_lock()` redirects to the parent socket and rechecks the subflow flag after acquiring the candidate lock, retrying if attachment changed the lock identity. Its subflow and parent use accounting must be followed in those callbacks. The parent aggregate has a separate lifetime; the mere presence of `t_mptcb` does not create another independently lockable connection. [TCP locking and retry](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L3523-L3572), [unlock accounting](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L3576-L3618), [MPTCP lock/lifetime route](../subsystems/networking/mptcp-sessions-and-subflows.md#3-lock-switching-and-deferred-callbacks-protect-the-session).
 
 ## 5. Worked tuple lookup and reference ledger
 
@@ -223,9 +223,9 @@ Choose ordinary IPv4 TCP on a **little-endian** machine, with an illustrative 25
 | Tuple bucket | `(0x097100cb ^ 0x00000971 ^ 0xc2eb) & 0xff = 0x51` | Candidate bucket 81. The local address is still checked during tuple equality even though absent from this hash expression. |
 | Local-port bucket | `50000 & 0xff = 0x50` | Bucket 80 contains the port head for 50000 among any colliding port heads. |
 
-[Exact hash macros](../../xnu/bsd/netinet/in_pcb.h#L728-L731), [equality after hashing](../../xnu/bsd/netinet/in_pcb.c#L2578-L2607). IPv6 insertion uses the final 32-bit foreign-address word for bucket selection; scoped full-address comparison remains a separate decision. Do not use hash equality as address/namespace equality. [IPv6 hash key](../../xnu/bsd/netinet/in_pcb.c#L2756-L2763), [scoped input recheck](../../xnu/bsd/netinet/tcp_input.c#L3198-L3215).
+[Exact hash macros](../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L728-L731), [equality after hashing](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2578-L2607). IPv6 insertion uses the final 32-bit foreign-address word for bucket selection; scoped full-address comparison remains a separate decision. Do not use hash equality as address/namespace equality. [IPv6 hash key](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2756-L2763), [scoped input recheck](../../platydoc-data/xnu/bsd/netinet/tcp_input.c#L3198-L3215).
 
-For a packet from the remote endpoint, TCP passes packet source as the foreign address/port and packet destination as local. It obtains the socket lock, releases the wanted reference and tests the result. For a connected IPv4 endpoint it then rechecks all tuple fields; a changed tuple can cause one new lookup attempt. Only afterward does it obtain `tp = intotcpcb(inp)` and reject absent or closed transport state. [Packet lookup arguments](../../xnu/bsd/netinet/tcp_input.c#L3054-L3068), [handoff](../../xnu/bsd/netinet/tcp_input.c#L3158-L3178), [tuple retry and TCP state access](../../xnu/bsd/netinet/tcp_input.c#L3180-L3234).
+For a packet from the remote endpoint, TCP passes packet source as the foreign address/port and packet destination as local. It obtains the socket lock, releases the wanted reference and tests the result. For a connected IPv4 endpoint it then rechecks all tuple fields; a changed tuple can cause one new lookup attempt. Only afterward does it obtain `tp = intotcpcb(inp)` and reject absent or closed transport state. [Packet lookup arguments](../../platydoc-data/xnu/bsd/netinet/tcp_input.c#L3054-L3068), [handoff](../../platydoc-data/xnu/bsd/netinet/tcp_input.c#L3158-L3178), [tuple retry and TCP state access](../../platydoc-data/xnu/bsd/netinet/tcp_input.c#L3180-L3234).
 
 The following ledger chooses a connection with one non-receive socket use reference and no timer-list hold at the start. Actual counts can include more owners.
 
@@ -237,17 +237,17 @@ The following ledger chooses a connection with one non-receive socket use refere
 | Receiver releases wanted hold on a live PCB | `0` | `2` | Tuple and TCP state must still be revalidated before processing. |
 | Receiver unlocks with reference release | `0` | `1` | The original socket owner remains. |
 
-For the competing-close branch, start after the wanted acquire but let the closer obtain the socket lock first. It marks the PCB dead while wanted remains `1`, finishes its work and releases its own socket use reference. GC cannot dispose because wanted is not the sentinel. The receiver can still acquire the socket lock, decrement wanted to zero and observe dead state; stop-using logic then attempts the sentinel transition. The receiver abandons packet processing and drops its socket use reference. Once wanted is actually `0xffff` and socket usecount is zero, GC can proceed under the required locks. [Stop/release body](../../xnu/bsd/netinet/in_pcb.c#L2983-L3071), [TCP input rejection](../../xnu/bsd/netinet/tcp_input.c#L3171-L3177), [final gates](../../xnu/bsd/netinet/in_pcb.c#L2081-L2102).
+For the competing-close branch, start after the wanted acquire but let the closer obtain the socket lock first. It marks the PCB dead while wanted remains `1`, finishes its work and releases its own socket use reference. GC cannot dispose because wanted is not the sentinel. The receiver can still acquire the socket lock, decrement wanted to zero and observe dead state; stop-using logic then attempts the sentinel transition. The receiver abandons packet processing and drops its socket use reference. Once wanted is actually `0xffff` and socket usecount is zero, GC can proceed under the required locks. [Stop/release body](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2983-L3071), [TCP input rejection](../../platydoc-data/xnu/bsd/netinet/tcp_input.c#L3171-L3177), [final gates](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2081-L2102).
 
 ## 6. Timers and subordinate transport records have distinct owners
 
 ### An embedded timer node can own a socket reference
 
-`tcptimerentry` stores list links, timer-start time, the selected timer index/mode and runtime. It is embedded in `tcpcb`; the global list stores a link to it and has its own mutex/thread-call state. On first insertion, `tcp_sched_timers()` adds a **socket use reference**, not a `tcpcb`-specific reference. This can keep the aggregate pending after a user descriptor closes. [Timer representation](../../xnu/bsd/netinet/tcp_timer.h#L220-L249), [timer scheduling](../../xnu/bsd/netinet/tcp_timer.c#L2324-L2346).
+`tcptimerentry` stores list links, timer-start time, the selected timer index/mode and runtime. It is embedded in `tcpcb`; the global list stores a link to it and has its own mutex/thread-call state. On first insertion, `tcp_sched_timers()` adds a **socket use reference**, not a `tcpcb`-specific reference. This can keep the aggregate pending after a user descriptor closes. [Timer representation](../../platydoc-data/xnu/bsd/netinet/tcp_timer.h#L220-L249), [timer scheduling](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L2324-L2346).
 
-[Source: `bsd/netinet/tcp_timer.c`, lines 2338–2341](../../xnu/bsd/netinet/tcp_timer.c#L2338-L2341).
+[Source: `bsd/netinet/tcp_timer.c`, lines 2338–2341](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L2338-L2341).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/tcp_timer.c#L2338-L2341 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L2338-L2341 -->
 ```c
 			tp->t_inpcb->inp_socket->so_usecount++;
 
@@ -255,23 +255,23 @@ For the competing-close branch, start after the wanted acquire but let the close
 			tp->t_flags |= TF_TIMER_ONLIST;
 ```
 
-The timer worker uses the wanted handoff, then rechecks `te_index` and `te_runtime` after obtaining the socket lock. Cancellation/rescheduling could have occurred while it waited. `tcp_remove_timer()` removes the embedded link, adjusts the walker's saved-next pointer if needed, drops the insertion use reference, clears `TF_TIMER_ONLIST` and clears links. `tcp_canceltimers()` calls that removal helper first, then clears timer values and sets the selected index to `TCPT_NONE`: cancellation therefore also releases any ordinary timer-list membership and its socket use reference. [Connection-timer revalidation](../../xnu/bsd/netinet/tcp_timer.c#L1980-L2024), [list removal](../../xnu/bsd/netinet/tcp_timer.c#L1852-L1884), [cancellation body](../../xnu/bsd/netinet/tcp_timer.c#L861-L873).
+The timer worker uses the wanted handoff, then rechecks `te_index` and `te_runtime` after obtaining the socket lock. Cancellation/rescheduling could have occurred while it waited. `tcp_remove_timer()` removes the embedded link, adjusts the walker's saved-next pointer if needed, drops the insertion use reference, clears `TF_TIMER_ONLIST` and clears links. `tcp_canceltimers()` calls that removal helper first, then clears timer values and sets the selected index to `TCPT_NONE`: cancellation therefore also releases any ordinary timer-list membership and its socket use reference. [Connection-timer revalidation](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L1980-L2024), [list removal](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L1852-L1884), [cancellation body](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L861-L873).
 
 ### Reassembly metadata owns packet chains until delivery or discard
 
-A `tseg_qent` contains intrusive linkage, segment length, a pointer to a TCP header and an mbuf-chain pointer. The header view and packet bytes are not stored in the queue descriptor itself. `tcp_create_reass_qent()` first allocates a descriptor under protocol memory limits using `Z_NOPAGEWAIT`; failure returns null before taking ownership into a new descriptor. Success records the chain/header, increments queue counts and accounts for chain capacity. [Descriptor layout](../../xnu/bsd/netinet/tcp_var.h#L180-L187), [creation and allocation gates](../../xnu/bsd/netinet/tcp_subr.c#L1707-L1765).
+A `tseg_qent` contains intrusive linkage, segment length, a pointer to a TCP header and an mbuf-chain pointer. The header view and packet bytes are not stored in the queue descriptor itself. `tcp_create_reass_qent()` first allocates a descriptor under protocol memory limits using `Z_NOPAGEWAIT`; failure returns null before taking ownership into a new descriptor. Success records the chain/header, increments queue counts and accounts for chain capacity. [Descriptor layout](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L180-L187), [creation and allocation gates](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1707-L1765).
 
-`tcp_destroy_reass_qent()` subtracts chain-capacity accounting, decrements counts, frees the descriptor, and **returns the mbuf chain**. It does not itself free those bytes. The caller determines whether the chain transfers onward or is discarded. Final `tcp_free_reassq()` removes each descriptor and calls `m_freem()` on the returned chain. [Descriptor-versus-chain release](../../xnu/bsd/netinet/tcp_subr.c#L1693-L1704), [destroy helper](../../xnu/bsd/netinet/tcp_subr.c#L1733-L1772), [mbuf ownership](mbufs-and-external-storage.md).
+`tcp_destroy_reass_qent()` subtracts chain-capacity accounting, decrements counts, frees the descriptor, and **returns the mbuf chain**. It does not itself free those bytes. The caller determines whether the chain transfers onward or is discarded. Final `tcp_free_reassq()` removes each descriptor and calls `m_freem()` on the returned chain. [Descriptor-versus-chain release](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1693-L1704), [destroy helper](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1733-L1772), [mbuf ownership](mbufs-and-external-storage.md).
 
 ### Recovery metadata can remain allocated after leaving active indexes
 
-SACK holes store sequence intervals and a retransmission cursor, not retained packet payload. Their typed allocator checks per-connection hole count and TCP memory limits before allocating; removal frees the node and balances accounting. `sackhint.nexthole` is cleared when the scoreboard is emptied. [Hole layout](../../xnu/bsd/netinet/tcp_var.h#L189-L206), [allocation/free](../../xnu/bsd/netinet/tcp_sack.c#L238-L274), [scoreboard cleanup](../../xnu/bsd/netinet/tcp_sack.c#L667-L677).
+SACK holes store sequence intervals and a retransmission cursor, not retained packet payload. Their typed allocator checks per-connection hole count and TCP memory limits before allocating; removal frees the node and balances accounting. `sackhint.nexthole` is cleared when the scoreboard is emptied. [Hole layout](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L189-L206), [allocation/free](../../platydoc-data/xnu/bsd/netinet/tcp_sack.c#L238-L274), [scoreboard cleanup](../../platydoc-data/xnu/bsd/netinet/tcp_sack.c#L667-L677).
 
-`tcp_seg_sent` similarly describes transmitted sequence ranges, timestamps and state, with separate links for a time-ordered queue, RB tree, acknowledged work list and free-node pool. `tcp_seg_alloc_init()` first reuses and zeroes a pool node; only an empty pool reaches the memory-limit check and typed allocation. Deleting a no-longer-indexed node can put it in the pool instead of returning its bytes to the allocator. The limit is 64 pooled items in this snapshot. [Node and pool layout](../../xnu/bsd/netinet/tcp_var.h#L218-L242), [pool-first allocation](../../xnu/bsd/netinet/tcp_subr.c#L4173-L4195).
+`tcp_seg_sent` similarly describes transmitted sequence ranges, timestamps and state, with separate links for a time-ordered queue, RB tree, acknowledged work list and free-node pool. `tcp_seg_alloc_init()` first reuses and zeroes a pool node; only an empty pool reaches the memory-limit check and typed allocation. Deleting a no-longer-indexed node can put it in the pool instead of returning its bytes to the allocator. The limit is 64 pooled items in this snapshot. [Node and pool layout](../../platydoc-data/xnu/bsd/netinet/tcp_var.h#L218-L242), [pool-first allocation](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4173-L4195).
 
-[Source: `bsd/netinet/tcp_subr.c`, lines 4813–4823](../../xnu/bsd/netinet/tcp_subr.c#L4813-L4823).
+[Source: `bsd/netinet/tcp_subr.c`, lines 4813–4823](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4813-L4823).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/tcp_subr.c#L4813-L4823 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4813-L4823 -->
 ```c
 tcp_seg_delete(struct tcpcb *tp, struct tcp_seg_sent *seg)
 {
@@ -286,17 +286,17 @@ tcp_seg_delete(struct tcpcb *tp, struct tcp_seg_sent *seg)
 }
 ```
 
-`tcp_segs_sent_clean(tp, free_segs)` removes active queue/tree membership, recycles nodes and resets accounting; when `free_segs` is true it also drains the free pool. `tcp_close()` passes true. A separate memory-shortage route cleans this storage and disables RACK. Thus an empty active segment list can still have allocated pool storage, while final TCP cleanup drains both. [Full cleanup](../../xnu/bsd/netinet/tcp_subr.c#L4826-L4859), [RACK allocation fallback](../../xnu/bsd/netinet/tcp_subr.c#L4861-L4866), [close call](../../xnu/bsd/netinet/tcp_subr.c#L1973-L1977).
+`tcp_segs_sent_clean(tp, free_segs)` removes active queue/tree membership, recycles nodes and resets accounting; when `free_segs` is true it also drains the free pool. `tcp_close()` passes true. A separate memory-shortage route cleans this storage and disables RACK. Thus an empty active segment list can still have allocated pool storage, while final TCP cleanup drains both. [Full cleanup](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4826-L4859), [RACK allocation fallback](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4861-L4866), [close call](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1973-L1977).
 
-The DSACK retransmission list uses another typed node, `tcp_rxt_seg`; `tcp_rxtseg_clean()` removes and frees those entries. Bandwidth measurement uses `tcp_bwmeas_zone`, with a separate allocator/free helper that clears `t_bwmeas` and its feature flag. In contrast, `tcp_cc_allocate_state()` points into `_t_ccstate` and zeroes it for selected congestion algorithms. Provider-specific congestion cleanup remains a callback. [Retransmission cleanup](../../xnu/bsd/netinet/tcp_subr.c#L4097-L4108), [bandwidth allocation/free](../../xnu/bsd/netinet/tcp_subr.c#L2119-L2134), [embedded congestion state](../../xnu/bsd/netinet/tcp_cc.c#L205-L215), [algorithm cleanup calls](../../xnu/bsd/netinet/tcp_subr.c#L2011-L2019).
+The DSACK retransmission list uses another typed node, `tcp_rxt_seg`; `tcp_rxtseg_clean()` removes and frees those entries. Bandwidth measurement uses `tcp_bwmeas_zone`, with a separate allocator/free helper that clears `t_bwmeas` and its feature flag. In contrast, `tcp_cc_allocate_state()` points into `_t_ccstate` and zeroes it for selected congestion algorithms. Provider-specific congestion cleanup remains a callback. [Retransmission cleanup](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L4097-L4108), [bandwidth allocation/free](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L2119-L2134), [embedded congestion state](../../platydoc-data/xnu/bsd/netinet/tcp_cc.c#L205-L215), [algorithm cleanup calls](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L2011-L2019).
 
 ## 7. Route references, interface associations and policy resources
 
-The PCB route union is an owned cache of referenced routing objects. TCP output creates a local route representation, copies from the PCB while socket-locked, can drop the socket lock around lower-layer output, and later merges the local state back. `route_copyout()` adds references for both route and source-interface address. [PCB copy wrappers](../../xnu/bsd/netinet/in_pcb.c#L3162-L3192), [IPv6 wrappers](../../xnu/bsd/netinet6/in6_pcb.c#L1680-L1707), [output copyout](../../xnu/bsd/netinet/tcp_output.c#L3743-L3751), [copyback](../../xnu/bsd/netinet/tcp_output.c#L3969-L3973).
+The PCB route union is an owned cache of referenced routing objects. TCP output creates a local route representation, copies from the PCB while socket-locked, can drop the socket lock around lower-layer output, and later merges the local state back. `route_copyout()` adds references for both route and source-interface address. [PCB copy wrappers](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3162-L3192), [IPv6 wrappers](../../platydoc-data/xnu/bsd/netinet6/in6_pcb.c#L1680-L1707), [output copyout](../../platydoc-data/xnu/bsd/netinet/tcp_output.c#L3743-L3751), [copyback](../../platydoc-data/xnu/bsd/netinet/tcp_output.c#L3969-L3973).
 
-[Source: `bsd/net/route.c`, lines 4111–4125](../../xnu/bsd/net/route.c#L4111-L4125).
+[Source: `bsd/net/route.c`, lines 4111–4125](../../platydoc-data/xnu/bsd/net/route.c#L4111-L4125).
 
-<!-- source-excerpt: ../../xnu/bsd/net/route.c#L4111-L4125 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/net/route.c#L4111-L4125 -->
 ```c
 route_copyout(struct route *dst, const struct route *src, size_t length)
 {
@@ -315,9 +315,9 @@ route_copyout(struct route *dst, const struct route *src, size_t length)
 }
 ```
 
-`route_copyin()` reconciles an empty destination, identical route, changed route or absent source route, transferring or dropping references accordingly and clearing source ownership when done. `ROUTE_RELEASE` ultimately releases `ro_rt` and `ro_srcia`. The IPv4 wrapper discards a stale or non-IPv4 cached route before copying; the IPv6 wrapper checks that a non-null route is IPv6. These helpers carry lifetime obligations that a struct assignment would omit. [Copyin decisions](../../xnu/bsd/net/route.c#L4128-L4205), [release body](../../xnu/bsd/net/route.c#L4097-L4105).
+`route_copyin()` reconciles an empty destination, identical route, changed route or absent source route, transferring or dropping references accordingly and clearing source ownership when done. `ROUTE_RELEASE` ultimately releases `ro_rt` and `ro_srcia`. The IPv4 wrapper discards a stale or non-IPv4 cached route before copying; the IPv6 wrapper checks that a non-null route is IPv6. These helpers carry lifetime obligations that a struct assignment would omit. [Copyin decisions](../../platydoc-data/xnu/bsd/net/route.c#L4128-L4205), [release body](../../platydoc-data/xnu/bsd/net/route.c#L4097-L4105).
 
-By contrast, `inp_bindif_common()` stores `inp_boundifp` and updates `INP_BOUND_IF` without adding a reference there, then invalidates the route cache. `inp_bindif()` resolves the index under the interface-head lock. A different source-selection result explicitly calls `ifnet_reference(ifp)` **for the caller** before returning `outif`. These are different contracts even when the addresses refer to the same interface. The wider interface detach/storage protocol is outside this selected field trace. [Bound-interface storage](../../xnu/bsd/netinet/in_pcb.c#L3198-L3242), [retained caller result](../../xnu/bsd/netinet/in_pcb.c#L1788-L1805).
+By contrast, `inp_bindif_common()` stores `inp_boundifp` and updates `INP_BOUND_IF` without adding a reference there, then invalidates the route cache. `inp_bindif()` resolves the index under the interface-head lock. A different source-selection result explicitly calls `ifnet_reference(ifp)` **for the caller** before returning `outif`. These are different contracts even when the addresses refer to the same interface. The wider interface detach/storage protocol is outside this selected field trace. [Bound-interface storage](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L3198-L3242), [retained caller result](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L1788-L1805).
 
 | Conditional/resource group | What is owned or cached | Selected cleanup boundary |
 | --- | --- | --- |
@@ -328,15 +328,15 @@ By contrast, `inp_bindif_common()` stores `inp_boundifp` and updates `INP_BOUND_
 | Skywalk namespace tokens | Registration ownership for local tuple/port, including optional IPv4 wildcard reservation | Detach releases unless TIME_WAIT preserves the reservation; final list removal releases remaining tokens. |
 | Keepalive data and statistics locus | Offload bytes and provider-specific tracking | IPv4 detach frees its recorded keepalive buffer; statistics detach happens before endpoint information is cleared. TCP separately clears interface-counted keepalive offload. |
 
-[IPv4 detach](../../xnu/bsd/netinet/in_pcb.c#L1982-L2038), [IPv6 detach](../../xnu/bsd/netinet6/in6_pcb.c#L885-L953), [NECP cleanup](../../xnu/bsd/net/necp_client.c#L13101-L13143), [namespace release at removal](../../xnu/bsd/netinet/in_pcb.c#L2939-L2943), [TCP offload cleanup](../../xnu/bsd/netinet/tcp_subr.c#L1994-L1998). Follow [IPv6 packet-option storage](../subsystems/networking/ipv6-sockets-and-packet-options.md), [NECP clients](../subsystems/networking/necp-clients-and-flow-registration.md) and [Skywalk namespace lifetime](../subsystems/networking/skywalk-lifecycles.md) for their full mechanisms.
+[IPv4 detach](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L1982-L2038), [IPv6 detach](../../platydoc-data/xnu/bsd/netinet6/in6_pcb.c#L885-L953), [NECP cleanup](../../platydoc-data/xnu/bsd/net/necp_client.c#L13101-L13143), [namespace release at removal](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2939-L2943), [TCP offload cleanup](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1994-L1998). Follow [IPv6 packet-option storage](../subsystems/networking/ipv6-sockets-and-packet-options.md), [NECP clients](../subsystems/networking/necp-clients-and-flow-registration.md) and [Skywalk namespace lifetime](../subsystems/networking/skywalk-lifecycles.md) for their full mechanisms.
 
 ## 8. Close, detach and final aggregate release
 
-TCP protocol close first cancels timer values and removes flow integration. It may then defer cleanup if lower-layer sends remain in progress or closing is already recorded. This matters because returning IP output can merge route state back into the PCB. Setting `TF_CLOSING` records work to resume; a null return from `tcp_close()` does not by itself mean the allocation was freed. [Close entry and deferral](../../xnu/bsd/netinet/tcp_subr.c#L1782-L1818), [send-in-progress accounting](../../xnu/bsd/netinet/tcp_output.c#L3770-L3778), [output return](../../xnu/bsd/netinet/tcp_output.c#L3903-L3908).
+TCP protocol close first cancels timer values and removes flow integration. It may then defer cleanup if lower-layer sends remain in progress or closing is already recorded. This matters because returning IP output can merge route state back into the PCB. Setting `TF_CLOSING` records work to resume; a null return from `tcp_close()` does not by itself mean the allocation was freed. [Close entry and deferral](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1782-L1818), [send-in-progress accounting](../../platydoc-data/xnu/bsd/netinet/tcp_output.c#L3770-L3778), [output return](../../platydoc-data/xnu/bsd/netinet/tcp_output.c#L3903-L3908).
 
-[Source: `bsd/netinet/tcp_subr.c`, lines 1814–1818](../../xnu/bsd/netinet/tcp_subr.c#L1814-L1818).
+[Source: `bsd/netinet/tcp_subr.c`, lines 1814–1818](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1814-L1818).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/tcp_subr.c#L1814-L1818 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1814-L1818 -->
 ```c
 	if ((tp->t_flags & TF_CLOSING) ||
 	    inp->inp_sndinprog_cnt > 0) {
@@ -345,9 +345,9 @@ TCP protocol close first cancels timer values and removes flow integration. It m
 	}
 ```
 
-When cleanup proceeds, `tcp_close()` releases reassembly chains, holes, ACK-notification state, bandwidth/retransmission/sent-segment records and packet-list storage; records `TCPS_CLOSED`; clears offload and congestion resources; then calls the family-specific PCB detach. `soisdisconnected()` follows detach because that notification may unlock the socket. These bodies do not independently free the embedded `tcpcb`, and do not clear `inp_ppcb` as a liveness signal. [Subordinate cleanup](../../xnu/bsd/netinet/tcp_subr.c#L1961-L1986), [final detach/notification](../../xnu/bsd/netinet/tcp_subr.c#L1994-L2044).
+When cleanup proceeds, `tcp_close()` releases reassembly chains, holes, ACK-notification state, bandwidth/retransmission/sent-segment records and packet-list storage; records `TCPS_CLOSED`; clears offload and congestion resources; then calls the family-specific PCB detach. `soisdisconnected()` follows detach because that notification may unlock the socket. These bodies do not independently free the embedded `tcpcb`, and do not clear `inp_ppcb` as a liveness signal. [Subordinate cleanup](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1961-L1986), [final detach/notification](../../platydoc-data/xnu/bsd/netinet/tcp_subr.c#L1994-L2044).
 
-`in_pcbdetach()` / `in6_pcbdetach()` mark dead through stop-using, release family/provider resources, set `SOF_PCBCLEARING` and schedule GC. Socket/PCB pointers and table membership can still exist afterward. The clearing flag suppresses repeating the main cleanup block; it is not proof that wanted users drained or that the allocation is gone. [IPv4 detach](../../xnu/bsd/netinet/in_pcb.c#L2003-L2071), [IPv6 detach](../../xnu/bsd/netinet6/in6_pcb.c#L905-L954).
+`in_pcbdetach()` / `in6_pcbdetach()` mark dead through stop-using, release family/provider resources, set `SOF_PCBCLEARING` and schedule GC. Socket/PCB pointers and table membership can still exist afterward. The clearing flag suppresses repeating the main cleanup block; it is not proof that wanted users drained or that the allocation is gone. [IPv4 detach](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2003-L2071), [IPv6 detach](../../platydoc-data/xnu/bsd/netinet6/in6_pcb.c#L905-L954).
 
 ```mermaid
 flowchart TD
@@ -364,19 +364,19 @@ The deferred-output node represents unfinished work, not an eventual-success gua
 
 ### TIME_WAIT changes enumeration without allocating a smaller TCP record
 
-`add_to_time_wait_locked()` removes `inp_list` from ordinary enumeration on first entry, sets `INP2_TIMEWAIT`, increments `ipi_twcount` and links the existing embedded `t_twentry` into `tcp_tw_tailq`. It removes the ordinary timer-list entry if present and uses `t_timer[TCPT_2MSL]` as an absolute `tcp_now + delay` deadline in this path. The aggregate remains allocated; hash/port identity is not replaced by a miniature TIME_WAIT object. [Queue move and deadline](../../xnu/bsd/netinet/tcp_timer.c#L543-L574).
+`add_to_time_wait_locked()` removes `inp_list` from ordinary enumeration on first entry, sets `INP2_TIMEWAIT`, increments `ipi_twcount` and links the existing embedded `t_twentry` into `tcp_tw_tailq`. It removes the ordinary timer-list entry if present and uses `t_timer[TCPT_2MSL]` as an absolute `tcp_now + delay` deadline in this path. The aggregate remains allocated; hash/port identity is not replaced by a miniature TIME_WAIT object. [Queue move and deadline](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L543-L574).
 
-TCP GC enumerates both the ordinary list and TIME_WAIT queue under exclusive `ipi_lock`. Its collector has special handling for listening-queue overflow/embryonic holds and MPTCP parent/subflow relations; do not assume every intermediate usecount of one means an application fd. It ultimately reaches disposal with zero socket users and the stop sentinel. UDP GC applies the same final count gates with its own retry walk. [TCP scan](../../xnu/bsd/netinet/tcp_timer.c#L807-L851), [TCP collector gates](../../xnu/bsd/netinet/tcp_timer.c#L657-L765), [UDP collector](../../xnu/bsd/netinet/udp_usrreq.c#L2827-L2884).
+TCP GC enumerates both the ordinary list and TIME_WAIT queue under exclusive `ipi_lock`. Its collector has special handling for listening-queue overflow/embryonic holds and MPTCP parent/subflow relations; do not assume every intermediate usecount of one means an application fd. It ultimately reaches disposal with zero socket users and the stop sentinel. UDP GC applies the same final count gates with its own retry walk. [TCP scan](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L807-L851), [TCP collector gates](../../platydoc-data/xnu/bsd/netinet/tcp_timer.c#L657-L765), [UDP collector](../../platydoc-data/xnu/bsd/netinet/udp_usrreq.c#L2827-L2884).
 
 ### Disposal frees one selected allocation
 
-`in_pcbdispose()` checks zero `so_usecount`, exact `inp_wantcnt == WNT_STOPUSING`, and exclusive table locking. It advances generation bookkeeping and removes tuple/port and enumeration membership. The last member frees its local-port head; TIME_WAIT uses its own queue removal. Flow-control-tree and namespace memberships have separate removal calls. [Disposal gates](../../xnu/bsd/netinet/in_pcb.c#L2076-L2106), [membership cleanup](../../xnu/bsd/netinet/in_pcb.c#L2912-L2964).
+`in_pcbdispose()` checks zero `so_usecount`, exact `inp_wantcnt == WNT_STOPUSING`, and exclusive table locking. It advances generation bookkeeping and removes tuple/port and enumeration membership. The last member frees its local-port head; TIME_WAIT uses its own queue removal. Flow-control-tree and namespace memberships have separate removal calls. [Disposal gates](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2076-L2106), [membership cleanup](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2912-L2964).
 
-For a socket with `PR_PCBLOCK`, disposal performs remaining socket cleanup, releases buffer storage if needed, verifies no listener head remains, unlocks the PCB mutex, removes configured NECP callbacks and destroys that mutex. It then clears both socket/PCB associations, disposes NECP state and releases a route that may have been cached after detach. Only then does it free the PCB allocation and call `sodealloc()`. [Mutex/socket cleanup](../../xnu/bsd/netinet/in_pcb.c#L2108-L2131).
+For a socket with `PR_PCBLOCK`, disposal performs remaining socket cleanup, releases buffer storage if needed, verifies no listener head remains, unlocks the PCB mutex, removes configured NECP callbacks and destroys that mutex. It then clears both socket/PCB associations, disposes NECP state and releases a route that may have been cached after detach. Only then does it free the PCB allocation and call `sodealloc()`. [Mutex/socket cleanup](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2108-L2131).
 
-[Source: `bsd/netinet/in_pcb.c`, lines 2133–2148](../../xnu/bsd/netinet/in_pcb.c#L2133-L2148).
+[Source: `bsd/netinet/in_pcb.c`, lines 2133–2148](../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2133-L2148).
 
-<!-- source-excerpt: ../../xnu/bsd/netinet/in_pcb.c#L2133-L2148 -->
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/netinet/in_pcb.c#L2133-L2148 -->
 ```c
 		so->so_flags |= SOF_PCBCLEARING;
 		so->so_pcb = NULL;

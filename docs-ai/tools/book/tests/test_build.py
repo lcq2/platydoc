@@ -43,7 +43,7 @@ class SourcePreviewTests(unittest.TestCase):
         self.assertGreaterEqual(int(citation.attrs["data-end"]), heading["line"])
         self.assertTrue(citation.attrs["href"].endswith("#allocation-flags"))
         self.assertTrue(citation.attrs["data-source-payload"].startswith("assets/sources/"))
-        self.assertEqual(citation.attrs["data-source"], "xnu/doc/allocators/api-basics.md")
+        self.assertEqual(citation.attrs["data-source"], "platydoc-data/xnu/doc/allocators/api-basics.md")
 
     def test_line_ranges_keep_exact_endpoints_and_nested_relative_links(self):
         page = {"file": DOCS / "subsystems/runtime/README.md",
@@ -53,7 +53,7 @@ class SourcePreviewTests(unittest.TestCase):
         citation = Node("a", {"href": os.path.relpath(target, page["file"].parent)
                              + "#L40-L50"})
         Book([], Path("/unused-output"), Path("/unused-cache")).convert_link(citation, page)
-        self.assertEqual(citation.attrs["href"], "../../_sources/xnu/osfmk/kern/ast.c.html#L40-L50")
+        self.assertEqual(citation.attrs["href"], "../../_sources/platydoc-data/xnu/osfmk/kern/ast.c.html#L40-L50")
         self.assertEqual((citation.attrs["data-start"], citation.attrs["data-end"]), ("40", "50"))
 
     def test_project_tools_and_upstream_files_have_distinct_source_identities(self):
@@ -62,13 +62,13 @@ class SourcePreviewTests(unittest.TestCase):
                 "url": "development/building-html.html", "title": "Building"}
         book = Book([], Path("/unused-output"), Path("/unused-cache"))
         for target, expected in ((ROOT / "make_docs.py", "make_docs.py"),
-                                 (SOURCE_ROOT / "README.md", "xnu/README.md")):
+                                 (SOURCE_ROOT / "README.md", "platydoc-data/xnu/README.md")):
             with self.subTest(target=target):
                 citation = Node("a", {"href": os.path.relpath(target, page["file"].parent)})
                 book.convert_link(citation, page)
                 self.assertEqual(citation.attrs["data-source"], expected)
                 self.assertEqual(citation.attrs["href"], "../_sources/" + expected + ".html")
-        self.assertEqual(set(book.sources), {"make_docs.py", "xnu/README.md"})
+        self.assertEqual(set(book.sources), {"make_docs.py", "platydoc-data/xnu/README.md"})
 
     def test_generated_output_and_cache_cannot_write_inside_xnu(self):
         validate_output_paths(ROOT / "docs-ai-html", ROOT / ".docs-cache")
@@ -86,8 +86,8 @@ class LicenseTests(unittest.TestCase):
     def test_shared_footer_scopes_license_and_keeps_nested_offline_links(self):
         for current in (
             "index.html", "concept-index.html", "build-info.html",
-            "subsystems/vm/pmap.html", "_sources/xnu/osfmk/vm/vm_map.c.html",
-            "_directories/xnu/osfmk.html",
+            "subsystems/vm/pmap.html", "_sources/platydoc-data/xnu/osfmk/vm/vm_map.c.html",
+            "_directories/platydoc-data/xnu/osfmk.html",
         ):
             with self.subTest(page=current):
                 dom = DOM(shell("Example", "<h1>Example</h1>", current)).root
@@ -114,7 +114,7 @@ class LicenseTests(unittest.TestCase):
             original = {
                 "LICENSE-DOCS": b"CC license text\r\n",
                 "LICENSE": b"GPL license text\n",
-                "xnu/APPLE_LICENSE": b"Apple license text\n",
+                "platydoc-data/xnu/APPLE_LICENSE": b"Apple license text\n",
                 "book/vendor/mermaid/LICENSE.txt": b"Mermaid license\n",
                 "book/vendor/mermaid/THIRD_PARTY_NOTICES.txt": b"Other notices\n",
                 "book/vendor/mermaid/PROVENANCE.txt": b"Provenance\n",
@@ -125,7 +125,7 @@ class LicenseTests(unittest.TestCase):
                 file.write_bytes(data)
             book = Book([], root/"output", root/"cache")
             with patch("book.build.ROOT", root), \
-                    patch("book.build.SOURCE_ROOT", root/"xnu"), \
+                    patch("book.build.SOURCE_ROOT", root/"platydoc-data" / "xnu"), \
                     patch("book.build.HERE", root/"book"):
                 links = register_license_notices(book)
             for filename, source in (
@@ -134,7 +134,7 @@ class LicenseTests(unittest.TestCase):
                 self.assertEqual((book.output/"licenses"/filename).read_bytes(), original[source])
                 self.assertEqual(links[filename], "_sources/" + source + ".html")
             self.assertEqual(set(book.sources), set(original))
-            self.assertEqual(links["APPLE_LICENSE.txt"], "_sources/xnu/APPLE_LICENSE.html")
+            self.assertEqual(links["APPLE_LICENSE.txt"], "_sources/platydoc-data/xnu/APPLE_LICENSE.html")
             for path, data in original.items():
                 self.assertEqual((root/path).read_bytes(), data)
 

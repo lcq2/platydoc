@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/arcade_upcall.defs](../../../xnu/osfmk/mach/arcade_upcall.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/arcade_upcall.defs](../../../platydoc-data/xnu/osfmk/mach/arcade_upcall.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Issue the registered protected-feature request to its external service.
 
-**Mechanism:** The local bridge sends a `vm_map_copy` path buffer, its length and file offset to the registered validation service and receives `should_kill`. The AST path obtains/refreshes that service and interprets the RPC outcome. Validation internals run in the external service; this declaration does not expose its policy implementation. [Local path](../../../xnu/osfmk/kern/arcade.c#L261).
+**Mechanism:** The local bridge sends a `vm_map_copy` path buffer, its length and file offset to the registered validation service and receives `should_kill`. The AST path obtains/refreshes that service and interprets the RPC outcome. Validation internals run in the external service; this declaration does not expose its policy implementation. [Local path](../../../platydoc-data/xnu/osfmk/kern/arcade.c#L261).
 
-**Declarations:** [`arcade_upcall`](../../../xnu/osfmk/mach/arcade_upcall.defs#L43) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`arcade_upcall`](../../../platydoc-data/xnu/osfmk/mach/arcade_upcall.defs#L43) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -32,7 +32,7 @@ routine arcade_upcall(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/arcade.c:267](../../../xnu/osfmk/kern/arcade.c#L267). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/arcade.c:267](../../../platydoc-data/xnu/osfmk/kern/arcade.c#L267). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

@@ -11,9 +11,9 @@ from doc_license import with_license_notice
 
 # Order follows the reading route, retaining both introductions and deeper chapters.
 GROUPS = [
-    ("Orientation and review", ".", [
+    ("Orientation", ".", [
         "README", "architecture", "source-map", "reading-guide",
-        "coverage-audit", "expansion-audit", "coverage", "glossary", "source-index",
+        "glossary", "source-index",
     ]),
     ("Key structures: allocation, access and lifetime", "structures", [
         "README", "layout-browser", "proc-and-proc-ro", "task-and-shared-ro",
@@ -198,10 +198,6 @@ GROUPS = [
         "stackshot-and-kcdata",
         "corpses-and-process-core-dumps", "panic-coordination-and-records",
     ]),
-    ("Coverage audits and expansion plans", "audits", [
-        "first-release-expansion", "runtime-ipc-platform", "vm-and-drivers", "processes-vfs-networking",
-        "security-and-development",
-    ]),
 ]
 
 
@@ -236,16 +232,14 @@ def main():
     covered = set()
     lines = [
         "# XNU handbook: complete table of contents", "",
-        "[Guide index](README.md) · [Expansion audit](expansion-audit.md) · "
-        "[Coverage and verification](coverage.md)", "",
+        "[Guide index](README.md) · [Reading guide](reading-guide.md)", "",
         "This is the reviewable Markdown handbook structure. Every Markdown page "
         "is listed below, with its main section headings where useful. Introductory "
         "guides establish the objects and vocabulary; the subsequent implementation "
         "chapters explain decisions, concurrency, ownership, errors and teardown. "
         "Build the local HTML book, including SVG diagrams, with `python3 make_docs.py`; "
         "see [build and reading instructions](development/building-html.md).", "",
-        "Use [the expansion audit](expansion-audit.md) to find the newly deepened "
-        "topics, and [the source index](source-index.md) to navigate from a source "
+        "Use [the source index](source-index.md) to navigate from a source "
         "file back to its explanations. Section links here target the Markdown "
         "headings; source excerpts retain checkout-relative references.", "",
         "Regenerate with `python3 docs-ai/tools/build_toc.py`.", "",
@@ -259,8 +253,7 @@ def main():
             title, sections = headings(page)
             target = page.relative_to(DOCS).as_posix()
             lines.append(f"- [{title}]({target})")
-            if page.stem not in {"README", "source-index", "glossary", "coverage",
-                                 "expansion-audit"}:
+            if page.stem not in {"README", "source-index", "glossary"}:
                 for text, anchor in sections:
                     lines.append(f"  - [{text}]({target}#{anchor})")
             covered.add(page)

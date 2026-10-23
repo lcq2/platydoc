@@ -10,10 +10,10 @@ Inspect the live [`cs_blob` layout](layout-browser.md?declaration=cs_blob) for t
 
 ## 1. The wrapper is in an RO zone; its pointees have separate contracts
 
-The wrapper comes from `ZONE_ID_CS_BLOB`, declared with both read-only allocation and clearing on free. The adjacent `ubc_info` zone is a different, writable allocation. A protected `csb_mem_kaddr` field does not by itself protect every byte reached through that field. Backing allocation and monitor registration determine the serialized buffer's treatment. [Zone declarations](../../xnu/bsd/kern/ubc_subr.c#L106-L117), [backing allocator](../../xnu/bsd/kern/ubc_subr.c#L3131-L3189).
+The wrapper comes from `ZONE_ID_CS_BLOB`, declared with both read-only allocation and clearing on free. The adjacent `ubc_info` zone is a different, writable allocation. A protected `csb_mem_kaddr` field does not by itself protect every byte reached through that field. Backing allocation and monitor registration determine the serialized buffer's treatment. [Zone declarations](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L106-L117), [backing allocator](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3131-L3189).
 
-[bsd/kern/ubc_subr.c:116–117](../../xnu/bsd/kern/ubc_subr.c#L116-L117):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L116-L117 -->
+[bsd/kern/ubc_subr.c:116–117](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L116-L117):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L116-L117 -->
 ```c
 ZONE_DEFINE_ID(ZONE_ID_CS_BLOB, "cs_blob zone", struct cs_blob,
     ZC_READONLY | ZC_ZFREE_CLEARMEM);
@@ -29,7 +29,7 @@ flowchart LR
     B -->|static operation table| H[cs_hash methods]
 ```
 
-The arrows describe storage relationships, not calls or independent references for every pointer. The supplemental attachment is a separate `ubc_info` slot, covered below. [`cs_blob` declaration](../../xnu/bsd/sys/ubc_internal.h#L106-L164), [`ubc_info` signing fields](../../xnu/bsd/sys/ubc_internal.h#L171-L207).
+The arrows describe storage relationships, not calls or independent references for every pointer. The supplemental attachment is a separate `ubc_info` slot, covered below. [`cs_blob` declaration](../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L106-L164), [`ubc_info` signing fields](../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L171-L207).
 
 | Fields or object | Representation and access | Ownership consequence |
 | --- | --- | --- |
@@ -43,20 +43,20 @@ The arrows describe storage relationships, not calls or independent references f
 | `csb_csm_obj`, managed flag, trust level | Conditional monitor handle and recorded result | The handle's existence and ownership of replacement backing are separate facts. |
 | `csb_supplement_teamid` | Conditional allocated copy of the original attachment's team string | Supplemental teardown frees it before common wrapper cleanup. |
 
-The declaration has no general `cs_blob` reference counter or mutex. The global blob counts/sizes updated on attachment are advisory statistics, not lifetime references. [`cs_hash` tables and selection](../../xnu/bsd/kern/ubc_subr.c#L164-L214), [initialization](../../xnu/bsd/kern/ubc_subr.c#L4031-L4149), [verification bounds](../../xnu/bsd/kern/ubc_subr.c#L5864-L5911), [statistics](../../xnu/bsd/kern/ubc_subr.c#L4206-L4228).
+The declaration has no general `cs_blob` reference counter or mutex. The global blob counts/sizes updated on attachment are advisory statistics, not lifetime references. [`cs_hash` tables and selection](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L164-L214), [initialization](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4031-L4149), [verification bounds](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5864-L5911), [statistics](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4206-L4228).
 
 ## 2. Allocate bytes, adopt them, then prepare the protected wrapper
 
-`ubc_cs_blob_allocate()` receives an in/out size and an output address. The normal data-allocation route uses zeroed `kalloc_data_tag` storage. Under `CODE_SIGNING_MONITOR`, an active monitor and a size above `csm_signature_size_limit()` select pagewise allocation: round the size and call `kmem_alloc` with `KMA_KOBJECT | KMA_DATA | KMA_ZERO`. The matching free helper applies the same selection rule. Neither the monitor threshold nor page size should be hardcoded from a different configuration. [Selection predicate](../../xnu/bsd/kern/ubc_subr.c#L930-L953), [allocation and output updates](../../xnu/bsd/kern/ubc_subr.c#L3131-L3189).
+`ubc_cs_blob_allocate()` receives an in/out size and an output address. The normal data-allocation route uses zeroed `kalloc_data_tag` storage. Under `CODE_SIGNING_MONITOR`, an active monitor and a size above `csm_signature_size_limit()` select pagewise allocation: round the size and call `kmem_alloc` with `KMA_KOBJECT | KMA_DATA | KMA_ZERO`. The matching free helper applies the same selection rule. Neither the monitor threshold nor page size should be hardcoded from a different configuration. [Selection predicate](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L930-L953), [allocation and output updates](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3131-L3189).
 
 The loader and fcntl routes fill that storage before calling `ubc_cs_blob_add()`. Their read sizes, short-read behavior and output-copy failures differ; use the [registration comparison](../subsystems/security/vnode-signature-lifecycle.md#3-fcntl-registration-has-different-input-and-reuse-rules) when tracking the original buffer. In particular, the allocation's rounded size, a container's declared length, and the signed file interval are different quantities.
 
-`cs_blob_init_validated()` first zeroes a mutable wrapper, adopts `*addr`, and clears the caller's address before parsing. Thus an error after adoption is cleaned through the wrapper. It stores the selected directory and raw entitlement views, chooses the static hash implementation, derives coverage, and computes the cached CDHash. Initial `CS_VALID` is derived during structural initialization; full policy and monitor checks in attachment have not yet completed. [Adoption and parsing](../../xnu/bsd/kern/ubc_subr.c#L4031-L4097), [derived metadata and failure cleanup](../../xnu/bsd/kern/ubc_subr.c#L4099-L4149).
+`cs_blob_init_validated()` first zeroes a mutable wrapper, adopts `*addr`, and clears the caller's address before parsing. Thus an error after adoption is cleaned through the wrapper. It stores the selected directory and raw entitlement views, chooses the static hash implementation, derives coverage, and computes the cached CDHash. Initial `CS_VALID` is derived during structural initialization; full policy and monitor checks in attachment have not yet completed. [Adoption and parsing](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4031-L4097), [derived metadata and failure cleanup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4099-L4149).
 
 For regular vnode attachment, `ubc_cs_blob_add()` works on `tmp_blob` on the stack, allocates the RO wrapper, records its address and vnode, then copies an early snapshot into it:
 
-[bsd/kern/ubc_subr.c:4819–4827](../../xnu/bsd/kern/ubc_subr.c#L4819-L4827):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L4819-L4827 -->
+[bsd/kern/ubc_subr.c:4819–4827](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4819-L4827):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4819-L4827 -->
 ```c
 	blob_ro = zalloc_ro(ZONE_ID_CS_BLOB, Z_WAITOK | Z_NOFAIL);
 	assert(blob_ro != NULL);
@@ -69,20 +69,20 @@ For regular vnode attachment, `ubc_cs_blob_add()` works on `tmp_blob` on the sta
 
 ```
 
-That copy gives AMFI a stable protected address during preparation. It does not yet place the wrapper in `uip->cs_blobs`. Further checks and storage transformations can fail; the candidate still belongs to the construction path. [Preparation and policy calls](../../xnu/bsd/kern/ubc_subr.c#L4819-L4953), [candidate unwind](../../xnu/bsd/kern/ubc_subr.c#L5164-L5178).
+That copy gives AMFI a stable protected address during preparation. It does not yet place the wrapper in `uip->cs_blobs`. Further checks and storage transformations can fail; the candidate still belongs to the construction path. [Preparation and policy calls](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4819-L4953), [candidate unwind](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5164-L5178).
 
-There is also a smaller `cs_blob_create_validated()` API. Its visible body invokes the initializer and, when `ret_blob` is provided, allocates and copies an RO wrapper. It does not execute the vnode-attachment policy sequence, fill `csb_vnode`/`csb_ro_addr`, or publish a vnode list entry. Its paired `cs_blob_free()` releases the standalone wrapper. No caller of this constructor was found in the local C/header sources; the declaration alone does not establish how an external consumer uses its optional outputs. Do not transfer the regular-attachment self-address invariant to every object made by this API. [Constructor](../../xnu/bsd/kern/ubc_subr.c#L4161-L4186), [free](../../xnu/bsd/kern/ubc_subr.c#L4024-L4028), [declaration](../../xnu/bsd/sys/codesign.h#L204-L207).
+There is also a smaller `cs_blob_create_validated()` API. Its visible body invokes the initializer and, when `ret_blob` is provided, allocates and copies an RO wrapper. It does not execute the vnode-attachment policy sequence, fill `csb_vnode`/`csb_ro_addr`, or publish a vnode list entry. Its paired `cs_blob_free()` releases the standalone wrapper. No caller of this constructor was found in the local C/header sources; the declaration alone does not establish how an external consumer uses its optional outputs. Do not transfer the regular-attachment self-address invariant to every object made by this API. [Constructor](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4161-L4186), [free](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4024-L4028), [declaration](../../platydoc-data/xnu/bsd/sys/codesign.h#L204-L207).
 
 ## 3. Storage transformations invalidate interior addresses
 
-A regular attachment can undergo first-stage reconstitution, monitor registration, second-stage reconstitution and multilevel-hash setup before its interior pointers become stable. These steps can retain different serialized components or replace the buffer; they are not merely flag changes. The [format chapter's reconstitution sections](../subsystems/security/signature-format-and-blob-validation.md#8-reconstitution-preserves-needed-evidence-while-changing-storage) detail the selection and hash geometry. [Attachment ordering](../../xnu/bsd/kern/ubc_subr.c#L4780-L4796), [final transformations](../../xnu/bsd/kern/ubc_subr.c#L4914-L4953).
+A regular attachment can undergo first-stage reconstitution, monitor registration, second-stage reconstitution and multilevel-hash setup before its interior pointers become stable. These steps can retain different serialized components or replace the buffer; they are not merely flag changes. The [format chapter's reconstitution sections](../subsystems/security/signature-format-and-blob-validation.md#8-reconstitution-preserves-needed-evidence-while-changing-storage) detail the selection and hash geometry. [Attachment ordering](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4780-L4796), [final transformations](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4914-L4953).
 
-On successful monitor registration, `register_code_signature_monitor()` compares the returned signature address with the current one. If they differ, it frees the old XNU buffer, reconstructs pointers using the returned address and the previous directory offset, and sets `csb_csm_managed`. A successful registration that keeps the address does not take this replacement branch. `KERN_NOT_SUPPORTED` is accepted; other registration failures become `EPERM`. [Monitor registration and replacement](../../xnu/bsd/kern/ubc_subr.c#L4335-L4374).
+On successful monitor registration, `register_code_signature_monitor()` compares the returned signature address with the current one. If they differ, it frees the old XNU buffer, reconstructs pointers using the returned address and the previous directory offset, and sets `csb_csm_managed`. A successful registration that keeps the address does not take this replacement branch. `KERN_NOT_SUPPORTED` is accepted; other registration failures become `EPERM`. [Monitor registration and replacement](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4335-L4374).
 
 `ubc_cs_blob_reconstruct()` installs the new base/size and reconstructs the selected directory address:
 
-[bsd/kern/ubc_subr.c:3282–3288](../../xnu/bsd/kern/ubc_subr.c#L3282-L3288):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L3282-L3288 -->
+[bsd/kern/ubc_subr.c:3282–3288](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3282-L3288):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3282-L3288 -->
 ```c
 	/* Setup the signature blob address */
 	cs_blob->csb_mem_kaddr = (void*)signature_addr;
@@ -93,7 +93,7 @@ On successful monitor registration, `register_code_signature_monitor()` compares
 	cs_blob->csb_cd = code_directory;
 ```
 
-It then searches the new serialized container for the XML and DER entitlement blobs. Those pointers are views, so no retain or independent allocation accompanies their reconstruction. The team pointer is parsed later, after all transformations, for a non-platform attachment. Entitlement-query acceleration also waits until the signature pointers stop moving. Its AMFI/monitor contexts are external representations; their internal layouts are not supplied by this source. [Raw-view reconstruction](../../xnu/bsd/kern/ubc_subr.c#L3290-L3304), [team parsing](../../xnu/bsd/kern/ubc_subr.c#L3108-L3127), [acceleration interface](../../xnu/bsd/kern/ubc_subr.c#L4432-L4497), [ordering rationale](../../xnu/bsd/kern/ubc_subr.c#L4933-L4953).
+It then searches the new serialized container for the XML and DER entitlement blobs. Those pointers are views, so no retain or independent allocation accompanies their reconstruction. The team pointer is parsed later, after all transformations, for a non-platform attachment. Entitlement-query acceleration also waits until the signature pointers stop moving. Its AMFI/monitor contexts are external representations; their internal layouts are not supplied by this source. [Raw-view reconstruction](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3290-L3304), [team parsing](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3108-L3127), [acceleration interface](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4432-L4497), [ordering rationale](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4933-L4953).
 
 ```mermaid
 flowchart TD
@@ -111,12 +111,12 @@ This diagram groups the successful transformations. Each helper has its own fail
 
 ## 4. PAC must match the eventual field address
 
-Under `HAS_APPLE_PAC`, the entitlement and conditional monitor pointers need signatures diversified for their **final RO field addresses**. After the relevant providers return, attachment computes signed pointer values using `&blob_ro->csb_entitlements` or `&blob_ro->csb_csm_obj`. The temporary stack wrapper has different field addresses. [Monitor pointer preparation](../../xnu/bsd/kern/ubc_subr.c#L4839-L4847), [entitlement pointer preparation](../../xnu/bsd/kern/ubc_subr.c#L4878-L4884).
+Under `HAS_APPLE_PAC`, the entitlement and conditional monitor pointers need signatures diversified for their **final RO field addresses**. After the relevant providers return, attachment computes signed pointer values using `&blob_ro->csb_entitlements` or `&blob_ro->csb_csm_obj`. The temporary stack wrapper has different field addresses. [Monitor pointer preparation](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4839-L4847), [entitlement pointer preparation](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4878-L4884).
 
 Immediately before the final RO copy, the code transfers those already diversified pointer bits with `memcpy`. The source explains why an ordinary typed assignment would instead cause signing for the stack location:
 
-[bsd/kern/ubc_subr.c:5104–5116](../../xnu/bsd/kern/ubc_subr.c#L5104-L5116):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L5104-L5116 -->
+[bsd/kern/ubc_subr.c:5104–5116](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5104-L5116):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5104-L5116 -->
 ```c
 #if HAS_APPLE_PAC
 	/*
@@ -133,13 +133,13 @@ Immediately before the final RO copy, the code transfers those already diversifi
 #endif
 ```
 
-This is distinct from signing/authenticating the entire temporary blob around a blocking operation. The whole-blob check protects that temporary state across the intervening operation; the field signatures prepare pointers for later dereference at the published RO address. Neither mechanism substitutes for the vnode lock or resource-lifetime rules. [Whole-blob signing](../../xnu/bsd/kern/ubc_subr.c#L4968-L4978), [authentication before publication](../../xnu/bsd/kern/ubc_subr.c#L5092-L5098), [field annotations](../../xnu/bsd/sys/ubc_internal.h#L140-L164).
+This is distinct from signing/authenticating the entire temporary blob around a blocking operation. The whole-blob check protects that temporary state across the intervening operation; the field signatures prepare pointers for later dereference at the published RO address. Neither mechanism substitutes for the vnode lock or resource-lifetime rules. [Whole-blob signing](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4968-L4978), [authentication before publication](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5092-L5098), [field annotations](../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L140-L164).
 
 ## 5. Publication transfers the candidate to UBC ownership
 
-After preparation, the code locks the vnode and verifies that UBC state still exists. It checks compatibility against existing blobs, detects a duplicate or overlap, and marks the file VM object signed through `memory_object_signed()`. A duplicate can update an existing wildcard CPU association and return that existing pointer while destroying the newly prepared candidate. Internal `EAGAIN` on this duplicate path is normalized to successful reuse; it is not publication of two equivalent nodes. [Locked comparison](../../xnu/bsd/kern/ubc_subr.c#L4980-L5072), [VM signed state](../../xnu/bsd/kern/ubc_subr.c#L5075-L5089), [return/unwind](../../xnu/bsd/kern/ubc_subr.c#L5152-L5178).
+After preparation, the code locks the vnode and verifies that UBC state still exists. It checks compatibility against existing blobs, detects a duplicate or overlap, and marks the file VM object signed through `memory_object_signed()`. A duplicate can update an existing wildcard CPU association and return that existing pointer while destroying the newly prepared candidate. Internal `EAGAIN` on this duplicate path is normalized to successful reuse; it is not publication of two equivalent nodes. [Locked comparison](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4980-L5072), [VM signed state](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5075-L5089), [return/unwind](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5152-L5178).
 
-For a new regular attachment, the temporary `csb_next` becomes the old head. After final pointer preparation, `zalloc_ro_update_elem()` copies the complete wrapper, a sequentially consistent fence precedes publication, and `uip->cs_blobs` receives `blob_ro`. The old head remains reachable. This append-at-head rule supports permitted concurrent traversal; it is not a guarantee that whole-list teardown never occurs. [Final publication](../../xnu/bsd/kern/ubc_subr.c#L5101-L5133), [whole-list detachment](../../xnu/bsd/kern/ubc_subr.c#L5539-L5581).
+For a new regular attachment, the temporary `csb_next` becomes the old head. After final pointer preparation, `zalloc_ro_update_elem()` copies the complete wrapper, a sequentially consistent fence precedes publication, and `uip->cs_blobs` receives `blob_ro`. The old head remains reachable. This append-at-head rule supports permitted concurrent traversal; it is not a guarantee that whole-list teardown never occurs. [Final publication](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5101-L5133), [whole-list detachment](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5539-L5581).
 
 | Point reached | Owner of candidate resources | Meaning of a returned or stored pointer |
 | --- | --- | --- |
@@ -155,8 +155,8 @@ For the full policy checks and syscall output order, follow [attachment lifecycl
 
 Several similarly named helpers expose different storage. `csblob_get_addr()` returns the serialized buffer address; `csblob_get_storage_addr()` retrieves `csb_ro_addr` and validates that address as a blob-zone object. The latter does not return the signature bytes:
 
-[bsd/kern/kern_cs.c:834–840](../../xnu/bsd/kern/kern_cs.c#L834-L840):
-<!-- source-excerpt: ../../xnu/bsd/kern/kern_cs.c#L834-L840 -->
+[bsd/kern/kern_cs.c:834–840](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L834-L840):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/kern_cs.c#L834-L840 -->
 ```c
 void *
 csblob_get_storage_addr(struct cs_blob *csblob)
@@ -169,8 +169,8 @@ csblob_get_storage_addr(struct cs_blob *csblob)
 
 `cs_blob_require()` checks zone/type size and, when a vnode argument is present, its backpointer association:
 
-[bsd/kern/ubc_subr.c:4246–4253](../../xnu/bsd/kern/ubc_subr.c#L4246-L4253):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L4246-L4253 -->
+[bsd/kern/ubc_subr.c:4246–4253](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4246-L4253):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4246-L4253 -->
 ```c
 cs_blob_require(struct cs_blob *blob, vnode_t vp)
 {
@@ -182,7 +182,7 @@ cs_blob_require(struct cs_blob *blob, vnode_t vp)
 }
 ```
 
-These checks do not acquire a lock, retain an object, or validate signing policy. A caller must already hold the lifetime protection required by the operation. [Serialized address/size getters](../../xnu/bsd/kern/kern_cs.c#L449-L476).
+These checks do not acquire a lock, retain an object, or validate signing policy. A caller must already hold the lifetime protection required by the operation. [Serialized address/size getters](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L449-L476).
 
 | Accessor | Result and ownership | Detail to check at a call site |
 | --- | --- | --- |
@@ -196,15 +196,15 @@ These checks do not acquire a lock, retain an object, or validate signing policy
 | `csblob_os_entitlements_copy` | Retained object pointer, or null | Explicitly calls `osobject_retain`; caller must balance ownership. |
 | Flags, signer type, category, auxiliary info, trust-level getters | Scalar values | Trust level returns `UINT32_MAX` without a monitor object; it is not an implicit accepted trust result. |
 
-[Identity/team/CDHash getters](../../xnu/bsd/kern/kern_cs.c#L615-L653), [scalar metadata](../../xnu/bsd/kern/kern_cs.c#L662-L772), [selected directory and entitlement access](../../xnu/bsd/kern/kern_cs.c#L781-L840).
+[Identity/team/CDHash getters](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L615-L653), [scalar metadata](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L662-L772), [selected directory and entitlement access](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L781-L840).
 
-`csblob_os_entitlements_set()` asserts that the existing pointer is null, retains the supplied object and assigns the field directly. It is a construction-style helper, not an RO mutation wrapper. The dictionary-copy helper delegates to AMFI's `OSEntitlements_asdict`; its internal conversion is not present here. The old dictionary-set helper explicitly panics as unsupported. These are concrete differences in the function bodies, not interchangeable meanings of “get/set entitlements.” [Entitlement helpers](../../xnu/bsd/kern/kern_cs.c#L787-L832).
+`csblob_os_entitlements_set()` asserts that the existing pointer is null, retains the supplied object and assigns the field directly. It is a construction-style helper, not an RO mutation wrapper. The dictionary-copy helper delegates to AMFI's `OSEntitlements_asdict`; its internal conversion is not present here. The old dictionary-set helper explicitly panics as unsupported. These are concrete differences in the function bodies, not interchangeable meanings of “get/set entitlements.” [Entitlement helpers](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L787-L832).
 
 ### Finding a blob does not retain it
 
-`ubc_cs_blob_get()` searches under the vnode spin lock and unlocks before returning. Its match is an architecture branch **or** an offset-in-coverage branch. The caller may still need to verify base offset, subtype, flags or generation, as the loader does. `csproc_get_blob()` checks process/text-vnode/signing state before using the lookup with `p_textoff`; it does not add an independent blob hold. [UBC lookup](../../xnu/bsd/kern/ubc_subr.c#L5499-L5536), [process lookup](../../xnu/bsd/kern/kern_cs.c#L580-L594), [loader checks](../../xnu/bsd/kern/mach_loader.c#L3790-L3847).
+`ubc_cs_blob_get()` searches under the vnode spin lock and unlocks before returning. Its match is an architecture branch **or** an offset-in-coverage branch. The caller may still need to verify base offset, subtype, flags or generation, as the loader does. `csproc_get_blob()` checks process/text-vnode/signing state before using the lookup with `p_textoff`; it does not add an independent blob hold. [UBC lookup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5499-L5536), [process lookup](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L580-L594), [loader checks](../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3790-L3847).
 
-The lockless head accessor documents two lifetime layers: a vnode reference keeps the vnode available, but forced unmount may still reclaim UBC state. During page validation, the VM object's `paging_in_progress` protects the pager/UBC lifetime; other callers need protection against reclaim, such as the vnode lock. The accessor validates the head's zone/backpointer but does not manufacture those protections. [Accessor contract and body](../../xnu/bsd/kern/ubc_subr.c#L5741-L5776), [vnode identity and reference kinds](vnodes-and-vnode-identity.md), [UBC teardown](ubc-and-vnode-pagers.md).
+The lockless head accessor documents two lifetime layers: a vnode reference keeps the vnode available, but forced unmount may still reclaim UBC state. During page validation, the VM object's `paging_in_progress` protects the pager/UBC lifetime; other callers need protection against reclaim, such as the vnode lock. The accessor validates the head's zone/backpointer but does not manufacture those protections. [Accessor contract and body](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5741-L5776), [vnode identity and reference kinds](vnodes-and-vnode-identity.md), [UBC teardown](ubc-and-vnode-pagers.md).
 
 ## 7. How an allowed write reaches RO storage
 
@@ -212,8 +212,8 @@ Regular attachment sets both the temporary wrapper's `csb_ro_addr` and the copie
 
 For invalidation, the helper reads flags, clears `CS_VALID` in a local value, and copies the replacement field through the RO helper when the equality holds:
 
-[bsd/kern/kern_cs.c:502–512](../../xnu/bsd/kern/kern_cs.c#L502-L512):
-<!-- source-excerpt: ../../xnu/bsd/kern/kern_cs.c#L502-L512 -->
+[bsd/kern/kern_cs.c:502–512](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L502-L512):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/kern_cs.c#L502-L512 -->
 ```c
 csblob_invalidate_flags(struct cs_blob *csblob)
 {
@@ -228,9 +228,9 @@ csblob_invalidate_flags(struct cs_blob *csblob)
 
 ```
 
-It also invalidates the retained entitlement object when present. `csvnode_invalidate_flags()` marks `UI_CSBLOBINVALID` under the vnode lock, then calls the per-blob invalidation helper while walking the list. Clearing validity, marking UBC for later discard, and releasing storage are separate actions. [Invalidation and UBC marker](../../xnu/bsd/kern/kern_cs.c#L514-L546).
+It also invalidates the retained entitlement object when present. `csvnode_invalidate_flags()` marks `UI_CSBLOBINVALID` under the vnode lock, then calls the per-blob invalidation helper while walking the list. Clearing validity, marking UBC for later discard, and releasing storage are separate actions. [Invalidation and UBC marker](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L514-L546).
 
-`zalloc_ro_update_field()` derives the member's byte offset and size and calls `zalloc_ro_mut()`. `zalloc_ro_update_elem()` uses offset zero and the structure size. The protected mutation implementation checks its destination/source contract and uses the configured RO-write backend. The [RO update companion](read-only-object-updates.md) follows those checks, locks and ARM64 backend differences; [special zones](../subsystems/vm/read-only-and-special-zones.md) covers allocator-wide behavior. [Field and element macros](../../xnu/osfmk/kern/zalloc.h#L855-L876).
+`zalloc_ro_update_field()` derives the member's byte offset and size and calls `zalloc_ro_mut()`. `zalloc_ro_update_elem()` uses offset zero and the structure size. The protected mutation implementation checks its destination/source contract and uses the configured RO-write backend. The [RO update companion](read-only-object-updates.md) follows those checks, locks and ARM64 backend differences; [special zones](../subsystems/vm/read-only-and-special-zones.md) covers allocator-wide behavior. [Field and element macros](../../platydoc-data/xnu/osfmk/kern/zalloc.h#L855-L876).
 
 ```mermaid
 flowchart TD
@@ -254,13 +254,13 @@ This field-copy path is not an atomic read-modify-write just because it targets 
 | Loader CPU association | Copy grouped CPU type/subtype | Vnode spin lock surrounds the group update. |
 | Revalidation result | Copy grouped signer metadata and set UBC generation | Vnode spin lock; metadata can be updated on failure too, with generation reset. |
 
-[Category rules](../../xnu/bsd/kern/kern_cs.c#L677-L706), [auxiliary replacement](../../xnu/bsd/kern/kern_cs.c#L730-L741), [CPU helper](../../xnu/bsd/kern/ubc_subr.c#L4232-L4235), [duplicate update](../../xnu/bsd/kern/ubc_subr.c#L5040-L5058), [loader group update](../../xnu/bsd/kern/mach_loader.c#L3820-L3836), [revalidation group/generation](../../xnu/bsd/kern/ubc_subr.c#L5712-L5727).
+[Category rules](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L677-L706), [auxiliary replacement](../../platydoc-data/xnu/bsd/kern/kern_cs.c#L730-L741), [CPU helper](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4232-L4235), [duplicate update](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5040-L5058), [loader group update](../../platydoc-data/xnu/bsd/kern/mach_loader.c#L3820-L3836), [revalidation group/generation](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5712-L5727).
 
 `cs_add_gen` lives in writable UBC state. Resetting the global generation makes old acceptance require revalidation; it does not free wrappers or rewrite every page's validation bits. A reconstituted attachment can require rereading the signature rather than applying the same revalidation procedure to changed serialized evidence. [Generation/revalidation rules](../subsystems/security/vnode-signature-lifecycle.md#7-generation-refresh-and-invalidation-answer-different-questions).
 
 ## 8. Worked example: file coordinates and buffer coordinates
 
-Assume an illustrative 16 KiB VM page configuration, ordinary one-level 4 KiB signing pages, no scatter, and SHA-256 slots of 32 bytes. Let a Mach-O slice start at file offset `0x4000`; its CodeDirectory has `codeLimit = 0x8800`. Initialization rounds coverage end to `0x9000` relative to the slice, giving file coverage `[0x4000, 0xd000)`. The bytes after the actual code limit are not automatically additional authenticated program bytes; page validation has separate terminal-page handling. [Coverage initialization](../../xnu/bsd/kern/ubc_subr.c#L4099-L4109), [terminal-page validation](../subsystems/security/page-signature-validation.md).
+Assume an illustrative 16 KiB VM page configuration, ordinary one-level 4 KiB signing pages, no scatter, and SHA-256 slots of 32 bytes. Let a Mach-O slice start at file offset `0x4000`; its CodeDirectory has `codeLimit = 0x8800`. Initialization rounds coverage end to `0x9000` relative to the slice, giving file coverage `[0x4000, 0xd000)`. The bytes after the actual code limit are not automatically additional authenticated program bytes; page validation has separate terminal-page handling. [Coverage initialization](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4099-L4109), [terminal-page validation](../subsystems/security/page-signature-validation.md).
 
 Now examine file byte `0x8120`:
 
@@ -271,20 +271,20 @@ Now examine file byte `0x8120`:
 | VM file page containing the byte | `[0x8000, 0xc000)` | 16 KiB file-backed VM page |
 | Signing pages covered by that VM page | Slots 4 through 7 | Four separate 4 KiB hash units |
 
-The page validator aligns work to signing-page boundaries and subtracts the slice base before looking up the code slot. It does not use the user mapping's virtual address as a signature-buffer offset. [Coverage selection and slot lookup](../../xnu/bsd/kern/ubc_subr.c#L5864-L5911).
+The page validator aligns work to signing-page boundaries and subtracts the slice base before looking up the code slot. It does not use the user mapping's virtual address as a signature-buffer offset. [Coverage selection and slot lookup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5864-L5911).
 
-Separately, suppose serialized storage begins at kernel virtual address `R`, the selected CodeDirectory begins at `R + 0x180`, and its directory-relative `hashOffset` is `0x100`. The expected slot-4 digest begins at `R + 0x180 + 0x100 + 4 * 0x20 = R + 0x300`. A directory-relative team offset of `0x80` points to `R + 0x200`. These illustrative offsets require a valid, sufficiently large container; they are not a complete binary signature. [Directory/hash representation](../subsystems/security/signature-format-and-blob-validation.md#1-three-layers-of-data-and-three-kinds-of-offset), [team pointer derivation](../../xnu/bsd/kern/ubc_subr.c#L3108-L3127).
+Separately, suppose serialized storage begins at kernel virtual address `R`, the selected CodeDirectory begins at `R + 0x180`, and its directory-relative `hashOffset` is `0x100`. The expected slot-4 digest begins at `R + 0x180 + 0x100 + 4 * 0x20 = R + 0x300`. A directory-relative team offset of `0x80` points to `R + 0x200`. These illustrative offsets require a valid, sufficiently large container; they are not a complete binary signature. [Directory/hash representation](../subsystems/security/signature-format-and-blob-validation.md#1-three-layers-of-data-and-three-kinds-of-offset), [team pointer derivation](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3108-L3127).
 
 If a monitor replaces the allocation at `R` with one at `R2`, the selected-directory and raw-entitlement views must be rebuilt for `R2`; the team pointer is derived after final transformations. The inline `csb_cdhash` remains in the wrapper. Neither `R`, the file offset nor a slot number is a physical page address or an IOVA. Reconstitution may also change directory offsets, so arbitrary transformations require their own reconstruction logic rather than blindly adding a common address delta.
 
 ## 9. Detach first, then release each owned resource
 
-Two UBC paths free attached signatures: invalid-state disposal and complete UBC destruction. `ubc_cs_free_and_vnode_unlock()` requires the invalid marker, clears it, detaches regular/supplemental pointers and deallocates the optional bitmap under the vnode lock, then unlocks before destroying the detached wrappers. `ubc_cs_free()` performs full cleanup during UBC release. In both cases the owner controls whole-list lifetime; a borrowed accessor result does not defer the free. [Invalid-state detachment](../../xnu/bsd/kern/ubc_subr.c#L5539-L5581), [full UBC signing cleanup](../../xnu/bsd/kern/ubc_subr.c#L5585-L5613).
+Two UBC paths free attached signatures: invalid-state disposal and complete UBC destruction. `ubc_cs_free_and_vnode_unlock()` requires the invalid marker, clears it, detaches regular/supplemental pointers and deallocates the optional bitmap under the vnode lock, then unlocks before destroying the detached wrappers. `ubc_cs_free()` performs full cleanup during UBC release. In both cases the owner controls whole-list lifetime; a borrowed accessor result does not defer the free. [Invalid-state detachment](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5539-L5581), [full UBC signing cleanup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5585-L5613).
 
 The RO wrapper cannot be passed directly to a cleanup routine that clears its fields. `cs_blob_ro_free()` therefore makes a mutable copy, cleans the resources recorded by that copy, and frees the original zone element:
 
-[bsd/kern/ubc_subr.c:4004–4018](../../xnu/bsd/kern/ubc_subr.c#L4004-L4018):
-<!-- source-excerpt: ../../xnu/bsd/kern/ubc_subr.c#L4004-L4018 -->
+[bsd/kern/ubc_subr.c:4004–4018](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4004-L4018):
+<!-- source-excerpt: ../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4004-L4018 -->
 ```c
 cs_blob_ro_free(struct cs_blob *blob)
 {
@@ -303,7 +303,7 @@ cs_blob_ro_free(struct cs_blob *blob)
 }
 ```
 
-That copy does not retain each pointee or create a second independently owned signature. It is the original owner's mutable cleanup record. `cs_blob_cleanup()` invalidates/releases the entitlement object first, removes any monitor profile association, unregisters the signature, and then decides whether XNU still owns backing that it should deallocate. [Common cleanup](../../xnu/bsd/kern/ubc_subr.c#L3955-L4001).
+That copy does not retain each pointee or create a second independently owned signature. It is the original owner's mutable cleanup record. `cs_blob_cleanup()` invalidates/releases the entitlement object first, removes any monitor profile association, unregisters the signature, and then decides whether XNU still owns backing that it should deallocate. [Common cleanup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L3955-L4001).
 
 | Monitor cleanup result | Backing action in XNU |
 | --- | --- |
@@ -327,9 +327,9 @@ The diagram omits empty-resource branches and advisory statistics. In particular
 
 ## 10. Supplemental storage and source boundaries
 
-With `CONFIG_SUPPLEMENTAL_SIGNATURES`, UBC has one supplemental slot in addition to the regular chain. Supplemental registration finds the linked original attachment, records its linkage hash information, and may allocate a separate copy of its team ID. That allocation differs from regular `csb_teamid`, which is a view into the signature bytes. The supplemental free routine releases the copied string before common RO wrapper cleanup. [Supplemental construction and association](../../xnu/bsd/kern/ubc_subr.c#L5200-L5322), [publication](../../xnu/bsd/kern/ubc_subr.c#L5325-L5414), [supplemental free](../../xnu/bsd/kern/ubc_subr.c#L4190-L4202).
+With `CONFIG_SUPPLEMENTAL_SIGNATURES`, UBC has one supplemental slot in addition to the regular chain. Supplemental registration finds the linked original attachment, records its linkage hash information, and may allocate a separate copy of its team ID. That allocation differs from regular `csb_teamid`, which is a view into the signature bytes. The supplemental free routine releases the copied string before common RO wrapper cleanup. [Supplemental construction and association](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5200-L5322), [publication](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5325-L5414), [supplemental free](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L4190-L4202).
 
-Use the [supplemental lifecycle section](../subsystems/security/vnode-signature-lifecycle.md#9-supplemental-signatures-use-a-distinct-single-attachment-path) for that path's flags, admission and visible cleanup limitations. A supplemental pointer is not another regular list node, and lookup coverage alone does not establish policy acceptance. [Supplement lookup](../../xnu/bsd/kern/ubc_subr.c#L5461-L5496).
+Use the [supplemental lifecycle section](../subsystems/security/vnode-signature-lifecycle.md#9-supplemental-signatures-use-a-distinct-single-attachment-path) for that path's flags, admission and visible cleanup limitations. A supplemental pointer is not another regular list node, and lookup coverage alone does not establish policy acceptance. [Supplement lookup](../../platydoc-data/xnu/bsd/kern/ubc_subr.c#L5461-L5496).
 
 The reviewed source establishes wrapper allocation, local policy calls, pointer reconstruction, publication and cleanup decisions. AMFI entitlement internals, certificate trust, monitor-owned storage implementation and filesystem-private persistence remain external boundaries. `CODE_SIGNING_MONITOR`, `CONFIG_MACF`, `HAS_APPLE_PAC`, `CONFIG_SUPPLEMENTAL_SIGNATURES` and bitmap support select different portions of this path. Follow their actual guards when applying this chapter to another build; an RO-zone wrapper alone does not describe those providers' behavior.
 

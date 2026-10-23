@@ -19,7 +19,7 @@ class DocumentationLicenseTests(unittest.TestCase):
     def test_notice_is_idempotent_and_preserves_exact_excerpt(self):
         body = (
             "# A chapter\n\n"
-            "<!-- source-excerpt: ../xnu/probe.c#L1-L3 -->\n"
+            "<!-- source-excerpt: ../platydoc-data/xnu/probe.c#L1-L3 -->\n"
             "```c\nint probe(void) {\n\treturn 1;  \n}\n```\n"
         )
         first = license.with_license_notice(body)
@@ -41,7 +41,7 @@ class DocumentationLicenseTests(unittest.TestCase):
 
     def test_crlf_code_excerpt_bytes_are_preserved(self):
         excerpt = (
-            "<!-- source-excerpt: ../xnu/probe.c#L1-L3 -->\r\n"
+            "<!-- source-excerpt: ../platydoc-data/xnu/probe.c#L1-L3 -->\r\n"
             "```c\r\nint probe(void) {\r\n\treturn 1;  \r\n}\r\n```\r\n"
         )
         body = "# Chapter\r\n\r\n" + excerpt + "\r\nExplanation.\r\n"
@@ -56,7 +56,7 @@ class DocumentationLicenseTests(unittest.TestCase):
             docs = project / "docs-ai"
             page = docs / "README.md"
             vendor = docs / "tools/book/vendor/dependency/README.md"
-            upstream = project / "xnu/README.md"
+            upstream = project / "platydoc-data/xnu/README.md"
             for path in (page, vendor, upstream):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text("# Original\n")

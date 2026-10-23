@@ -1667,7 +1667,7 @@
   "fsctl": {
     "family": "filesystem-mounts-and-control",
     "purpose": "Issue filesystem-specific control commands by path or descriptor.",
-    "mechanism": "Resolve/pin the vnode, apply mount-control MAC checks and call `fsctl_internal`. It rejects character/block vnodes with `ENOTTY`, decodes common commands and forwards permitted filesystem-specific controls through `VNOP_IOCTL`. Output copyout occurs after the operation and can fail independently. This catalog scopes the multiplexor, not every filesystem-private command. See [type rejection](../../../xnu/bsd/vfs/vfs_syscalls.c#L13398) and [filesystem dispatch/output](../../../xnu/bsd/vfs/vfs_syscalls.c#L13679).",
+    "mechanism": "Resolve/pin the vnode, apply mount-control MAC checks and call `fsctl_internal`. It rejects character/block vnodes with `ENOTTY`, decodes common commands and forwards permitted filesystem-specific controls through `VNOP_IOCTL`. Output copyout occurs after the operation and can fail independently. This catalog scopes the multiplexor, not every filesystem-private command. See [type rejection](../../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c#L13398) and [filesystem dispatch/output](../../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c#L13679).",
     "implementation": [
       {
         "path": "bsd/vfs/vfs_syscalls.c",
@@ -1678,7 +1678,7 @@
   "ffsctl": {
     "family": "filesystem-mounts-and-control",
     "purpose": "Issue filesystem-specific control commands by path or descriptor.",
-    "mechanism": "Resolve/pin the vnode, apply mount-control MAC checks and call `fsctl_internal`. It rejects character/block vnodes with `ENOTTY`, decodes common commands and forwards permitted filesystem-specific controls through `VNOP_IOCTL`. Output copyout occurs after the operation and can fail independently. This catalog scopes the multiplexor, not every filesystem-private command. See [type rejection](../../../xnu/bsd/vfs/vfs_syscalls.c#L13398) and [filesystem dispatch/output](../../../xnu/bsd/vfs/vfs_syscalls.c#L13679).",
+    "mechanism": "Resolve/pin the vnode, apply mount-control MAC checks and call `fsctl_internal`. It rejects character/block vnodes with `ENOTTY`, decodes common commands and forwards permitted filesystem-specific controls through `VNOP_IOCTL`. Output copyout occurs after the operation and can fail independently. This catalog scopes the multiplexor, not every filesystem-private command. See [type rejection](../../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c#L13398) and [filesystem dispatch/output](../../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c#L13679).",
     "implementation": [
       {
         "path": "bsd/vfs/vfs_syscalls.c",
@@ -4166,7 +4166,7 @@
   "recvmsg_x": {
     "family": "sockets-and-network-policy",
     "purpose": "Receive an array of extended message records, including optimized datagram lists.",
-    "mechanism": "Pins the socket and selects its batch or per-record path. In the optimized branch, `soreceive_m_list` dequeues the packet/address/control lists before individual message-header and iovec imports. Later import/copy failures free remaining lists at cleanup; this path shows no requeue rollback. See [receive-before-import ordering](../../../xnu/bsd/kern/uipc_syscalls.c#L2754) and [list cleanup](../../../xnu/bsd/kern/uipc_syscalls.c#L2938).",
+    "mechanism": "Pins the socket and selects its batch or per-record path. In the optimized branch, `soreceive_m_list` dequeues the packet/address/control lists before individual message-header and iovec imports. Later import/copy failures free remaining lists at cleanup; this path shows no requeue rollback. See [receive-before-import ordering](../../../platydoc-data/xnu/bsd/kern/uipc_syscalls.c#L2754) and [list cleanup](../../../platydoc-data/xnu/bsd/kern/uipc_syscalls.c#L2938).",
     "implementation": [
       {
         "path": "bsd/kern/uipc_syscalls.c",
@@ -4287,7 +4287,7 @@
   "__nexus_register": {
     "family": "skywalk",
     "purpose": "Register a provider owned by a nexus controller.",
-    "mechanism": "Imports provider parameters, obtains the controller descriptor and lock, calls `nxprov_create`, and copies the provider UUID out. On an error after creation, cleanup drops the descriptor, calls `nxprov_close`, then releases the extra provider reference. The close result replaces the original error, including a UUID copyout error, and can be zero. See [cleanup ordering](../../../xnu/bsd/skywalk/nexus/nexus_syscalls.c#L232).",
+    "mechanism": "Imports provider parameters, obtains the controller descriptor and lock, calls `nxprov_create`, and copies the provider UUID out. On an error after creation, cleanup drops the descriptor, calls `nxprov_close`, then releases the extra provider reference. The close result replaces the original error, including a UUID copyout error, and can be zero. See [cleanup ordering](../../../platydoc-data/xnu/bsd/skywalk/nexus/nexus_syscalls.c#L232).",
     "implementation": [
       {
         "path": "bsd/skywalk/nexus/nexus_syscalls.c",
@@ -4309,7 +4309,7 @@
   "__nexus_create": {
     "family": "skywalk",
     "purpose": "Allocate a nexus instance from a registered provider.",
-    "mechanism": "Imports the provider UUID, pins/locks the controller and calls `nx_create`, then copies the new nexus UUID out. Cleanup drops the descriptor and extra caller reference; it does not undo successful instance creation on UUID copyout failure. Provider/global-list references retain the published instance. See [publication references](../../../xnu/bsd/skywalk/nexus/nexus.c#L1956) and [syscall cleanup](../../../xnu/bsd/skywalk/nexus/nexus_syscalls.c#L342).",
+    "mechanism": "Imports the provider UUID, pins/locks the controller and calls `nx_create`, then copies the new nexus UUID out. Cleanup drops the descriptor and extra caller reference; it does not undo successful instance creation on UUID copyout failure. Provider/global-list references retain the published instance. See [publication references](../../../platydoc-data/xnu/bsd/skywalk/nexus/nexus.c#L1956) and [syscall cleanup](../../../platydoc-data/xnu/bsd/skywalk/nexus/nexus_syscalls.c#L342).",
     "implementation": [
       {
         "path": "bsd/skywalk/nexus/nexus_syscalls.c",

@@ -21,9 +21,9 @@ The name cache answers a namespace question: which vnode, if any, does a compone
 
 The cache entry contains links for hash lookup, parent-child enumeration and either positive target names or the negative-entry queue:
 
-[Source: namei.h, lines 243–260](../../../xnu/bsd/sys/namei.h#L243-L260)
+[Source: namei.h, lines 243–260](../../../platydoc-data/xnu/bsd/sys/namei.h#L243-L260)
 
-<!-- source-excerpt: ../../../xnu/bsd/sys/namei.h#L243-L260 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/sys/namei.h#L243-L260 -->
 ```c
 struct  namecache {
 	TAILQ_ENTRY(namecache)  nc_entry;       /* chain of all entries */
@@ -45,11 +45,11 @@ struct  namecache {
 
 ```
 
-See the complete [vnode layout and lock domains](../../../xnu/bsd/sys/vnode_internal.h#L150) and the [reference acquisition implementation](../../../xnu/bsd/vfs/vfs_subr.c#L6703). “Referenced vnode” is insufficiently precise when reasoning about these paths: allocation lifetime, I/O lifetime and identity validation solve different problems.
+See the complete [vnode layout and lock domains](../../../platydoc-data/xnu/bsd/sys/vnode_internal.h#L150) and the [reference acquisition implementation](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6703). “Referenced vnode” is insufficiently precise when reasoning about these paths: allocation lifetime, I/O lifetime and identity validation solve different problems.
 
 ## A single-component cache lookup
 
-[`cache_lookup_ext`](../../../xnu/bsd/vfs/vfs_cache.c#L2705) returns three kinds of result:
+[`cache_lookup_ext`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2705) returns three kinds of result:
 
 * `-1`: positive hit; the returned vnode carries an I/O reference.
 * `0`: miss or a result that could not safely be used; the caller must continue lookup.
@@ -59,9 +59,9 @@ The SMR path enters the VFS SMR domain, finds an entry in the parent/name hash c
 
 The conversion from snapshot to usable vnode is explicit:
 
-[Source: vfs_cache.c, lines 2780–2800](../../../xnu/bsd/vfs/vfs_cache.c#L2780-L2800)
+[Source: vfs_cache.c, lines 2780–2800](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2780-L2800)
 
-<!-- source-excerpt: ../../../xnu/bsd/vfs/vfs_cache.c#L2780-L2800 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2780-L2800 -->
 ```c
 	if (vp) {
 		bool holdcount_acquired = vnode_hold_smr(vp);
@@ -106,13 +106,13 @@ flowchart TD
     I -- success --> J[Drop hold; return vnode with I/O count]
 ```
 
-A cached absence cannot decide a create or rename operation. Those operations take the fallback path, which can remove the negative entry under exclusive cache locking. The [locked fallback](../../../xnu/bsd/vfs/vfs_cache.c#L2600) also handles lock upgrades by repeating the lookup; it does not assume the previously inspected entry survived the lock transition.
+A cached absence cannot decide a create or rename operation. Those operations take the fallback path, which can remove the negative entry under exclusive cache locking. The [locked fallback](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2600) also handles lock upgrades by repeating the lookup; it does not assume the previously inspected entry survived the lock transition.
 
-`cache_lookup_smr` is a lower-level interface with a different contract: it returns a pointer/generation pair while the caller remains in the SMR domain. Its caller must perform the necessary reference conversion. Do not transfer `cache_lookup_ext`'s returned-I/O-reference contract to it. See [`cache_lookup_smr`](../../../xnu/bsd/vfs/vfs_cache.c#L2485).
+`cache_lookup_smr` is a lower-level interface with a different contract: it returns a pointer/generation pair while the caller remains in the SMR domain. Its caller must perform the necessary reference conversion. Do not transfer `cache_lookup_ext`'s returned-I/O-reference contract to it. See [`cache_lookup_smr`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2485).
 
 ## Walking several cached components
 
-[`cache_lookup_path`](../../../xnu/bsd/vfs/vfs_cache.c#L1788) attempts to consume several pathname components before returning to filesystem lookup. It saves the starting `nameidata` and component state because some conditions require restarting the fast path under a shared name-cache lock.
+[`cache_lookup_path`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L1788) attempts to consume several pathname components before returning to filesystem lookup. It saves the starting `nameidata` and component state because some conditions require restarting the fast path under a shared name-cache lock.
 
 The walk is more than repeated hash lookup:
 
@@ -123,19 +123,19 @@ The walk is more than repeated hash lookup:
 5. It may cross a mounted filesystem using a cached root only if the root generation and mount-generation checks remain valid.
 6. Before leaving protection, it acquires the necessary holds and converts them into I/O references. It can retain a valid parent and fall back to filesystem lookup when a child cannot be acquired.
 
-See the [full fast-walk body](../../../xnu/bsd/vfs/vfs_cache.c#L1788), [reference conversion and output handling](../../../xnu/bsd/vfs/vfs_cache.c#L2220), and [restart restoration](../../../xnu/bsd/vfs/vfs_cache.c#L2439). The parent I/O reference is conditionally avoidable on a final-component hit; it is not omitted for all cache hits.
+See the [full fast-walk body](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L1788), [reference conversion and output handling](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2220), and [restart restoration](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2439). The parent I/O reference is conditionally avoidable on a final-component hit; it is not omitted for all cache hits.
 
-Cached search authorization does not remove every authorization boundary. [`lookup_authorize_search`](../../../xnu/bsd/vfs/vfs_lookup.c#L940) can skip the ordinary vnode authorization when the fast path already established it, while the configured MAC lookup check remains a separate call. The fast walk also has a MAC check before publishing its result. A cache hit is therefore neither a blanket permission grant nor a guarantee that no policy callback runs.
+Cached search authorization does not remove every authorization boundary. [`lookup_authorize_search`](../../../platydoc-data/xnu/bsd/vfs/vfs_lookup.c#L940) can skip the ordinary vnode authorization when the fast path already established it, while the configured MAC lookup check remains a separate call. The fast walk also has a MAC check before publishing its result. A cache hit is therefore neither a blanket permission grant nor a guarantee that no policy callback runs.
 
 Mount-root caching is deliberately weak: the mount records a root pointer, vnode generation and mount generation without keeping a permanent root reference. See [mount traversal](mount-lifecycle.md#crossing-a-mount-during-lookup). The source contains special handling and an explicit residual race discussion around the mounted-here field; this chapter describes those checks, not a proof that every possible mount/reclaim interleaving is excluded.
 
 ## Publishing, deleting and purging names
 
-An insertion based on a filesystem lookup must not publish a result after a relevant namespace change. [`lookup_consider_update_cache`](../../../xnu/bsd/vfs/vfs_lookup.c#L970) carries the saved directory generation into [`cache_enter_with_gen`](../../../xnu/bsd/vfs/vfs_cache.c#L2861). The final comparison occurs under the cache's exclusive lock:
+An insertion based on a filesystem lookup must not publish a result after a relevant namespace change. [`lookup_consider_update_cache`](../../../platydoc-data/xnu/bsd/vfs/vfs_lookup.c#L970) carries the saved directory generation into [`cache_enter_with_gen`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2861). The final comparison occurs under the cache's exclusive lock:
 
-[Source: vfs_cache.c, lines 2861–2874](../../../xnu/bsd/vfs/vfs_cache.c#L2861-L2874)
+[Source: vfs_cache.c, lines 2861–2874](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2861-L2874)
 
-<!-- source-excerpt: ../../../xnu/bsd/vfs/vfs_cache.c#L2861-L2874 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2861-L2874 -->
 ```c
 cache_enter_with_gen(struct vnode *dvp, struct vnode *vp, struct componentname *cnp, int gen)
 {
@@ -153,15 +153,15 @@ cache_enter_with_gen(struct vnode *dvp, struct vnode *vp, struct componentname *
 }
 ```
 
-[`cache_enter_locked`](../../../xnu/bsd/vfs/vfs_cache.c#L2904) prepares the entry, obtains the name-string ownership, holds a positive target vnode, records its `v_id`, installs the list/hash links, and finally advances `nc_counter` from invalid to valid with release ordering. The publication counter protects reuse of the cache entry; it does not replace the target vnode's generation check.
+[`cache_enter_locked`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L2904) prepares the entry, obtains the name-string ownership, holds a positive target vnode, records its `v_id`, installs the list/hash links, and finally advances `nc_counter` from invalid to valid with release ordering. The publication counter protects reuse of the cache entry; it does not replace the target vnode's generation check.
 
-Positive entries participate in the target's name list and the parent's children list. Negative entries participate in the global negative queue and are placed at the head of the parent's children list. Positive entries are placed at the tail. This arrangement lets [`cache_purge_negatives`](../../../xnu/bsd/vfs/vfs_cache.c#L3357) stop at the first positive child.
+Positive entries participate in the target's name list and the parent's children list. Negative entries participate in the global negative queue and are placed at the head of the parent's children list. Positive entries are placed at the tail. This arrangement lets [`cache_purge_negatives`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3357) stop at the first positive child.
 
 Deletion invalidates the counter before unlinking or releasing the fields:
 
-[Source: vfs_cache.c, lines 3243–3275](../../../xnu/bsd/vfs/vfs_cache.c#L3243-L3275)
+[Source: vfs_cache.c, lines 3243–3275](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3243-L3275)
 
-<!-- source-excerpt: ../../../xnu/bsd/vfs/vfs_cache.c#L3243-L3275 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3243-L3275 -->
 ```c
 cache_delete(struct namecache *ncp, int free_entry)
 {
@@ -198,21 +198,21 @@ cache_delete(struct namecache *ncp, int free_entry)
 	}
 ```
 
-The remainder of [`cache_delete`](../../../xnu/bsd/vfs/vfs_cache.c#L3276) either frees the entry using the appropriate SMR-aware mechanism or leaves its storage available for reuse. The odd/even counter transition and repeated reader observation explain why an address that still exists is not sufficient evidence of a valid entry.
+The remainder of [`cache_delete`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3276) either frees the entry using the appropriate SMR-aware mechanism or leaves its storage available for reuse. The odd/even counter transition and repeated reader observation explain why an address that still exists is not sufficient evidence of a valid entry.
 
-[`cache_purge_locked`](../../../xnu/bsd/vfs/vfs_cache.c#L3294) removes names pointing at the vnode and cached children beneath it, updates the relevant parent cache generation, and clears cached credentials/actions. Credential release is deferred to the caller outside the cache lock. [`cache_purgevfs`](../../../xnu/bsd/vfs/vfs_cache.c#L3381) removes entries whose parent belongs to the filesystem being purged.
+[`cache_purge_locked`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3294) removes names pointing at the vnode and cached children beneath it, updates the relevant parent cache generation, and clears cached credentials/actions. Credential release is deferred to the caller outside the cache lock. [`cache_purgevfs`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c#L3381) removes entries whose parent belongs to the filesystem being purged.
 
 ## Draining a vnode is a state transition
 
-Reclamation must prevent new operations from continuously replenishing the I/O count while it tears down filesystem state. The relevant flags include `VL_DRAIN`, `VL_TERMINATE`, `VL_TERMWANT`, `VL_DEAD` and the deferred `VL_MARKTERM`; consult [the definitions](../../../xnu/bsd/sys/vnode_internal.h) and [`vnode_getiocount`](../../../xnu/bsd/vfs/vfs_subr.c#L6703).
+Reclamation must prevent new operations from continuously replenishing the I/O count while it tears down filesystem state. The relevant flags include `VL_DRAIN`, `VL_TERMINATE`, `VL_TERMWANT`, `VL_DEAD` and the deferred `VL_MARKTERM`; consult [the definitions](../../../platydoc-data/xnu/bsd/sys/vnode_internal.h) and [`vnode_getiocount`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6703).
 
-[`vnode_drain`](../../../xnu/bsd/vfs/vfs_subr.c#L6652) sets the drain owner and waits until the I/O count is at most the reclaimer's own reference. Ordinary acquisitions may sleep or fail depending on their flags. The owner and specially authorized acquisitions have exceptions; it is incorrect to model drain as an unconditional prohibition on every acquisition.
+[`vnode_drain`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6652) sets the drain owner and waits until the I/O count is at most the reclaimer's own reference. Ordinary acquisitions may sleep or fail depending on their flags. The owner and specially authorized acquisitions have exceptions; it is incorrect to model drain as an unconditional prohibition on every acquisition.
 
 Two similarly named interfaces have an especially important distinction:
 
-[Source: vfs_subr.c, lines 6362–6383](../../../xnu/bsd/vfs/vfs_subr.c#L6362-L6383)
+[Source: vfs_subr.c, lines 6362–6383](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6362-L6383)
 
-<!-- source-excerpt: ../../../xnu/bsd/vfs/vfs_subr.c#L6362-L6383 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6362-L6383 -->
 ```c
 /*
  * vnode_getwithvid() cuts in line in front of a vnode drain (that is,
@@ -240,9 +240,9 @@ vnode_getwithvid_drainok(vnode_t vp, uint32_t vid)
 
 `vnode_getwithvid` is allowed ahead of a drain to avoid lock/resource cycles involving filesystem hashes. `vnode_getwithvid_drainok`, used by the name-cache path where appropriate, can wait behind the drain so lookup does not indefinitely hold up unmount. While waiting, the code also detects an unmount case and can return `ENODEV`; the pathname caller translates or retries according to its own contract.
 
-[`vnode_put_internal_locked`](../../../xnu/bsd/vfs/vfs_subr.c#L6426) handles more than decrementing a counter. At the last relevant reference it can run `VNOP_INACTIVE`, then retry its state inspection because the callback ran without the vnode lock. A marked vnode can be reclaimed immediately or placed on an asynchronous reclaim list when reclaiming from the pager would create a dependency cycle.
+[`vnode_put_internal_locked`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6426) handles more than decrementing a counter. At the last relevant reference it can run `VNOP_INACTIVE`, then retry its state inspection because the callback ran without the vnode lock. A marked vnode can be reclaimed immediately or placed on an asynchronous reclaim list when reclaiming from the pager would create a dependency cycle.
 
-[`vnode_recycle`](../../../xnu/bsd/vfs/vfs_subr.c#L3281) therefore has deferred behavior: when use or I/O references prevent immediate work, it marks the vnode for later reclamation. A request to recycle is not proof that `VNOP_RECLAIM` has already executed.
+[`vnode_recycle`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L3281) therefore has deferred behavior: when use or I/O references prevent immediate work, it marks the vnode for later reclamation. A request to recycle is not proof that `VNOP_RECLAIM` has already executed.
 
 ## Cleaning filesystem state and changing identity
 
@@ -263,7 +263,7 @@ sequenceDiagram
     R->>V: Finish teardown, wake waiters, make reusable as permitted
 ```
 
-[`vclean`](../../../xnu/bsd/vfs/vfs_subr.c#L3012) drops the vnode lock around filesystem/VM callbacks. Its behavior depends on close/revoke flags, object type and UBC state:
+[`vclean`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L3012) drops the vnode lock around filesystem/VM callbacks. Its behavior depends on close/revoke flags, object type and UBC state:
 
 * Active references can require `VNOP_CLOSE`; buffers and dirty file data may require filesystem synchronization, buffer invalidation and UBC synchronization.
 * Active or pending-inactive state requires `VNOP_INACTIVE`. This callback is not equivalent to reclaim.
@@ -272,13 +272,13 @@ sequenceDiagram
 * Identity caches are removed. The vnode stays findable on the mount's vnode list until the callback work has finished, allowing unmount to observe termination in progress.
 * The cleaned vnode receives dead operations and a dead-mount association, and its filesystem-private data is cleared.
 
-See [UBC destruction and filesystem reclaim](../../../xnu/bsd/vfs/vfs_subr.c#L3100) and [the final dead-state installation](../../../xnu/bsd/vfs/vfs_subr.c#L3160). Forced reclaim does not authorize arbitrary continued filesystem access through a surviving use count.
+See [UBC destruction and filesystem reclaim](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L3100) and [the final dead-state installation](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L3160). Forced reclaim does not authorize arbitrary continued filesystem access through a surviving use count.
 
-[`vnode_reclaim_internal`](../../../xnu/bsd/vfs/vfs_subr.c#L6841) then invalidates old pointer/generation pairs under the vnode-list lock:
+[`vnode_reclaim_internal`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6841) then invalidates old pointer/generation pairs under the vnode-list lock:
 
-[Source: vfs_subr.c, lines 6905–6911](../../../xnu/bsd/vfs/vfs_subr.c#L6905-L6911)
+[Source: vfs_subr.c, lines 6905–6911](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6905-L6911)
 
-<!-- source-excerpt: ../../../xnu/bsd/vfs/vfs_subr.c#L6905-L6911 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6905-L6911 -->
 ```c
 
 	vnode_list_remove_locked(vp);
@@ -289,7 +289,7 @@ See [UBC destruction and filesystem reclaim](../../../xnu/bsd/vfs/vfs_subr.c#L31
 	if (isfifo) {
 ```
 
-Removing the vnode from a reusable list before changing its generation prevents the allocator from selecting it in an incompletely reclaimed state. Final cleanup includes type-specific state, event notification, waking termination waiters and controlled re-entry into vnode lists. See [the end of reclaim](../../../xnu/bsd/vfs/vfs_subr.c#L6913).
+Removing the vnode from a reusable list before changing its generation prevents the allocator from selecting it in an incompletely reclaimed state. Final cleanup includes type-specific state, event notification, waking termination waiters and controlled re-entry into vnode lists. See [the end of reclaim](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c#L6913).
 
 ## What these checks do and do not establish
 

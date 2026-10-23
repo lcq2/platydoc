@@ -1,0 +1,3 @@
+[submodule "platydoc-data"]
+	path = platydoc-data
+	url = https://github.com/lcq2/platydoc-data.git

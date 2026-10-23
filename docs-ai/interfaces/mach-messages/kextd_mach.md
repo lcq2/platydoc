@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/kextd/kextd_mach.defs](../../../xnu/osfmk/kextd/kextd_mach.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/kextd/kextd_mach.defs](../../../platydoc-data/xnu/osfmk/kextd/kextd_mach.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > Ping kextd, launchd starts it if it's not running.
 
-**Mechanism:** `OSKext::pingIOKitDaemon` is gated by `NO_KEXTD` and the daemon-active state, obtains the host kextd endpoint, sends the ping, logs failures and releases the port on exit. The request prompts the external daemon; its loading/policy work is not the body of this kernel wrapper. [Local path](../../../xnu/libkern/c++/OSKext.cpp#L1554).
+**Mechanism:** `OSKext::pingIOKitDaemon` is gated by `NO_KEXTD` and the daemon-active state, obtains the host kextd endpoint, sends the ping, logs failures and releases the port on exit. The request prompts the external daemon; its loading/policy work is not the body of this kernel wrapper. [Local path](../../../platydoc-data/xnu/libkern/c++/OSKext.cpp#L1554).
 
-**Declarations:** [`kextd_ping`](../../../xnu/osfmk/kextd/kextd_mach.defs#L42) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`kextd_ping`](../../../platydoc-data/xnu/osfmk/kextd/kextd_mach.defs#L42) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -32,7 +32,7 @@ simpleroutine kextd_ping(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [libkern/c++/OSKext.cpp:1575](../../../xnu/libkern/c++/OSKext.cpp#L1575). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [libkern/c++/OSKext.cpp:1575](../../../platydoc-data/xnu/libkern/c++/OSKext.cpp#L1575). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

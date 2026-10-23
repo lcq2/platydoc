@@ -56,19 +56,19 @@ The filesystem decides whether and how to use clustered I/O. A generic `VNOP_REA
 
 | Layer | Principal source | What to look for |
 |---|---|---|
-| Syscalls and open files | [`vfs_syscalls.c`](../../../xnu/bsd/vfs/vfs_syscalls.c), [`sys_generic.c`](../../../xnu/bsd/kern/sys_generic.c), [`vfs_vnops.c`](../../../xnu/bsd/vfs/vfs_vnops.c) | Path-based setup, fileglob operations, shared offsets and stored credentials |
-| Pathnames | [`vfs_lookup.c`](../../../xnu/bsd/vfs/vfs_lookup.c), [`vfs_cache.c`](../../../xnu/bsd/vfs/vfs_cache.c), [`nameidata`](../../../xnu/bsd/sys/namei.h#L99) | Component lookup, mount/symlink traversal, positive and negative cache entries |
-| Vnode lifecycle | [`vnode`](../../../xnu/bsd/sys/vnode_internal.h#L159), [`vfs_subr.c`](../../../xnu/bsd/vfs/vfs_subr.c) | I/O references, persistent references, identity generations, inactive/reclaim |
-| Mounts and registration | [`mount`](../../../xnu/bsd/sys/mount_internal.h#L108), [`vfs_init.c`](../../../xnu/bsd/vfs/vfs_init.c), [`kpi_vfs.c`](../../../xnu/bsd/vfs/kpi_vfs.c) | Filesystem instance vs filesystem type; mount operations vs vnode operations |
-| File contents | [`ubc_info`](../../../xnu/bsd/sys/ubc_internal.h#L171), [`ubc_subr.c`](../../../xnu/bsd/kern/ubc_subr.c), [`vfs_cluster.c`](../../../xnu/bsd/vfs/vfs_cluster.c) | File VM object, UPLs, read-ahead, write-behind, extent mapping |
-| Buffer/device I/O | [`buf`](../../../xnu/bsd/sys/buf_internal.h#L107), [`vfs_bio.c`](../../../xnu/bsd/vfs/vfs_bio.c), [`spec_vnops.c`](../../../xnu/bsd/miscfs/specfs/spec_vnops.c) | Buffer ownership, submission, completion and device-switch dispatch |
-| Remote requests | [`nfs_syscalls.c`](../../../xnu/bsd/nfs/nfs_syscalls.c), [`nfs_socket.c`](../../../xnu/bsd/nfs/nfs_socket.c), [`nfs_serv.c`](../../../xnu/bsd/nfs/nfs_serv.c) | NFS server requests translated into local VFS operations |
+| Syscalls and open files | [`vfs_syscalls.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_syscalls.c), [`sys_generic.c`](../../../platydoc-data/xnu/bsd/kern/sys_generic.c), [`vfs_vnops.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_vnops.c) | Path-based setup, fileglob operations, shared offsets and stored credentials |
+| Pathnames | [`vfs_lookup.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_lookup.c), [`vfs_cache.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_cache.c), [`nameidata`](../../../platydoc-data/xnu/bsd/sys/namei.h#L99) | Component lookup, mount/symlink traversal, positive and negative cache entries |
+| Vnode lifecycle | [`vnode`](../../../platydoc-data/xnu/bsd/sys/vnode_internal.h#L159), [`vfs_subr.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_subr.c) | I/O references, persistent references, identity generations, inactive/reclaim |
+| Mounts and registration | [`mount`](../../../platydoc-data/xnu/bsd/sys/mount_internal.h#L108), [`vfs_init.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_init.c), [`kpi_vfs.c`](../../../platydoc-data/xnu/bsd/vfs/kpi_vfs.c) | Filesystem instance vs filesystem type; mount operations vs vnode operations |
+| File contents | [`ubc_info`](../../../platydoc-data/xnu/bsd/sys/ubc_internal.h#L171), [`ubc_subr.c`](../../../platydoc-data/xnu/bsd/kern/ubc_subr.c), [`vfs_cluster.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_cluster.c) | File VM object, UPLs, read-ahead, write-behind, extent mapping |
+| Buffer/device I/O | [`buf`](../../../platydoc-data/xnu/bsd/sys/buf_internal.h#L107), [`vfs_bio.c`](../../../platydoc-data/xnu/bsd/vfs/vfs_bio.c), [`spec_vnops.c`](../../../platydoc-data/xnu/bsd/miscfs/specfs/spec_vnops.c) | Buffer ownership, submission, completion and device-switch dispatch |
+| Remote requests | [`nfs_syscalls.c`](../../../platydoc-data/xnu/bsd/nfs/nfs_syscalls.c), [`nfs_socket.c`](../../../platydoc-data/xnu/bsd/nfs/nfs_socket.c), [`nfs_serv.c`](../../../platydoc-data/xnu/bsd/nfs/nfs_serv.c) | NFS server requests translated into local VFS operations |
 
 ## What this tree contains
 
 The checkout supplies the generic VFS infrastructure and small filesystems/layers under `bsd/miscfs`. It does **not** supply the APFS filesystem implementation or a complete physical storage-driver stack. Calls through registered `vfsops`, vnode operation vectors and block/character device switches cross those boundaries. The presence of APFS-specific integration or ioctl names elsewhere in XNU does not expose APFS's allocation, transaction or on-disk algorithms.
 
-Likewise, the available `bsd/nfs` implementation is chiefly the NFS server, RPC and GSS support. There is no client `nfs_vfsops.c` or `nfs_vnops.c` here. [`nfs_register_hooks`](../../../xnu/bsd/nfs/nfs_syscalls.c#L175) exposes integration hooks for externally supplied behavior. The final chapter distinguishes what can actually be traced from this checkout from those missing implementations.
+Likewise, the available `bsd/nfs` implementation is chiefly the NFS server, RPC and GSS support. There is no client `nfs_vfsops.c` or `nfs_vnops.c` here. [`nfs_register_hooks`](../../../platydoc-data/xnu/bsd/nfs/nfs_syscalls.c#L175) exposes integration hooks for externally supplied behavior. The final chapter distinguishes what can actually be traced from this checkout from those missing implementations.
 
 ## Useful reading routes
 
@@ -95,7 +95,7 @@ These are reading routes, not exhaustive call graphs: compound operations, retri
 | Metadata, locks and events | Attribute packing/bulk progress/set ordering, native and DoubleAgent xattrs, lockf ranges/waiters/close, lease breaks, event watcher publication/delivery/loss/close | External filesystem metadata storage and DoubleAgent service bodies remain boundaries |
 | Compressed files and quota infrastructure | decmpfs header/provider/UBC/UPL/conversion paths, quota cache identity/refcounts/disk records/writeback | Most codecs, APFS methods and filesystem quota charging are external; generic callbacks do not reveal those implementations |
 
-Useful adjacent originals are the [VM pageout description](../../../xnu/doc/vm/pageout_scan.md) and [startup description](../../../xnu/doc/lifecycle/startup.md). The [devfs README](../../../xnu/bsd/miscfs/devfs/README) explicitly identifies itself as inherited FreeBSD 3.1 commentary: use current source, rather than that historical feature list, for this version's behavior.
+Useful adjacent originals are the [VM pageout description](../../../platydoc-data/xnu/doc/vm/pageout_scan.md) and [startup description](../../../platydoc-data/xnu/doc/lifecycle/startup.md). The [devfs README](../../../platydoc-data/xnu/bsd/miscfs/devfs/README) explicitly identifies itself as inherited FreeBSD 3.1 commentary: use current source, rather than that historical feature list, for this version's behavior.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

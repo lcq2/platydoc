@@ -35,7 +35,7 @@ The [structure layout browser](../../structures/layout-browser.md?declaration=ip
 | `ip6_moptions`, `in6_mfilter`, `in6_multi` | Socket membership/filter state and shared interface/group aggregate | One MLD report per socket or identical commit timing at all layers |
 | `mbuf` | Packet data and metadata, with `m_next` for pieces and `m_nextpkt` for packet lists | A userspace address or hardware DMA mapping |
 
-Definitions and implementation anchors: [`in6_ifaddr`](../../../xnu/bsd/netinet6/in6_var.h), [ND objects](../../../xnu/bsd/netinet6/nd6.h), [common PCB](../../../xnu/bsd/netinet/in_pcb.h#L166-L231), [IPv6 options](../../../xnu/bsd/netinet6/ip6_var.h#L183-L250), [multicast state](../../../xnu/bsd/netinet6/in6_var.h), and [mbuf layout](../../../xnu/bsd/sys/mbuf.h). Each companion links the particular fields and branches used in its explanation.
+Definitions and implementation anchors: [`in6_ifaddr`](../../../platydoc-data/xnu/bsd/netinet6/in6_var.h), [ND objects](../../../platydoc-data/xnu/bsd/netinet6/nd6.h), [common PCB](../../../platydoc-data/xnu/bsd/netinet/in_pcb.h#L166-L231), [IPv6 options](../../../platydoc-data/xnu/bsd/netinet6/ip6_var.h#L183-L250), [multicast state](../../../platydoc-data/xnu/bsd/netinet6/in6_var.h), and [mbuf layout](../../../platydoc-data/xnu/bsd/sys/mbuf.h). Each companion links the particular fields and branches used in its explanation.
 
 ```mermaid
 flowchart TD
@@ -54,7 +54,7 @@ flowchart TD
     F --> N
 ```
 
-The diagram shows state effects as well as packet calls; the redirect arrow represents a route update, not a new source-selection request. NS/NA update neighbor state, RA updates router/prefix/address state, and MLD updates membership/report state through distinct handlers; none is a generic “update IPv6” callback. [Protocol registration](../../../xnu/bsd/netinet6/in6_proto.c#L164-L267), [ICMPv6 dispatch](../../../xnu/bsd/netinet6/icmp6.c) and the detailed receive chapters establish those actual calls.
+The diagram shows state effects as well as packet calls; the redirect arrow represents a route update, not a new source-selection request. NS/NA update neighbor state, RA updates router/prefix/address state, and MLD updates membership/report state through distinct handlers; none is a generic “update IPv6” callback. [Protocol registration](../../../platydoc-data/xnu/bsd/netinet6/in6_proto.c#L164-L267), [ICMPv6 dispatch](../../../platydoc-data/xnu/bsd/netinet6/icmp6.c) and the detailed receive chapters establish those actual calls.
 
 ## One host operation across the chapters
 

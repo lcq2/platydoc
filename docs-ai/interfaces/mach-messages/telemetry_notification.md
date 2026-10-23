@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/telemetry_notification.defs](../../../xnu/osfmk/mach/telemetry_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/telemetry_notification.defs](../../../platydoc-data/xnu/osfmk/mach/telemetry_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -17,9 +17,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 Send telemetry notification data to the registered external receiver.
 
-**Mechanism:** The local notification helper obtains the host telemetry service port, sends notice flags and releases the right. It returns silently when the endpoint is unavailable and does not propagate the message result. AST sampling and kernel collection are separate from this service notification; see [AST flavors](../../subsystems/runtime/ast-flavors.md). [Local path](../../../xnu/osfmk/kern/telemetry.c#L309).
+**Mechanism:** The local notification helper obtains the host telemetry service port, sends notice flags and releases the right. It returns silently when the endpoint is unavailable and does not propagate the message result. AST sampling and kernel collection are separate from this service notification; see [AST flavors](../../subsystems/runtime/ast-flavors.md). [Local path](../../../platydoc-data/xnu/osfmk/kern/telemetry.c#L309).
 
-**Declarations:** [`telemetry_notification`](../../../xnu/osfmk/mach/telemetry_notification.defs#L18) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`telemetry_notification`](../../../platydoc-data/xnu/osfmk/mach/telemetry_notification.defs#L18) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -30,7 +30,7 @@ simpleroutine telemetry_notification(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/telemetry.c:317](../../../xnu/osfmk/kern/telemetry.c#L317). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/telemetry.c:317](../../../platydoc-data/xnu/osfmk/kern/telemetry.c#L317). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

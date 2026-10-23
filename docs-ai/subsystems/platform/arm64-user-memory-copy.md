@@ -16,7 +16,7 @@ Many BSD and Mach operations accept an address in the caller's address space. Th
 | `thread->machine.recover_esr/recover_far` | The recorded exception syndrome and fault address when the handler redirects to recovery |
 | `thread->recover` | A flag temporarily used around VM fault handling; it is not the table of recovery instruction ranges |
 
-The representation and lookup of the table are in [`sleh.c`](../../../xnu/osfmk/arm64/sleh.c#L319-L360); the copy wrapper selects the map in [`copyin`](../../../xnu/osfmk/arm64/copyio.c#L403-L432). The static table avoids installing a caller-selected arbitrary recovery PC for each copy.
+The representation and lookup of the table are in [`sleh.c`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L319-L360); the copy wrapper selects the map in [`copyin`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L403-L432). The static table avoids installing a caller-selected arbitrary recovery PC for each copy.
 
 ```mermaid
 flowchart TD
@@ -37,15 +37,15 @@ The diagram omits configuration-specific guard and tag-fault branches, which are
 
 ## 2. Validation separates a bad user argument from a kernel programming error
 
-[`copy_validate_user_addr`](../../../xnu/osfmk/arm64/copyio.c#L273-L312) checks the map bounds and addition overflow. Relevant MTE configurations first canonicalize an enabled task's tagged address for the range check. Ordinary top-byte-tagged addresses are otherwise rejected by the `ARM_TBI_USER_MASK` check. A map-bounds failure returns `EFAULT`; the latter tag check returns `EINVAL`.
+[`copy_validate_user_addr`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L273-L312) checks the map bounds and addition overflow. Relevant MTE configurations first canonicalize an enabled task's tagged address for the range check. Ordinary top-byte-tagged addresses are otherwise rejected by the `ARM_TBI_USER_MASK` check. A map-bounds failure returns `EFAULT`; the latter tag check returns `EINVAL`.
 
-[`copy_validate_kernel_addr`](../../../xnu/osfmk/arm64/copyio.c#L315-L336) checks overflow, kernel virtual/physmap bounds and `zone_element_bounds_check`. Invalid kernel-buffer geometry is a kernel error and can panic. KASAN builds additionally check stores into the kernel destination for copyin and loads from the kernel source for copyout. These checks validate buffer geometry; they neither pin all user pages nor make their contents immutable.
+[`copy_validate_kernel_addr`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L315-L336) checks overflow, kernel virtual/physmap bounds and `zone_element_bounds_check`. Invalid kernel-buffer geometry is a kernel error and can panic. KASAN builds additionally check stores into the kernel destination for copyin and loads from the kernel source for copyout. These checks validate buffer geometry; they neither pin all user pages nor make their contents immutable.
 
-[`copy_validate`](../../../xnu/osfmk/arm64/copyio.c#L344-L386) also limits size and enforces natural alignment for `COPYIO_ATOMIC`. Its implementation returns `EINVAL` above `copysize_limit_panic`, despite the older comment above the constant describing a panic. If the selected map uses `kernel_pmap`, a caller that allows kernel-to-kernel access gets the internal sentinel `EXDEV`; disallowed callers get `EFAULT`.
+[`copy_validate`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L344-L386) also limits size and enforces natural alignment for `COPYIO_ATOMIC`. Its implementation returns `EINVAL` above `copysize_limit_panic`, despite the older comment above the constant describing a panic. If the selected map uses `kernel_pmap`, a caller that allows kernel-to-kernel access gets the internal sentinel `EXDEV`; disallowed callers get `EFAULT`.
 
-The complete wrapper shows where this sentinel is consumed. It is not normally returned to the system-call caller. [`copyin`](../../../xnu/osfmk/arm64/copyio.c#L403-L432):
+The complete wrapper shows where this sentinel is consumed. It is not normally returned to the system-call caller. [`copyin`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L403-L432):
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/copyio.c#L403-L432 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L403-L432 -->
 ```c
 copyin(const user_addr_t user_addr, void *kernel_addr, vm_size_t nbytes)
 {
@@ -79,13 +79,13 @@ copyin(const user_addr_t user_addr, void *kernel_addr, vm_size_t nbytes)
  * These functions support userspace synchronization features
 ```
 
-The zero-length shortcut precedes validation. Nonzero copies use [`copy_ensure_address_space_spec`](../../../xnu/osfmk/arm64/copyio.c#L238-L270) after validation to force the address-space select bit to the selected user or kernel regime under speculation. The helper verifies that this did not change the validated address. This is address-selection hardening, not a second address translation.
+The zero-length shortcut precedes validation. Nonzero copies use [`copy_ensure_address_space_spec`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L238-L270) after validation to force the address-space select bit to the selected user or kernel regime under speculation. The helper verifies that this did not change the validated address. This is address-selection hardening, not a second address translation.
 
 ## 3. PAN and tagged access surround the copy, including its error return
 
-When `__ARM_PAN_AVAILABLE__` is enabled, the privileged path asserts that PAN is initially set, clears it for the assembly operation, then sets it again. It does not save and restore an arbitrary prior PAN value; the helpers have no PAN instruction in builds without that configuration. The wrapper receives the assembly operation's error code before disabling user access, so an ordinary recovered fault still passes through that step. [`access helpers and WRAP_COPYIO_PAN`](../../../xnu/osfmk/arm64/copyio.c#L120-L169):
+When `__ARM_PAN_AVAILABLE__` is enabled, the privileged path asserts that PAN is initially set, clears it for the assembly operation, then sets it again. It does not save and restore an arbitrary prior PAN value; the helpers have no PAN instruction in builds without that configuration. The wrapper receives the assembly operation's error code before disabling user access, so an ordinary recovered fault still passes through that step. [`access helpers and WRAP_COPYIO_PAN`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L120-L169):
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/copyio.c#L162-L169 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L162-L169 -->
 ```c
 #define WRAP_COPYIO_PAN(_dir, _map, _op)                                    \
 	({                                                                      \
@@ -97,23 +97,23 @@ When `__ARM_PAN_AVAILABLE__` is enabled, the privileged path asserts that PAN is
 	})
 ```
 
-Under `HAS_MTE`, [`WRAP_COPYIO`](../../../xnu/osfmk/arm64/copyio.c#L186-L208) selects a privileged operation or its `_unprivileged...` counterpart. The latter uses unprivileged memory instructions whose treatment of user access/tag state differs from an ordinary EL1 load/store. If the privileged operation returns `EAGAIN`, the wrapper calls the unprivileged operation with the original copy arguments. The macro comment says that the handler “enabled MTE soft mode”; the handler body actually tests whether the owning task **already has** soft mode, disables user tag checking and selects `EAGAIN`. This retry can repeat an already partially completed copy. It is a specific tag-policy transition, not the general rule for every translation fault. [`soft-mode decision`](../../../xnu/osfmk/arm64/sleh.c#L2432-L2446).
+Under `HAS_MTE`, [`WRAP_COPYIO`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L186-L208) selects a privileged operation or its `_unprivileged...` counterpart. The latter uses unprivileged memory instructions whose treatment of user access/tag state differs from an ordinary EL1 load/store. If the privileged operation returns `EAGAIN`, the wrapper calls the unprivileged operation with the original copy arguments. The macro comment says that the handler “enabled MTE soft mode”; the handler body actually tests whether the owning task **already has** soft mode, disables user tag checking and selects `EAGAIN`. This retry can repeat an already partially completed copy. It is a specific tag-policy transition, not the general rule for every translation fault. [`soft-mode decision`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2432-L2446).
 
-`userspace_access_is_tagged()` considers task settings and a thread override; `unprivileged_user_access_disable()` clears the thread's `in_unprivileged_access` state. Inspect these guards when describing a particular build. The presence of the MTE branch in source does not establish that it executes on all ARM64 machines. [`selection and state`](../../../xnu/osfmk/arm64/copyio.c#L105-L159), [`tag-fault recovery`](../../../xnu/osfmk/arm64/sleh.c#L2280-L2455).
+`userspace_access_is_tagged()` considers task settings and a thread override; `unprivileged_user_access_disable()` clears the thread's `in_unprivileged_access` state. Inspect these guards when describing a particular build. The presence of the MTE branch in source does not establish that it executes on all ARM64 machines. [`selection and state`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L105-L159), [`tag-fault recovery`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2280-L2455).
 
 The [MTE mitigation and page-lifetime chapter](../vm/mte-tag-storage-and-page-lifecycle.md) connects those choices to process enablement, tagged mappings, allocator reuse, hard/soft fault policy and deferred task attribution. [Bootstrap memory and lockdown](bootstrap-memory-and-lockdown.md) explains CPU setup and why local SPTM callers cannot stand in for the monitor's protected-register implementation.
 
-A tag-check fault takes `handle_kernel_tag_check_fault` before the ordinary VM-fault branch. A recoverable user-address access can arrange a deferred fatal exception, a soft-mode exception or map-associated asynchronous reporting, then return through the copy recovery epilogue. An `EFAULT` return therefore need not be the only consequence. Kernel-address tag faults require explicit read/write recovery permissions in the table entry; otherwise the handler panics. These decisions are separate from faulting in a missing page. [`tag dispatch`](../../../xnu/osfmk/arm64/sleh.c#L2571-L2586), [`tag-check handling`](../../../xnu/osfmk/arm64/sleh.c#L2401-L2501).
+A tag-check fault takes `handle_kernel_tag_check_fault` before the ordinary VM-fault branch. A recoverable user-address access can arrange a deferred fatal exception, a soft-mode exception or map-associated asynchronous reporting, then return through the copy recovery epilogue. An `EFAULT` return therefore need not be the only consequence. Kernel-address tag faults require explicit read/write recovery permissions in the table entry; otherwise the handler panics. These decisions are separate from faulting in a missing page. [`tag dispatch`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2571-L2586), [`tag-check handling`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2401-L2501).
 
 ## 4. The assembly exports both a copy routine and its recovery contract
 
 `_bcopyin` receives source user VA in `x0`, destination kernel VA in `x1`, and byte count in `x2`. `_bcopyout` uses the same source/destination register convention with the address-space roles reversed. Both establish a frame and invoke `BCOPY_IMPL`; neither changes the caller's map or creates a permanent mapping.
 
-The `COPYIO_RECOVER_RANGE` macro emits start, end and recovery offsets into `__TEXT,__copyio_vectors`, relative to `copyio_recover_table`. MTE builds append flags controlling permitted recovery from kernel-side tag faults. The start is inclusive and end exclusive in the C lookup. [`table construction`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L39-L88), [`range lookup`](../../../xnu/osfmk/arm64/sleh.c#L348-L360).
+The `COPYIO_RECOVER_RANGE` macro emits start, end and recovery offsets into `__TEXT,__copyio_vectors`, relative to `copyio_recover_table`. MTE builds append flags controlling permitted recovery from kernel-side tag faults. The start is inclusive and end exclusive in the C lookup. [`table construction`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L39-L88), [`range lookup`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L348-L360).
 
-The copyin assembly places the protected range around the memory operation and clears scratch registers containing user-controlled values before a successful return. [`_bcopyin`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L625-L646):
+The copyin assembly places the protected range around the memory operation and clears scratch registers containing user-controlled values before a successful return. [`_bcopyin`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L625-L646):
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/machine_routines_asm.s#L625-L646 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L625-L646 -->
 ```asm
 	.globl EXT(_bcopyin)
 LEXT(_bcopyin)
@@ -139,9 +139,9 @@ _bcopyin_end:
 	ARM64_STACK_EPILOG EXT(_bcopyin)
 ```
 
-The error epilogue preserves the error value already put in `x0` by the exception handler. It unwinds the frame and returns to the C wrapper. It does not execute the copy's successful-return instruction that would overwrite `x0` with zero. [`copyio_error`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L477-L480):
+The error epilogue preserves the error value already put in `x0` by the exception handler. It unwinds the frame and returns to the C wrapper. It does not execute the copy's successful-return instruction that would overwrite `x0` with zero. [`copyio_error`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L477-L480):
 
-<!-- source-excerpt: ../../../xnu/osfmk/arm64/machine_routines_asm.s#L477-L480 -->
+<!-- source-excerpt: ../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L477-L480 -->
 ```asm
 copyio_error:
 	POP_FRAME							// Return the error populated in x0
@@ -151,7 +151,7 @@ copyio_error:
 
 ## 5. A page fault can complete the mapping or convert the access to EFAULT
 
-[`handle_kernel_abort`](../../../xnu/osfmk/arm64/sleh.c#L2542-L2737) first finds a recovery entry using the saved PC. For a user address with such an entry, it selects `thread->map`; a kernel address or an unprotected access selects `kernel_map`. The latter deliberately avoids legitimizing an accidental raw user-pointer access merely because a user mapping happens to exist.
+[`handle_kernel_abort`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2542-L2737) first finds a recovery entry using the saved PC. For a user address with such an entry, it selects `thread->map`; a kernel address or an unprotected access selects `kernel_map`. The latter deliberately avoids legitimizing an accidental raw user-pointer access merely because a user mapping happens to exist.
 
 For eligible VM faults:
 
@@ -161,7 +161,7 @@ For eligible VM faults:
 4. Successful resolution returns from the handler without changing the saved PC. Exception return retries the interrupted memory instruction.
 5. If resolution fails and recovery is permitted, guard-object reporting can occur, then the handler selects the registered error epilogue. A kernel fault without a valid recovery path can panic instead.
 
-The error handoff records ESR/FAR, sets saved `x0`, and updates the saved PC. PAC-enabled builds manipulate signed state through `MANIPULATE_SIGNED_THREAD_STATE` and validate that the recovery record is a properly aligned member of the static table. The alternative path also checks the table bounds/alignment. [`handle_kernel_abort_recover_with_error_code`](../../../xnu/osfmk/arm64/sleh.c#L2185-L2233).
+The error handoff records ESR/FAR, sets saved `x0`, and updates the saved PC. PAC-enabled builds manipulate signed state through `MANIPULATE_SIGNED_THREAD_STATE` and validate that the recovery record is a properly aligned member of the static table. The alternative path also checks the table bounds/alignment. [`handle_kernel_abort_recover_with_error_code`](../../../platydoc-data/xnu/osfmk/arm64/sleh.c#L2185-L2233).
 
 This produces an EL1-to-EL1 exception-return path: the kernel was copying when it faulted, so the saved state resumes kernel execution at either the same load/store or the error epilogue. The later system-call return to EL0 is a separate operation. See [exception entry](arm64-exception-entry.md) and [exception return](arm64-exception-return.md) for register saving and the final `eret`.
 
@@ -174,9 +174,9 @@ This produces an EL1-to-EL1 exception-return path: the kernel was copying when i
 | `copyin_atomic32/64`, `copyout_atomic32/64` | Naturally aligned single-value access; alignment is checked before the assembly operation |
 | Kernel-to-kernel fallback | Permitted ordinary wrappers use `bcopy`; this is separate from recoverable access to a user map |
 
-Sources: [`copyinstr`](../../../xnu/osfmk/arm64/copyio.c#L551-L576), [`atomic wrappers`](../../../xnu/osfmk/arm64/copyio.c#L434-L548), [`kernel fallbacks`](../../../xnu/osfmk/arm64/copyio.c#L389-L400).
+Sources: [`copyinstr`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L551-L576), [`atomic wrappers`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L434-L548), [`kernel fallbacks`](../../../platydoc-data/xnu/osfmk/arm64/copyio.c#L389-L400).
 
-`_bcopyinstr` loads and stores a byte before testing for NUL, so a successful length includes the terminator. Exhausting the maximum returns `ENAMETOOLONG`; the destination contains the bytes already written. A recoverable abort bypasses the normal final length store in assembly, and the C wrapper suppresses `lencopied` publication for `EFAULT`. [`string assembly`](../../../xnu/osfmk/arm64/machine_routines_asm.s#L901-L944).
+`_bcopyinstr` loads and stores a byte before testing for NUL, so a successful length includes the terminator. Exhausting the maximum returns `ENAMETOOLONG`; the destination contains the bytes already written. A recoverable abort bypasses the normal final length store in assembly, and the C wrapper suppresses `lencopied` publication for `EFAULT`. [`string assembly`](../../../platydoc-data/xnu/osfmk/arm64/machine_routines_asm.s#L901-L944).
 
 ## 7. Worked partial-copy example and caller responsibilities
 

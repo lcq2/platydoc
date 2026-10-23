@@ -10,9 +10,9 @@ The following passes build on one another. They are an order of study, not a cla
 
 ## Pass 1: learn the identities
 
-Read [architecture.md](architecture.md), then compare the definitions of [`proc`](../xnu/bsd/sys/proc_internal.h), [`task`](../xnu/osfmk/kern/task.h), [`thread`/`thread_ro`](../xnu/osfmk/kern/thread.h), and [`uthread`](../xnu/bsd/sys/user.h). Write down which layer owns PID identity, the address map, the IPC namespace, scheduling state, and BSD thread state.
+Read [architecture.md](architecture.md), then compare the definitions of [`proc`](../platydoc-data/xnu/bsd/sys/proc_internal.h), [`task`](../platydoc-data/xnu/osfmk/kern/task.h), [`thread`/`thread_ro`](../platydoc-data/xnu/osfmk/kern/thread.h), and [`uthread`](../platydoc-data/xnu/bsd/sys/user.h). Write down which layer owns PID identity, the address map, the IPC namespace, scheduling state, and BSD thread state.
 
-Then read `proc_task()` in [kern_proc.c](../xnu/bsd/kern/kern_proc.c#L2003) and `get_threadtask()` in [bsd_kern.c](../xnu/osfmk/kern/bsd_kern.c#L834). The accessor implementations are useful precisely because current layout differs from older diagrams. Continue into the [runtime lifecycle guide](subsystems/runtime/objects-and-lifecycle.md) and [BSD lifecycle guide](subsystems/processes/README.md).
+Then read `proc_task()` in [kern_proc.c](../platydoc-data/xnu/bsd/kern/kern_proc.c#L2003) and `get_threadtask()` in [bsd_kern.c](../platydoc-data/xnu/osfmk/kern/bsd_kern.c#L834). The accessor implementations are useful precisely because current layout differs from older diagrams. Continue into the [runtime lifecycle guide](subsystems/runtime/objects-and-lifecycle.md) and [BSD lifecycle guide](subsystems/processes/README.md).
 
 **Checkpoint:** explain how one process can have several schedulable threads, why a task is not a CPU execution context, and why a reference and a PID are not interchangeable ways to keep a process alive.
 
@@ -22,9 +22,9 @@ Next follow [thread, BSD state and `thread_ro`](structures/thread-and-thread-ro.
 
 ## Pass 2: follow one entry from user space
 
-Pick a small syscall from [syscalls.master](../xnu/bsd/kern/syscalls.master), locate its implementation, and inspect an architecture dispatcher: [ARM](../xnu/bsd/dev/arm/systemcalls.c) or [x86](../xnu/bsd/dev/i386/systemcalls.c). Trace argument extraction and the return convention before following the operation itself. Use the [process interface guide](subsystems/processes/README.md) to connect dispatch, `uthread`, restart behavior, and signals.
+Pick a small syscall from [syscalls.master](../platydoc-data/xnu/bsd/kern/syscalls.master), locate its implementation, and inspect an architecture dispatcher: [ARM](../platydoc-data/xnu/bsd/dev/arm/systemcalls.c) or [x86](../platydoc-data/xnu/bsd/dev/i386/systemcalls.c). Trace argument extraction and the return convention before following the operation itself. Use the [process interface guide](subsystems/processes/README.md) to connect dispatch, `uthread`, restart behavior, and signals.
 
-Next compare a Mach trap in [syscall_sw.c](../xnu/osfmk/kern/syscall_sw.c) with an RPC declaration such as [mach_vm.defs](../xnu/osfmk/mach/mach_vm.defs). Read the [IPC guide](subsystems/ipc/README.md) to understand why a public function name can lead to a trap wrapper, generated MIG client, or kernel server implementation.
+Next compare a Mach trap in [syscall_sw.c](../platydoc-data/xnu/osfmk/kern/syscall_sw.c) with an RPC declaration such as [mach_vm.defs](../platydoc-data/xnu/osfmk/mach/mach_vm.defs). Read the [IPC guide](subsystems/ipc/README.md) to understand why a public function name can lead to a trap wrapper, generated MIG client, or kernel server implementation.
 
 The [complete interface map](interfaces/README.md) gives a searchable route through [every BSD slot](interfaces/bsd-syscalls/number-index.md), [every Mach trap slot](interfaces/mach-traps.md), [machine-specific selectors](interfaces/machine-entry-points.md), and [all MIG subsystems](interfaces/mach-messages/subsystems.md). Use each entry's purpose, argument declaration and implementation path to choose the next function; preserve the distinction between a declaration, a registered receiver and an external service.
 
@@ -38,7 +38,7 @@ For a harder IPC exercise, use [complex message conversion](subsystems/ipc/compl
 
 ## Pass 3: understand blocking before scheduler policy
 
-Read `assert_wait*()`, `thread_block_reason()`, and the wakeup-to-runnable path in [sched_prim.c](../xnu/osfmk/kern/sched_prim.c), with [waitq.c](../xnu/osfmk/kern/waitq.c) beside it. Follow the [waits and locks guide](subsystems/runtime/waits-and-locks.md). Notice where the condition's lock is released, where the thread is registered as waiting, and how a wakeup racing with the block is handled.
+Read `assert_wait*()`, `thread_block_reason()`, and the wakeup-to-runnable path in [sched_prim.c](../platydoc-data/xnu/osfmk/kern/sched_prim.c), with [waitq.c](../platydoc-data/xnu/osfmk/kern/waitq.c) beside it. Follow the [waits and locks guide](subsystems/runtime/waits-and-locks.md). Notice where the condition's lock is released, where the thread is registered as waiting, and how a wakeup racing with the block is handled.
 
 Only then read [scheduling.md](subsystems/runtime/scheduling.md). Separate common runnable/block/context-switch machinery from the selected scheduler's choice of thread and CPU. Study one Clutch bucket or one Edge placement decision at a time rather than trying to memorize the entire policy.
 
@@ -76,7 +76,7 @@ Continue with [MTE tagging and page lifetime](subsystems/vm/mte-tag-storage-and-
 
 ## Pass 5: follow a file descriptor into VFS or networking
 
-Read [`fileproc` and `fileglob`](../xnu/bsd/sys/file_internal.h) and the generic read/write code in [sys_generic.c](../xnu/bsd/kern/sys_generic.c). Then choose a vnode-backed file or a socket. For a file, continue into [VFS](subsystems/vfs/README.md): path lookup, authorization, vnode lifetime, operation dispatch, and cache/pager integration. For a socket, continue into [networking](subsystems/networking/README.md): socket buffers, protocol callbacks, packet representation, and interface input/output.
+Read [`fileproc` and `fileglob`](../platydoc-data/xnu/bsd/sys/file_internal.h) and the generic read/write code in [sys_generic.c](../platydoc-data/xnu/bsd/kern/sys_generic.c). Then choose a vnode-backed file or a socket. For a file, continue into [VFS](subsystems/vfs/README.md): path lookup, authorization, vnode lifetime, operation dispatch, and cache/pager integration. For a socket, continue into [networking](subsystems/networking/README.md): socket buffers, protocol callbacks, packet representation, and interface input/output.
 
 Keep the [file structure route](structures/README.md#follow-descriptors-into-file-and-signature-storage) open beside those operations. Trace the embedded filedesc header and movable arrays, reserve and publish one slot, then duplicate it and account for separate fileproc I/O holds and shared fileglob ownership. Continue through vnode generation/iocount/usecount/hold distinctions into UBC, the vnode pager and the named VM association. Compare descriptor close with vnode reclaim and final pager release.
 
@@ -134,7 +134,7 @@ Then read [platform](subsystems/platform/README.md) around a fault or syscall yo
 
 ## A repeatable source-reading worksheet
 
-The [complete table of contents](table-of-contents.md) provides a section-level route through the whole handbook. For the newly expanded lifecycle and failure paths, use the [topic audit](expansion-audit.md), then compare [completion and cancellation](cross-cutting/completion-and-failure.md) across the relevant subsystems. The [SMR chapter](cross-cutting/smr-and-publication.md) supplies the shared reclamation protocol behind many lookup and teardown paths.
+The [complete table of contents](table-of-contents.md) provides a section-level route through the whole handbook. For lifecycle and failure paths, compare [completion and cancellation](cross-cutting/completion-and-failure.md) across the relevant subsystems. The [SMR chapter](cross-cutting/smr-and-publication.md) supplies the shared reclamation protocol behind many lookup and teardown paths.
 
 For a concrete concurrent lookup, continue from SMR into [hash resizing and migration](cross-cutting/smr-hash-tables.md), then [symbol interning](subsystems/drivers/symbol-interning.md). Track the borrowed hash match, successful object acquisition, unlink, old-array retirement and eventual backing release separately.
 
@@ -202,11 +202,11 @@ This route builds a source-level understanding of concrete operations. Read it i
 | 7 | [Sanitizer runtime and reporting](development/sanitizer-runtime-and-reporting.md), then [coverage instrumentation lifecycle](development/coverage-instrumentation-lifecycle.md) | Instrumentation selection, metadata lifetime, report disposition, per-thread coverage buffers and detach/close |
 | 8 | [BPF capture/filter lifetime](subsystems/networking/bpf-capture-and-filter-lifecycle.md), [PF rules and state](subsystems/networking/pf-rules-states-and-packet-ownership.md), then [IPsec policy and associations](subsystems/networking/ipsec-policy-associations-and-transforms.md) | Capture program/buffer lifetime, published packet rules and retained state, policy/SA lookup, transforms and packet ownership |
 
-The [scope record](audits/first-release-expansion.md#21-arguments-identity-integrity-instrumentation-and-packet-state) separates completed paths from unreviewed variants and external implementations. This route documents the selected XNU snapshot; it does not prescribe vulnerability research.
+This route documents the selected XNU snapshot; it does not prescribe vulnerability research.
 
 ## Executable memory, synchronization and packet policy
 
-These companions continue the operation-based route above, concentrating on common code and selected ARM64 configurations. Each states the feature/platform guards that matter. The two batches allowed separate authors to research mechanisms in parallel; their order also gives a useful reading route.
+These companions continue the operation-based route above, concentrating on common code and selected ARM64 configurations. Each states the feature/platform guards that matter.
 
 | Batch | Reading | Operation and state to follow |
 | --- | --- | --- |
@@ -218,7 +218,7 @@ These companions continue the operation-based route above, concentrating on comm
 | B | [IPsec policy, associations and transforms](subsystems/networking/ipsec-policy-associations-and-transforms.md) | Continue from IPv4 into IPv6 transport/tunnel stages, ordered requests, packet handoff and association replacement/retirement |
 | B | [ARM64 build and MIG walkthrough](development/arm64-build-and-mig-walkthrough.md) | Concrete target selection, configuration/source/header generation, then a Mach VM request's declared conversion and local implementation |
 
-The [batch record](audits/first-release-expansion.md#22-executable-memory-synchronization-packet-policy-and-build-selection) separates these source reviews from unreviewed variants and external implementations. Further debugger attach/stop/resume and kperf expansion are deferred at the reader's request; this priority choice is not a claim that their source is universally macOS-only. No kernel build or target runtime test is implied by the worked examples.
+No kernel build or target runtime test is implied by the worked examples.
 
 ## Exec stacks, executable I/O and scheduler placement
 
@@ -230,11 +230,11 @@ These three companions extend mechanisms already introduced above. Follow each r
 | [Executable-memory policy](subsystems/vm/executable-memory-policy.md) and [UPL gathering](subsystems/vm/upl-gather-and-completion.md) | [Executable pages and UPL I/O](subsystems/vm/executable-pages-and-upl-io.md) | Direction and mapping policy select rejection, direct gathering or temporary copying; the UPL retains backing after the kernel mapping is removed |
 | [Work-interval groups](subsystems/runtime/work-interval-policy-and-thread-groups.md) and [Clutch/Edge](subsystems/runtime/clutch-and-edge.md) | [Thread-group accounting and cluster migration](subsystems/runtime/thread-group-accounting-and-cluster-migration.md) | A group switch transfers accounting; a separate preference change updates future placement and requests action for running or queued threads |
 
-The [batch record](audits/first-release-expansion.md#23-exec-stacks-executable-io-and-scheduler-placement) distinguishes source review from external dyld, monitor, device and performance-controller behavior. The worked layouts and schedules are illustrative; no product configuration or runtime result is inferred from them.
+The worked layouts and schedules are illustrative; no product configuration or runtime result is inferred from them.
 
 ## IPsec interfaces, MPTCP and process inspection
 
-This batch extends the packet, transport and process mechanisms with three operations whose state outlives an individual call or packet. Read the prerequisites first, then use the worked examples to follow ownership and identity through changes.
+This route connects the packet, transport and process mechanisms with three operations whose state outlives an individual call or packet. Read the prerequisites first, then use the worked examples to follow ownership and identity through changes.
 
 | Start from | Continue with | Operation to follow |
 | --- | --- | --- |
@@ -242,7 +242,7 @@ This batch extends the packet, transport and process mechanisms with three opera
 | [TCP connections](subsystems/networking/tcp-connections-and-timers.md) and [loss recovery](subsystems/networking/tcp-loss-recovery-and-congestion-control.md) | [MPTCP sessions and subflows](subsystems/networking/mptcp-sessions-and-subflows.md) | A session coordinates TCP subflows using connection-level numbering, path selection, reinjection, receive ordering and staged close |
 | [Process lifetime](subsystems/processes/lifecycle.md), [descriptor ownership](subsystems/processes/descriptors-ipc.md) and [command dispatch](interfaces/command-dispatch-and-validation.md) | [Process inspection and snapshots](subsystems/processes/process-inspection-and-snapshots.md) | Selector and identity checks admit queries; descriptor enumeration and later typed lookup retain different state while the target can change |
 
-The [batch record](audits/first-release-expansion.md#24-ipsec-interfaces-mptcp-and-process-inspection) records selected implementation paths and external boundaries. These chapters explain source behavior and illustrative schedules; they do not report a kernel or network experiment.
+These chapters explain source behavior and illustrative schedules; they do not report a kernel or network experiment.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

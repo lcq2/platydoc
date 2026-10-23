@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/lockd/lockd_mach.defs](../../../xnu/osfmk/lockd/lockd_mach.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/lockd/lockd_mach.defs](../../../platydoc-data/xnu/osfmk/lockd/lockd_mach.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,7 +19,7 @@ Forward an NFS record-lock operation and its file/owner/range parameters to the 
 
 **Mechanism:** This is a lock-daemon protocol declaration with a separately addressed server port. No same-symbol local receiver or direct sender was resolved in the indexed implementation. The declared NFS-lock request/control fields document the boundary, but actual userspace lock-service scheduling, persistence and completion cannot be reconstructed from this declaration.
 
-**Declarations:** [`lockd_request`](../../../xnu/osfmk/lockd/lockd_mach.defs#L51) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`lockd_request`](../../../platydoc-data/xnu/osfmk/lockd/lockd_mach.defs#L51) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -51,7 +51,7 @@ simpleroutine lockd_request(
 
 **Mechanism:** This is a lock-daemon protocol declaration with a separately addressed server port. No same-symbol local receiver or direct sender was resolved in the indexed implementation. The declared NFS-lock request/control fields document the boundary, but actual userspace lock-service scheduling, persistence and completion cannot be reconstructed from this declaration.
 
-**Declarations:** [`lockd_ping`](../../../xnu/osfmk/lockd/lockd_mach.defs#L68) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`lockd_ping`](../../../platydoc-data/xnu/osfmk/lockd/lockd_mach.defs#L68) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -69,7 +69,7 @@ Request lock-daemon shutdown/cleanup for the supplied peer state.
 
 **Mechanism:** This is a lock-daemon protocol declaration with a separately addressed server port. No same-symbol local receiver or direct sender was resolved in the indexed implementation. The declared NFS-lock request/control fields document the boundary, but actual userspace lock-service scheduling, persistence and completion cannot be reconstructed from this declaration.
 
-**Declarations:** [`lockd_shutdown`](../../../xnu/osfmk/lockd/lockd_mach.defs#L73) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`lockd_shutdown`](../../../platydoc-data/xnu/osfmk/lockd/lockd_mach.defs#L73) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 

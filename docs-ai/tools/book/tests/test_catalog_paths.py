@@ -28,7 +28,7 @@ class CatalogPathsTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="platydoc-catalog-")
         self.addCleanup(self.temporary.cleanup)
         self.project = Path(self.temporary.name)
-        self.source = self.project / "xnu"
+        self.source = self.project / "platydoc-data" / "xnu"
         self.docs = self.project / "docs-ai"
         self.bsd_out = self.docs / "interfaces/bsd-syscalls"
         self.mig_out = self.docs / "interfaces/mach-messages"
@@ -86,7 +86,7 @@ class CatalogPathsTests(unittest.TestCase):
             self.assertTrue(path.is_file(), url)
 
     def test_shared_layout_and_all_link_helpers(self):
-        self.assertEqual(paths.SOURCE_ROOT, paths.PROJECT_ROOT / "xnu")
+        self.assertEqual(paths.SOURCE_ROOT, paths.PROJECT_ROOT / "platydoc-data" / "xnu")
         self.assertEqual(bsd.MASTER, paths.SOURCE_ROOT / "bsd/kern/syscalls.master")
         self.assertEqual(bsd.DEST, paths.DOCS / "interfaces/bsd-syscalls")
         self.assertEqual(mig.OUT, paths.DOCS / "interfaces/mach-messages")
@@ -167,7 +167,7 @@ class CatalogPathsTests(unittest.TestCase):
         self.assertEqual(summary[0]["file"], "osfmk/probe.defs")
         self.assertEqual(summary[0]["mechanism_slots"], 1)
         text = (self.mig_out / "probe.md").read_text()
-        self.assertIn("../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197", text)
+        self.assertIn("../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197", text)
         excerpt = re.search(
             r"<!-- source-excerpt: ([^ ]+) -->\n```c\n(.*?)\n```", text, re.S)
         self.assertIsNotNone(excerpt)

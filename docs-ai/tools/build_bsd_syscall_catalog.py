@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 import re
+import os
 from paths import DOCS, SOURCE_ROOT, require_source
 from doc_license import with_license_notice
 
@@ -98,7 +99,7 @@ def index_implementations(names):
 
 
 def link_source(path, line, label):
-    return f"[{label}](../../../xnu/{path}#L{line})"
+    return f"[{label}]({os.path.relpath(SOURCE_ROOT / path, DEST)}#L{line})"
 
 
 def render(rows, metadata):

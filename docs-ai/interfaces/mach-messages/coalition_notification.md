@@ -2,8 +2,8 @@
 
 [Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) · [Kernel entry map](../README.md)
 
-[osfmk/mach/coalition_notification.defs](../../../xnu/osfmk/mach/coalition_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
-Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).
+[osfmk/mach/coalition_notification.defs](../../../platydoc-data/xnu/osfmk/mach/coalition_notification.defs#L1). Service/callback interface outside the ordinary kernel kobject table. Follow local sender/receiver evidence; external service bodies are not supplied by the declaration.
+Registration evidence: [`mig_e`](../../../platydoc-data/xnu/osfmk/kern/ipc_kobject.c#L171-L197).
 
 ## Reading these entries
 
@@ -19,9 +19,9 @@ An **interface contract** block quotes the adjacent local `.defs` comment with w
 
 > This is likely to change with 15385886.
 
-**Mechanism:** The local sender obtains the host coalition notification port, checks that it is usable, sends the coalition ID/flags and releases the send right. The RPC result is not propagated by this void helper; the external service decides what to do with the lifecycle notification. [Local path](../../../xnu/osfmk/kern/coalition.c#L553).
+**Mechanism:** The local sender obtains the host coalition notification port, checks that it is usable, sends the coalition ID/flags and releases the send right. The RPC result is not propagated by this void helper; the external service decides what to do with the lifecycle notification. [Local path](../../../platydoc-data/xnu/osfmk/kern/coalition.c#L553).
 
-**Declarations:** [`coalition_notification`](../../../xnu/osfmk/mach/coalition_notification.defs#L19) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
+**Declarations:** [`coalition_notification`](../../../platydoc-data/xnu/osfmk/mach/coalition_notification.defs#L19) (`server64`, `server32`, `client64`, `client32`, `libsyscall64`, `sender64`, `local64`).
 
 **Fields after preprocessing (`server64`):**
 
@@ -33,7 +33,7 @@ simpleroutine coalition_notification(
 ```
 
 **Implementation boundary:** no same-symbol receiver body was resolved in the indexed local C/C++ implementation files.
-Local source occurrences to follow: [osfmk/kern/coalition.c:561](../../../xnu/osfmk/kern/coalition.c#L561). These may be senders, wrappers or declarations; they do not establish a local receiver.
+Local source occurrences to follow: [osfmk/kern/coalition.c:561](../../../platydoc-data/xnu/osfmk/kern/coalition.c#L561). These may be senders, wrappers or declarations; they do not establish a local receiver.
 
 <!-- BEGIN PLATYDOC DOCUMENTATION LICENSE -->
 Original Platydoc text and diagrams are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Quoted source code and third-party material retain their respective licenses.

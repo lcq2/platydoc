@@ -11,6 +11,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import os
 import subprocess
 
 from paths import DOCS, SOURCE_ROOT, require_source
@@ -206,7 +207,7 @@ def normalized(name):
 
 
 def source_link(path, line, label):
-    return f"[{label}](../../../xnu/{path}#L{line})"
+    return f"[{label}]({os.path.relpath(SOURCE_ROOT / path, OUT)}#L{line})"
 
 
 def authored_descriptions(data):
@@ -297,7 +298,7 @@ def render(data, index):
             "[Message catalog and dispatch](README.md) · [All subsystem ranges](subsystems.md) "
             "· [Kernel entry map](../README.md)", "",
             source_link(path, 1, path) + ". " + route,
-            "Registration evidence: [`mig_e`](../../../xnu/osfmk/kern/ipc_kobject.c#L171-L197).", "",
+            "Registration evidence: " + source_link("osfmk/kern/ipc_kobject.c", "171-L197", "`mig_e`") + ".", "",
             "## Reading these entries", "",
             "IDs are computed from the explicit preprocessing profiles in the catalog guide, "
             "counting both routines and `skip` slots. They are not discovered from a running kernel. "
@@ -369,7 +370,7 @@ def render(data, index):
                     if not server:
                         lines.append("This body/reference does not override the kernel-server slot's reserved or declaration-only status.")
                     if definition["end_line"] - definition["line"] <= 18:
-                        url = f"../../../xnu/{definition['path']}#L{definition['line']}-L{definition['end_line']}"
+                        url = f"{os.path.relpath(SOURCE_ROOT / definition['path'], OUT)}#L{definition['line']}-L{definition['end_line']}"
                         original = (SOURCE_ROOT / definition["path"]).read_text().splitlines()
                         lines.extend(["", f"[Implementation excerpt]({url}):",
                                       f"<!-- source-excerpt: {url} -->", "```c",
